@@ -130,4 +130,10 @@ router.post('/post', async function(req, res, next){
   //   });
 })
 
+router.get("/transcriptions/:path/:filename" , async function(req, res, next){
+  console.log(req.params);
+  res.sendFile(`${process.cwd()}/transcriptions/${req.params.path}/${req.params.filename}`);
+});
+
+
 module.exports = router;
