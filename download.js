@@ -10,7 +10,7 @@ const ytDlpBinaryPath = which.sync('yt-dlp');
 
 const ytDlpWrap = new YTDlpWrap(ytDlpBinaryPath);
 
-// const videoUrl = 'https://www.youtube.com/watch?v=P7ny6-lKoe4';
+const testUrl = 'https://www.youtube.com/watch?v=P7ny6-lKoe4';
 
 // function download(videoUrl, filename){
 //   let ytDlpEventEmitter = ytDlpWrap
@@ -58,14 +58,18 @@ async function download(videoUrl, filename){
 }
 
 async function getTitle(videoUrl){
-  let metadata = await ytDlpWrap.getVideoInfo(videoUrl);
+  let metadata = await ytDlpWrap.getVideoInfo(videoUrl, '--format', 'bestaudio / b');
 
   // l(metadata);
   // l(metadata.title);
   // l(metadata._filename);
 
+  l(metadata);
+
   return metadata.title;
 }
+
+// getTitle(testUrl);
 
 // l(transcribe);
 

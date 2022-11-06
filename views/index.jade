@@ -1,5 +1,93 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  style.
+    /* style.css */
+    body {
+      background-color: rgb(6, 26, 27);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 60px auto;
+    }
+
+    .container h1 {
+      text-align: center;
+      color: white;
+    }
+
+    form {
+      background-color: white;
+      padding: 30px;
+    }
+
+    form .input-group {
+      margin-bottom: 15px;
+    }
+
+    form label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    form input {
+      padding: 12px 20px;
+      width: 100%;
+      border: 1px solid #ccc;
+    }
+
+    .submit-btn {
+      width: 100%;
+      border: none;
+      background: rgb(37, 83, 3);
+      font-size: 18px;
+      color: white;
+      border-radius: 3px;
+      padding: 20px;
+      text-align: center;
+    }
+
+  .container
+    h1 File Upload
+    form#form
+      .input-group
+        label(for='file') Select file
+        input#file(type='file')
+      button.submit-btn(type='submit') Upload
+
+  script.
+    l = console.log;
+    l('running')
+
+    const form = document.getElementById("form");
+
+    form.addEventListener("submit", submitForm);
+
+    function submitForm(e) {
+      e.preventDefault();
+      const file = document.getElementById("file");
+      const formData = new FormData();
+
+      l('file');
+      l(file);
+      l(file.file);
+
+      formData.append("file", file.files[0]);
+
+      l(formData);
+
+      fetch("http://localhost:3000/file", {
+        method: 'POST',
+        body: formData,
+        // headers: {
+        //   "Content-Type": "multipart/form-data"
+        // }
+      })
+      .then((res) => console.log(res))
+      .catch((err) => ("Error occured", err));
+    }

@@ -2,16 +2,47 @@ var express = require('express');
 const axios = require("axios");
 const multer = require("multer");
 var router = express.Router();
-var upload = multer();
 const FormData = require('form-data');
 const fs = require('fs/promises');
 const downloadAndTranscribe = require('../download.js')
+const transcribe = require('../transcribe');
+const transcribeWrapped = require('../transcribe-wrapped');
+
+
+const storage = multer.diskStorage({ // notice you are calling the multer.diskStorage() method here, not multer()
+  destination: function(req, file, cb) {
+    cb(null, './uploads/')
+  },
+});
+
+var upload = multer({ storage });
 
 l = console.log;
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'Upload File' });
+});
+
+router.post('/file', upload.single('file'), function (req, res, next) {
+  try {
+    l(req.file);
+    l(req.body);
+
+    transcribeWrapped(req.file.originalname, req.file.path)
+
+    const obj = JSON.parse(JSON.stringify(req.body));
+    l(obj);
+
+    // l(req.files);
+    // l(req.body);
+    res.send('ok');
+    // req.files is array of uploaded files
+    // req.body will contain the text fields, if there were any
+  } catch (err){
+    l('err')
+    l(err);
+  }
 });
 
 router.post('/your_path', upload.single('subtitles'), function (req, res, next) {
