@@ -1,6 +1,7 @@
 const which = require("which");
 const spawn = require('child_process').spawn;
 // const spawn = require('await-spawn')
+const fs = require('fs-extra');
 
 const whisperPath = which.sync('whisper')
 
@@ -25,7 +26,7 @@ async function transcribe(filename, path, language, model){
       arguments.push('--verbose', 'False');
 
 
-      let splitFilename = filename.split("/").pop();
+      let splitFilename = path.split("/").pop();
 
       if(filename){
         arguments.push('-o', `transcriptions/${splitFilename}`);
@@ -63,6 +64,13 @@ async function transcribe(filename, path, language, model){
       ls.on('close', code => {
         resolve(code);
         ws.send(JSON.stringify(`Completed`), function () {});
+        const containingDir = `./transcriptions/${splitFilename}`;
+
+        (async function(){
+          await fs.copy(`${containingDir}/${splitFilename}.srt`, `${containingDir}/${filename}.srt`)
+        })()
+
+
         console.log(`child process exited with code ${code}`);
       });
     } catch (err){

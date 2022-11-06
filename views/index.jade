@@ -108,7 +108,7 @@ block content
         l(event);
         document.getElementById('form').style.display = 'none';
 
-        var percent = (event.loaded / event.total) * 100;
+        var percent = Math.round((event.loaded / event.total) * 100);
         const percentDiv = document.getElementById('progress');
 
         percentDiv.innerHTML = `${percent}% uploaded`;
