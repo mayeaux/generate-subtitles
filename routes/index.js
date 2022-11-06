@@ -37,7 +37,11 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const language = req.body.language;
     const model = req.body.model;
 
-    transcribeWrapped(req.file.originalname, req.file.path, language, model)
+    function decode_utf8(s) {
+      return decodeURIComponent(escape(s));
+    }
+
+    transcribeWrapped(decode_utf8(req.file.originalname), req.file.path, language, model)
 
     const obj = JSON.parse(JSON.stringify(req.body));
     l(obj);
