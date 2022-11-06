@@ -5,6 +5,7 @@ var router = express.Router();
 var upload = multer();
 const FormData = require('form-data');
 const fs = require('fs/promises');
+const downloadAndTranscribe = require('../download.js')
 
 l = console.log;
 
@@ -36,6 +37,15 @@ const url = 'http://127.0.0.1:3000/your_path';
 
 router.post('/post', async function(req, res, next){
   try {
+    l(req.body);
+    l(req.params);
+
+    const videoUrl = req.body.video_url;
+
+    res.send('Starting to download ' + videoUrl);
+
+    await downloadAndTranscribe(videoUrl);
+
     // Create a new form instance
     const form = new FormData();
 
@@ -63,7 +73,7 @@ router.post('/post', async function(req, res, next){
     // l('response');
     // l(response);
 
-    res.send('ok');
+    // res.send('ok');
   } catch (err){
     l('err');
     l(err);
