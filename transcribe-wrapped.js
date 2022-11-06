@@ -21,6 +21,9 @@ async function transcribe(filename, path, language, model){
         arguments.push('--model', model);
       }
 
+      // set the language for whisper (if undefined with auto-detect and translate off that)
+      arguments.push('--verbose', 'False');
+
 
       let splitFilename = filename.split("/").pop();
 
