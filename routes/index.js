@@ -8,10 +8,6 @@ const downloadAndTranscribe = require('../download.js')
 const transcribe = require('../transcribe');
 const transcribeWrapped = require('../transcribe-wrapped');
 
-const app = require('../app');
-const websocketServer = require('../websocketServer')(app);
-// l(websocketServer);
-
 const storage = multer.diskStorage({ // notice you are calling the multer.diskStorage() method here, not multer()
   destination: function(req, file, cb) {
     cb(null, './uploads/')
