@@ -58,11 +58,17 @@ block content
       .input-group
         label(for='file') Select file
         input#file(type='file')
+        label(for='file') Language (aka English)
+        input#language(type='text')
+        label(for='file') Model (aka medium)
+        input#model(type='text')
       button.submit-btn(type='submit') Upload
 
   script.
     l = console.log;
     l('running')
+
+    const uploadPath="#{uploadPath}";
 
     const form = document.getElementById("form");
 
@@ -71,6 +77,8 @@ block content
     function submitForm(e) {
       e.preventDefault();
       const file = document.getElementById("file");
+      const language = document.getElementById("language").value;
+      const model = document.getElementById("model").value;
       const formData = new FormData();
 
       l('file');
@@ -78,10 +86,13 @@ block content
       l(file.file);
 
       formData.append("file", file.files[0]);
+      formData.append('language', language);
+      formData.append('model', model);
+
 
       l(formData);
 
-      fetch("http://localhost:3000/file", {
+      fetch(`${uploadPath}/file`, {
         method: 'POST',
         body: formData,
         // headers: {

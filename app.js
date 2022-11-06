@@ -9,6 +9,10 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
+const fs = require('fs');
+
+fs.mkdirSync('uploads', { recursive: true })
+fs.mkdirSync('transcriptions', { recursive: true })
 
 l = console.log;
 

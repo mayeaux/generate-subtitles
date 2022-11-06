@@ -19,9 +19,11 @@ var upload = multer({ storage });
 
 l = console.log;
 
+const uploadPath = 'http://127.0.0.1:3000' || process.env.UPLOAD_PATH;
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Upload File' });
+  res.render('index', { title: 'Upload File', uploadPath  });
 });
 
 router.post('/file', upload.single('file'), function (req, res, next) {
@@ -29,7 +31,10 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     l(req.file);
     l(req.body);
 
-    transcribeWrapped(req.file.originalname, req.file.path)
+    const language = req.body.language;
+    const model = req.body.model;
+
+    transcribeWrapped(req.file.originalname, req.file.path, language, model)
 
     const obj = JSON.parse(JSON.stringify(req.body));
     l(obj);

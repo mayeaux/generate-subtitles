@@ -9,9 +9,6 @@ l = console.log;
 async function transcribe(filename, path, language, model){
   return new Promise((resolve, reject) => {
     try {
-      language = 'English' || language;
-      model = '' || model;
-
       let arguments = [path];
 
       if(language){
@@ -24,9 +21,13 @@ async function transcribe(filename, path, language, model){
         arguments.push('--model', model);
       }
 
+
+      let splitFilename = filename.split("/").pop();
+
       if(filename){
-        arguments.push('-o', filename);
+        arguments.push('-o', `transcriptions/${splitFilename}`);
       }
+
 
       // const path = filename;
 
