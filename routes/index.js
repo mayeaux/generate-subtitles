@@ -8,6 +8,9 @@ const downloadAndTranscribe = require('../download.js')
 const transcribe = require('../transcribe');
 const transcribeWrapped = require('../transcribe-wrapped');
 
+const app = require('../app');
+const websocketServer = require('../websocketServer')(app);
+// l(websocketServer);
 
 const storage = multer.diskStorage({ // notice you are calling the multer.diskStorage() method here, not multer()
   destination: function(req, file, cb) {
@@ -19,16 +22,18 @@ var upload = multer({ storage });
 
 l = console.log;
 
-l(process.env);
-
-const uploadPath =  process.env.UPLOAD_PATH || 'http://127.0.0.1:3000';
+const uploadPath =  process.env.UPLOAD_PATH || 'http://localhost:3000';
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
+  l(global.ws);
+
   res.render('index', { title: 'Upload File', uploadPath  });
 });
 
 router.post('/file', upload.single('file'), function (req, res, next) {
+  l(global.ws);
+
   try {
     l(req.file);
     l(req.body);

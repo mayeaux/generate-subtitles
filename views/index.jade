@@ -102,3 +102,23 @@ block content
       .then((res) => console.log(res))
       .catch((err) => ("Error occured", err));
     }
+
+  script.
+    (function () {
+      const rss = document.getElementById('rss');
+      // const heapTotal = document.getElementById('heapTotal');
+      // const heapUsed = document.getElementById('heapUsed');
+      // const external = document.getElementById('external');
+      const ws = new WebSocket(`ws://localhost:3000`);
+
+      ws.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+
+        console.log(event.data);
+
+        // rss.textContent = data.rss;
+        // heapTotal.textContent = data.heapTotal;
+        // heapUsed.textContent = data.heapUsed;
+        // external.textContent = data.external;
+      };
+    })();
