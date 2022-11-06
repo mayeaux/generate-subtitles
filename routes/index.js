@@ -19,7 +19,9 @@ var upload = multer({ storage });
 
 l = console.log;
 
-const uploadPath = 'http://127.0.0.1:3000' || process.env.UPLOAD_PATH;
+l(process.env);
+
+const uploadPath =  process.env.UPLOAD_PATH || 'http://127.0.0.1:3000';
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
