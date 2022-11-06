@@ -46,11 +46,12 @@ async function transcribe(filename, path, language, model){
       const ls = spawn(whisperPath, arguments);
 
       ls.stdout.on('data', data => {
-        ws.send(data, function () {});
+        ws.send(JSON.stringify(`stdout: ${data}`), function () {});
         console.log(`stdout: ${data}`);
       });
 
       ls.stderr.on('data', data => {
+        ws.send(JSON.stringify(`stderr: ${data}`), function () {});
         console.log(`stderr: ${data}`);
       });
 
