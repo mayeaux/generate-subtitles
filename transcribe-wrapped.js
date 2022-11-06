@@ -45,6 +45,8 @@ async function transcribe(filename, path, language, model){
 
       const ls = spawn(whisperPath, arguments);
 
+      const ws = global.ws;
+
       ls.stdout.on('data', data => {
         ws.send(JSON.stringify(`stdout: ${data}`), function () {});
         console.log(`stdout: ${data}`);
