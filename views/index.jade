@@ -52,6 +52,11 @@ block content
       text-align: center;
     }
 
+    #data {
+      color: white;
+      font-size: 24px;
+    }
+
   .container
     h1 File Upload
     form#form
@@ -63,6 +68,8 @@ block content
         label(for='file') Model (aka medium)
         input#model(type='text')
       button.submit-btn(type='submit') Upload
+
+    p#data
 
   script.
     l = console.log;
@@ -99,14 +106,20 @@ block content
         //   "Content-Type": "multipart/form-data"
         // }
       })
-      .then((res) => console.log(res))
+      .then((res) =>{
+        console.log(res)
+        document.getElementById('form').style.display = 'none';
+        const latestData = document.getElementById('data');
+
+        latestData.innerHTML = 'Updates will come here..';
+      })
       .catch((err) => ("Error occured", err));
     }
 
   script.
     (function () {
-      const rss = document.getElementById('rss');
-      // const heapTotal = document.getElementById('heapTotal');
+      // const rss = document.getElementById('rss');
+      const latestData = document.getElementById('data');
       // const heapUsed = document.getElementById('heapUsed');
       // const external = document.getElementById('external');
       const ws = new WebSocket(`ws://${uploadPath}`);
@@ -115,6 +128,8 @@ block content
         const data = JSON.parse(event.data);
 
         console.log(event.data);
+
+        latestData.innerHTML = data;
 
         // rss.textContent = data.rss;
         // heapTotal.textContent = data.heapTotal;

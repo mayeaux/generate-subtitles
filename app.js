@@ -34,9 +34,9 @@ wss.on('connection', function (ws, request, client) {
   app.set('websocket', ws);
 
 
-  setInterval(function(){
-    ws.send(Math.random(), function () {});
-  }, 2000);
+  // setInterval(function(){
+  //   ws.send(Math.random(), function () {});
+  // }, 2000);
 
   l('running here');
   //
