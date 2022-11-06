@@ -71,6 +71,7 @@ block content
 
     p#data
 
+  //script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"
   script.
     l = console.log;
     l('running')
@@ -99,23 +100,58 @@ block content
 
       l(formData);
 
-      fetch(`http://${uploadPath}/file`, {
-        method: 'POST',
-        body: formData,
-        // headers: {
-        //   "Content-Type": "multipart/form-data"
-        // }
-      })
-      .then((res) =>{
-        console.log(res)
-        document.getElementById('form').style.display = 'none';
-        const latestData = document.getElementById('data');
+      const uploadUrl = `http://${uploadPath}/file`;
 
-        latestData.innerHTML = 'Updates will come here..';
-      })
-      .catch((err) => ("Error occured", err));
+      var ajax = new XMLHttpRequest();
+      ajax.upload.addEventListener("progress", function(progress){
+        l(progress);
+      }, false);
+      ajax.addEventListener("load", function(res){
+          console.log(res)
+          document.getElementById('form').style.display = 'none';
+          const latestData = document.getElementById('data');
+
+          latestData.innerHTML = 'Updates will come here..';
+      }, false);
+      // ajax.addEventListener("error", errorHandler, false);
+      // ajax.addEventListener("abort", abortHandler, false);
+      ajax.open("POST", uploadUrl); //
+      ajax.send(formData);
+
+      // axios.request({
+      //   method: "post",
+      //   url: uploadUrl,
+      //   data: formData,
+      //   onUploadProgress: (p) => {
+      //     console.log(p);
+      //     //this.setState({
+      //     //fileprogress: p.loaded / p.total
+      //     //})
+      //   }
+      // }).then(data => {
+      //   console.log(res)
+      //   document.getElementById('form').style.display = 'none';
+      //   const latestData = document.getElementById('data');
+      //
+      //   latestData.innerHTML = 'Updates will come here..';
+      // }).catch((err) => ("Error occured", err));
+
+      // fetch(`http://${uploadPath}/file`, {
+      //   method: 'POST',
+      //   body: formData,
+      //   // headers: {
+      //   //   "Content-Type": "multipart/form-data"
+      //   // }
+      // })
+      // .then((res) =>{
+      //   console.log(res)
+      //   document.getElementById('form').style.display = 'none';
+      //   const latestData = document.getElementById('data');
+      //
+      //   latestData.innerHTML = 'Updates will come here..';
+      // })
+      // .catch((err) => ("Error occured", err));
     }
-
   script.
     (function () {
       // const rss = document.getElementById('rss');
