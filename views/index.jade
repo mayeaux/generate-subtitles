@@ -92,7 +92,7 @@ block content
 
       l(formData);
 
-      fetch(`${uploadPath}/file`, {
+      fetch(`http://${uploadPath}/file`, {
         method: 'POST',
         body: formData,
         // headers: {
@@ -109,7 +109,7 @@ block content
       // const heapTotal = document.getElementById('heapTotal');
       // const heapUsed = document.getElementById('heapUsed');
       // const external = document.getElementById('external');
-      const ws = new WebSocket(`ws://localhost:3000`);
+      const ws = new WebSocket(`ws://${uploadPath}`);
 
       ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
