@@ -50,9 +50,10 @@ block content
       border-radius: 3px;
       padding: 20px;
       text-align: center;
+      cursor: pointer;
     }
 
-    #data, #progress, #downloadLink {
+    #data, #progress, #downloadLink, #refreshButton {
       color: white;
       font-size: 24px;
       text-align: center;
@@ -60,6 +61,14 @@ block content
 
     #downloadLink {
       display: none;
+    }
+
+    #refreshButton {
+      cursor: pointer;
+      text-decoration: underline;
+      margin-top: 29px;
+      display: none;
+      font-size: 18px;
     }
 
   .container
@@ -78,6 +87,9 @@ block content
     p#data
 
     a#downloadLink(href='#') Download Here
+
+    a#refreshButton(onclick='window.location.reload();') Transcribe Something Else
+
 
 
   //script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"
@@ -158,6 +170,8 @@ block content
           const downloadLink = document.getElementById('downloadLink')
           downloadLink.href = data.url;
           downloadLink.style.display = 'block';
+          document.getElementById('header').innerHTML = 'Transcription Completed';
+          document.getElementById('refreshButton').style.display = 'block';
 
           l(data.url)
         }
