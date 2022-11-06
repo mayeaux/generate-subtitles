@@ -24,7 +24,7 @@ const uploadPath =  process.env.UPLOAD_PATH || 'localhost:3000';
 router.get('/', function(req, res, next) {
   l(global.ws);
 
-  res.render('index', { title: 'Upload File', uploadPath  });
+  res.render('index', { title: 'Transcribe File', uploadPath  });
 });
 
 router.post('/file', upload.single('file'), function (req, res, next) {
@@ -117,17 +117,6 @@ router.post('/post', async function(req, res, next){
     l('err');
     l(err);
   }
-
-  // axios.post('http://127.0.0.1:3000/your_path', {
-  //   firstName: 'Fred',
-  //   lastName: 'Flintstone'
-  // })
-  //   .then(function (response) {
-  //     console.log(response);
-  //   })
-  //   .catch(function (error) {
-  //     console.log(error);
-  //   });
 })
 
 router.get("/transcriptions/:path/:filename" , async function(req, res, next){

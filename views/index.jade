@@ -52,9 +52,13 @@ block content
       text-align: center;
     }
 
-    #data, #progress {
+    #data, #progress, #downloadLink {
       color: white;
       font-size: 24px;
+    }
+
+    #downloadLink {
+      display: none;
     }
 
   .container
@@ -71,6 +75,9 @@ block content
 
     p#progress
     p#data
+
+    a#downloadLink(href='#') Download Here
+
 
   //script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"
   script.
@@ -145,8 +152,13 @@ block content
 
         latestData.innerHTML = data;
 
-        if(event.data === 'Completed'){
+        if(data.status === 'Completed'){
           latestData.innerHTML = 'Congratulations, you\'re done!';
+          const downloadLink = document.getElementById('downloadLink')
+          downloadLink.href = data.url;
+          downloadLink.style.display = 'block';
+
+          l(data.url)
         }
 
         // rss.textContent = data.rss;

@@ -63,11 +63,17 @@ async function transcribe(filename, path, language, model){
 
       ls.on('close', code => {
         resolve(code);
-        ws.send(JSON.stringify(`Completed`), function () {});
         const containingDir = `./transcriptions/${splitFilename}`;
 
+        const finalRestingPlace = `${containingDir}/${filename}.srt`;
+        ws.send(JSON.stringify({
+          status: 'Completed',
+          url: finalRestingPlace
+        }), function () {});
+
+
         (async function(){
-          await fs.copy(`${containingDir}/${splitFilename}.srt`, `${containingDir}/${filename}.srt`)
+          await fs.copy(`${containingDir}/${splitFilename}.srt`, finalRestingPlace)
         })()
 
 
