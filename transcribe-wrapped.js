@@ -62,6 +62,7 @@ async function transcribe(filename, path, language, model){
 
       ls.on('close', code => {
         resolve(code);
+        ws.send(JSON.stringify(`Completed`), function () {});
         console.log(`child process exited with code ${code}`);
       });
     } catch (err){

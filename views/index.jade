@@ -52,13 +52,13 @@ block content
       text-align: center;
     }
 
-    #data {
+    #data, #progress {
       color: white;
       font-size: 24px;
     }
 
   .container
-    h1 File Upload
+    h1#header File Upload
     form#form
       .input-group
         label(for='file') Select file
@@ -69,6 +69,7 @@ block content
         input#model(type='text')
       button.submit-btn(type='submit') Upload
 
+    p#progress
     p#data
 
   //script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"
@@ -103,54 +104,31 @@ block content
       const uploadUrl = `http://${uploadPath}/file`;
 
       var ajax = new XMLHttpRequest();
-      ajax.upload.addEventListener("progress", function(progress){
-        l(progress);
+      ajax.upload.addEventListener("progress", function(event){
+        l(event);
+        document.getElementById('form').style.display = 'none';
+
+        var percent = (event.loaded / event.total) * 100;
+        const percentDiv = document.getElementById('progress');
+
+        percentDiv.innerHTML = `${percent}% uploaded`;
+
+
       }, false);
       ajax.addEventListener("load", function(res){
           console.log(res)
-          document.getElementById('form').style.display = 'none';
-          const latestData = document.getElementById('data');
+        document.getElementById('progress').style.display = 'none';
+        document.getElementById('header').innerHTML = 'Processing..';
 
-          latestData.innerHTML = 'Updates will come here..';
+
+        const latestData = document.getElementById('data');
+
+          latestData.innerHTML = 'Whisper initiating, updates to come..';
       }, false);
       // ajax.addEventListener("error", errorHandler, false);
       // ajax.addEventListener("abort", abortHandler, false);
       ajax.open("POST", uploadUrl); //
       ajax.send(formData);
-
-      // axios.request({
-      //   method: "post",
-      //   url: uploadUrl,
-      //   data: formData,
-      //   onUploadProgress: (p) => {
-      //     console.log(p);
-      //     //this.setState({
-      //     //fileprogress: p.loaded / p.total
-      //     //})
-      //   }
-      // }).then(data => {
-      //   console.log(res)
-      //   document.getElementById('form').style.display = 'none';
-      //   const latestData = document.getElementById('data');
-      //
-      //   latestData.innerHTML = 'Updates will come here..';
-      // }).catch((err) => ("Error occured", err));
-
-      // fetch(`http://${uploadPath}/file`, {
-      //   method: 'POST',
-      //   body: formData,
-      //   // headers: {
-      //   //   "Content-Type": "multipart/form-data"
-      //   // }
-      // })
-      // .then((res) =>{
-      //   console.log(res)
-      //   document.getElementById('form').style.display = 'none';
-      //   const latestData = document.getElementById('data');
-      //
-      //   latestData.innerHTML = 'Updates will come here..';
-      // })
-      // .catch((err) => ("Error occured", err));
     }
   script.
     (function () {
@@ -166,6 +144,10 @@ block content
         console.log(event.data);
 
         latestData.innerHTML = data;
+
+        if(event.data === 'Completed'){
+          latestData.innerHTML = 'Congratulations, you\'re done!';
+        }
 
         // rss.textContent = data.rss;
         // heapTotal.textContent = data.heapTotal;
