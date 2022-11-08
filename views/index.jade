@@ -2,7 +2,6 @@ extends layout
 
 block content
   style.
-    /* style.css */
     body {
       background-color: rgb(6, 26, 27);
     }
@@ -53,10 +52,14 @@ block content
       cursor: pointer;
     }
 
-    #data, #progress, #downloadLink, #refreshButton {
+    #data, #progress, #downloadLink, #refreshButton, #timeEstimator {
       color: white;
       font-size: 24px;
       text-align: center;
+    }
+
+    #timeEstimator {
+      font-size: 21px;
     }
 
     #downloadLink {
@@ -84,15 +87,13 @@ block content
       button.submit-btn(type='submit') Upload
 
     p#progress
+    p#timeEstimator
     p#data
 
     a#downloadLink(href='#') Download Here
 
     a#refreshButton(onclick='window.location.reload();') Transcribe Something Else
 
-
-
-  //script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"
   script.
     l = console.log;
     l('running')
@@ -124,6 +125,8 @@ block content
       const uploadUrl = `http://${uploadPath}/file`;
 
       var ajax = new XMLHttpRequest();
+      let originalDate, uploadStarted, timeElapsedInSeconds, estimatedUploadTimeInSeconds;
+
       ajax.upload.addEventListener("progress", function(event){
         l(event);
         document.getElementById('form').style.display = 'none';
@@ -132,6 +135,23 @@ block content
         const percentDiv = document.getElementById('progress');
 
         percentDiv.innerHTML = `${percent}% uploaded`;
+        const currentTime = new Date();
+        timeElapsedInSeconds = Math.round((currentTime - originalDate) / 1000);
+        estimatedUploadTimeInSeconds = Math.round(timeElapsedInSeconds * (100/percent));
+
+        if(!uploadStarted){
+          uploadStarted = true;
+          originalDate = new Date();
+          setInterval(function(){
+            const timeRemainingDiv = document.getElementById('timeEstimator');
+
+            timeRemainingDiv.innerHTML = `${timeElapsedInSeconds} seconds spent processing
+            \n\n ${estimatedUploadTimeInSeconds} estimated total upload time
+            \n\n ${estimatedUploadTimeInSeconds - timeElapsedInSeconds} estimated seconds remaining`;
+          }, 1000)
+        }
+
+
 
 
       }, false);
@@ -143,7 +163,7 @@ block content
 
         const latestData = document.getElementById('data');
 
-          latestData.innerHTML = 'Whisper initiating, updates to come...';
+          latestData.innerHTML = 'Whisper initializing, updates to come...';
       }, false);
       // ajax.addEventListener("error", errorHandler, false);
       // ajax.addEventListener("abort", abortHandler, false);
@@ -152,10 +172,7 @@ block content
     }
   script.
     (function () {
-      // const rss = document.getElementById('rss');
       const latestData = document.getElementById('data');
-      // const heapUsed = document.getElementById('heapUsed');
-      // const external = document.getElementById('external');
       const ws = new WebSocket(`ws://${uploadPath}`);
 
       ws.onmessage = function (event) {
@@ -175,10 +192,5 @@ block content
 
           l(data.url)
         }
-
-        // rss.textContent = data.rss;
-        // heapTotal.textContent = data.heapTotal;
-        // heapUsed.textContent = data.heapUsed;
-        // external.textContent = data.external;
       };
     })();
