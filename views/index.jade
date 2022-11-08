@@ -96,9 +96,9 @@ block content
 
   script.
     l = console.log;
-    l('running')
-
     const uploadPath="#{uploadPath}";
+
+    const randomNumber = Math.round(Math.random() * 1000000000000);
 
     const form = document.getElementById("form");
 
@@ -118,6 +118,7 @@ block content
       formData.append("file", file.files[0]);
       formData.append('language', language);
       formData.append('model', model);
+      formData.append('websocketNumber', randomNumber);
 
 
       l(formData);
@@ -145,35 +146,35 @@ block content
           setInterval(function(){
             const timeRemainingDiv = document.getElementById('timeEstimator');
 
+            // TODO: not honoring newlines
             timeRemainingDiv.innerHTML = `${timeElapsedInSeconds} seconds spent processing
             \n\n ${estimatedUploadTimeInSeconds} estimated total upload time
             \n\n ${estimatedUploadTimeInSeconds - timeElapsedInSeconds} estimated seconds remaining`;
           }, 1000)
         }
-
-
-
-
       }, false);
+
       ajax.addEventListener("load", function(res){
           console.log(res)
         document.getElementById('progress').style.display = 'none';
-        document.getElementById('header').innerHTML = 'Processing..';
+        document.getElementById('timeEstimator').style.display = 'none';
 
+        document.getElementById('header').innerHTML = 'Processing..';
 
         const latestData = document.getElementById('data');
 
           latestData.innerHTML = 'Whisper initializing, updates to come...';
       }, false);
+      // TODO: implement these
       // ajax.addEventListener("error", errorHandler, false);
       // ajax.addEventListener("abort", abortHandler, false);
       ajax.open("POST", uploadUrl); //
       ajax.send(formData);
     }
-  script.
+
     (function () {
       const latestData = document.getElementById('data');
-      const ws = new WebSocket(`ws://${uploadPath}`);
+      const ws = new WebSocket(`ws://${uploadPath}/${randomNumber}`);
 
       ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
@@ -182,7 +183,7 @@ block content
 
         latestData.innerHTML = data;
 
-        if(data.status === 'Completed'){
+        if (data.status === 'Completed') {
           latestData.innerHTML = 'Congratulations, you\'re done!';
           const downloadLink = document.getElementById('downloadLink')
           downloadLink.href = data.url;

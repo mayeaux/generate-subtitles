@@ -7,7 +7,7 @@ const whisperPath = which.sync('whisper')
 
 l = console.log;
 
-async function transcribe(filename, path, language, model){
+async function transcribe(filename, path, language, model, websocketNumber){
   return new Promise((resolve, reject) => {
     try {
       let arguments = [path];
@@ -49,15 +49,20 @@ async function transcribe(filename, path, language, model){
 
       const ls = spawn(whisperPath, arguments);
 
-      const ws = global.ws;
+      let websocketConnection;
+      if(global.ws[websocketNumber]){
+        websocketConnection = global.ws[websocketNumber]
+      }
+
+      l(global.ws);
 
       ls.stdout.on('data', data => {
-        ws.send(JSON.stringify(`stdout: ${data}`), function () {});
+        websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
         console.log(`stdout: ${data}`);
       });
 
       ls.stderr.on('data', data => {
-        ws.send(JSON.stringify(`stderr: ${data}`), function () {});
+        websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
         console.log(`stderr: ${data}`);
       });
 
@@ -66,7 +71,7 @@ async function transcribe(filename, path, language, model){
         const containingDir = `./transcriptions/${splitFilename}`;
 
         const finalRestingPlace = `${containingDir}/${filename}.srt`;
-        ws.send(JSON.stringify({
+        websocketConnection.send(JSON.stringify({
           status: 'Completed',
           url: finalRestingPlace
         }), function () {});

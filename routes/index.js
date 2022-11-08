@@ -22,13 +22,13 @@ const uploadPath =  process.env.UPLOAD_PATH || 'localhost:3000';
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  l(global.ws);
+  // l(global.ws);
 
   res.render('index', { title: 'Transcribe File', uploadPath  });
 });
 
 router.post('/file', upload.single('file'), function (req, res, next) {
-  l(global.ws);
+  // l(global.ws);
 
   try {
     l(req.file);
@@ -36,12 +36,13 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     const language = req.body.language;
     const model = req.body.model;
+    const websocketNumber = req.body.websocketNumber;
 
     function decode_utf8(s) {
       return decodeURIComponent(escape(s));
     }
 
-    transcribeWrapped(decode_utf8(req.file.originalname), req.file.path, language, model)
+    transcribeWrapped(decode_utf8(req.file.originalname), req.file.path, language, model, websocketNumber)
 
     const obj = JSON.parse(JSON.stringify(req.body));
     l(obj);

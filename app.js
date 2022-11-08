@@ -5,17 +5,15 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const { WebSocketServer } = require('ws');
-
+const fs = require('fs');
+const {createServer} = require("http");
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
-const fs = require('fs');
-const http = require("http");
-const {createServer} = require("http");
 
 var app = express();
 
-
+l = console.log;
 
 var port = process.env.PORT || '3000';
 app.set('port', port);
@@ -27,35 +25,34 @@ app.set('port', port);
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
-wss.on('connection', function (ws, request, client) {
+global.ws = {}
 
-  global.ws = ws;
-
-  app.set('websocket', ws);
-
+wss.on('connection', function (websocketConnection, request, client) {
 
   // setInterval(function(){
   //   ws.send(Math.random(), function () {});
   // }, 2000);
 
-  l('running here');
+  l('websocket connected');
   //
   // l(ws);
   // l(request);
   // l(client);
 
+  const websocketNumber = request.url.split('/')[1];
 
-  ws.on('close', function () {
-    console.log('stopping client interval');
+  l(websocketNumber);
+
+  global.ws[websocketNumber] = websocketConnection;
+
+
+  websocketConnection.on('close', function () {
+    console.log('websocket connection closed');
   });
 });
 
-// global.wss = wss;
-
 fs.mkdirSync('uploads', { recursive: true })
 fs.mkdirSync('transcriptions', { recursive: true })
-
-l = console.log;
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -105,6 +102,8 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
+
+l(`Server listening on port ${port}`)
 
 server.listen(port);
 
