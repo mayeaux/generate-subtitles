@@ -74,7 +74,7 @@ app.use(sessions({
   secret: (Math.random() * 1000000000).toString(),
   cookie: { maxAge: oneWeek },
   saveUninitialized: true,
-  resave: true
+  resave: false
 }));
 
 app.use(function(req, res, next){
