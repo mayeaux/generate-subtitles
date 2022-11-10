@@ -86,7 +86,7 @@ async function transcribe(filename, path, language, model, websocketConnection){
       const startingDate = new Date();
       l(startingDate);
 
-      ls.on('close', code => {
+      ls.on('close', async (code) => {
         l('code');
         l(code);
 
@@ -106,30 +106,21 @@ async function transcribe(filename, path, language, model, websocketConnection){
           const transcribedSrtFile = `${containingDir}/${filename}.srt`;
 
           // copy srt with the original filename
-          (async function(){
-            await fs.copy(`${containingDir}/${splitFilename}.srt`, transcribedSrtFile)
-          })()
-
-          // tell frontend upload is done
-          websocketConnection.send(JSON.stringify({
-            status: 'Completed',
-            url: transcribedSrtFile
-          }), function () {});
+          await fs.copy(`${containingDir}/${splitFilename}.srt`, transcribedSrtFile)
 
           // return await
           resolve(code);
 
           const processingSeconds = Math.round((new Date() - startingDate) / 1000);
 
-          (async function(){
-            const ffprobeResponse = await ffprobe(originalUpload, { path: ffprobePath });
+          const ffprobeResponse = await ffprobe(originalUpload, { path: ffprobePath });
 
-            const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
-            const uploadDurationInSeconds = Math.round(audioStream.duration);
+          const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
+          const uploadDurationInSeconds = Math.round(audioStream.duration);
 
-            const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
+          const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
 
-            const outputText = `
+          const outputText = `
             filename: ${filename}
             processingSeconds: ${processingSeconds}
             processingSecondsHumanReadable: ${forHumans(processingSeconds)}
@@ -141,10 +132,16 @@ async function transcribe(filename, path, language, model, websocketConnection){
             processingRatio: ${processingRatio}
           `.replace(/^ +/gm, ''); // remove indentation
 
-            // TODO: ^ send the info above here via websocket
+          // tell frontend upload is done
+          websocketConnection.send(JSON.stringify({
+            status: 'Completed',
+            url: transcribedSrtFile,
+            detailsString: outputText
+          }), function () {});
 
-            fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
-          })()
+          // TODO: ^ send the info above here via websocket
+
+          fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
         } else {
           l('FAILED!');
         }

@@ -182,7 +182,7 @@ block content
         latestData.innerHTML = data;
 
         if (data.status === 'Completed') {
-          latestData.innerHTML = 'Congratulations, you\'re done!';
+          latestData.innerHTML = 'Congratulations, you\'re done!\n\n' + data.detailsString;
           const downloadLink = document.getElementById('downloadLink')
           downloadLink.href = data.url;
           downloadLink.style.display = 'block';
