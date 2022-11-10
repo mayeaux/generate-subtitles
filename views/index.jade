@@ -84,6 +84,10 @@ block content
       font-size: 18px;
     }
 
+    #startNewUpload {
+      margin-top: 45px;
+    }
+
   .container
     h1#header File Upload
     form#form
@@ -156,8 +160,6 @@ block content
     function submitForm(e) {
       e.preventDefault();
 
-      document.getElementById('startNewUpload').style.display = 'block';
-
       const language = document.getElementById("language").value;
       const model = document.getElementById("model").value;
 
@@ -225,6 +227,7 @@ block content
       ajax.upload.addEventListener("progress", function(event){
         l(event);
         form.style.display = 'none';
+        document.getElementById('startNewUpload').style.display = 'block';
 
         var percent = Math.round((event.loaded / event.total) * 100);
         progressDiv.innerHTML = `${percent}% uploaded`;
@@ -251,6 +254,8 @@ block content
         timeRemainingDiv.style.display = 'none';
 
         header.innerHTML = 'Processing..';
+
+        document.getElementById('startNewUpload').style.marginTop = '29px';
 
       }, false);
       // TODO: implement these
