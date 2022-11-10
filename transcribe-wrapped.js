@@ -123,22 +123,24 @@ async function transcribe(filename, path, language, model, websocketNumber){
           // return await
           resolve(code);
 
-          const secondsDifference = (new Date() - startingDate) / 1000
-          const humanReadableTime = forHumans(Math.round(secondsDifference));
+          const processingSeconds = Math.round((new Date() - startingDate) / 1000);
 
           (async function(){
             const ffprobeResponse = await ffprobe(originalUpload, { path: ffprobePath });
 
             const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
+            const uploadDurationInSeconds = Math.round(audioStream.duration);
+
 
             const outputText = `
             filename: ${filename}
-            secondsDifference: ${secondsDifference}
-            humanReadableTime: ${humanReadableTime}
+            processingSeconds: ${processingSeconds}
+            processingSecondsHumanReadable: ${forHumans(processingSeconds)}
             language: ${language}
             model: ${model}
             upload: ${splitFilename}
-            uploadDurationInSeconds: ${Math.round(audioStream.duration)}
+            uploadDurationInSeconds: ${uploadDurationInSeconds}
+            uploadDurationInSecondsHumanReadable: ${forHumans(uploadDurationInSeconds)}
           `.replace(/^ +/gm, ''); // remove indentation
 
             fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
