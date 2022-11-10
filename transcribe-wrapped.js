@@ -34,7 +34,7 @@ function forHumans ( seconds ) {
   return returntext.trim();
 }
 
-async function transcribe(filename, path, language, model, websocketNumber){
+async function transcribe(filename, path, language, model, websocketConnection){
   return new Promise(async (resolve, reject) => {
     try {
       // queue up arguments, path is the first one
@@ -63,13 +63,6 @@ async function transcribe(filename, path, language, model, websocketNumber){
 
       l('transcribe arguments');
       l(arguments);
-
-      // load websocket by passed number
-      let websocketConnection;
-      if(global.ws[websocketNumber]){
-        websocketConnection = global.ws[websocketNumber]
-      }
-
 
       const ls = spawn(whisperPath, arguments);
 
@@ -131,6 +124,7 @@ async function transcribe(filename, path, language, model, websocketNumber){
             const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
             const uploadDurationInSeconds = Math.round(audioStream.duration);
 
+            const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
 
             const outputText = `
             filename: ${filename}
@@ -141,6 +135,7 @@ async function transcribe(filename, path, language, model, websocketNumber){
             upload: ${splitFilename}
             uploadDurationInSeconds: ${uploadDurationInSeconds}
             uploadDurationInSecondsHumanReadable: ${forHumans(uploadDurationInSeconds)}
+            processingRatio: ${processingRatio}
           `.replace(/^ +/gm, ''); // remove indentation
 
             fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');

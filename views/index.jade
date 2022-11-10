@@ -166,7 +166,10 @@ block content
 
         header.innerHTML = 'Processing..';
 
-        latestData.innerHTML = 'Whisper initializing, updates to come...';
+        if(!latestData.innerHTML.startsWith('Your place')){
+          latestData.innerHTML = 'Whisper initializing, updates to come...';
+        }
+
       }, false);
       // TODO: implement these
       // ajax.addEventListener("error", errorHandler, false);

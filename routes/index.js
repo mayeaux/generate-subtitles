@@ -7,6 +7,13 @@ const fs = require('fs/promises');
 const downloadAndTranscribe = require('../download.js')
 const transcribe = require('../transcribe');
 const transcribeWrapped = require('../transcribe-wrapped');
+const Queue = require("promise-queue");
+
+var maxConcurrent = 1;
+var maxQueue = Infinity;
+var queue = new Queue(maxConcurrent, maxQueue);
+
+l(queue);
 
 const storage = multer.diskStorage({ // notice you are calling the multer.diskStorage() method here, not multer()
   destination: function(req, file, cb) {
@@ -43,8 +50,24 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     const utf8DecodedFileName = decode_utf8(req.file.originalname);
 
+
     if(!path){ res.status(500); res.send('no file')}
-    transcribeWrapped(utf8DecodedFileName, path, language, model, websocketNumber)
+
+    // load websocket by passed number
+    let websocketConnection;
+    if(global.ws[websocketNumber]){
+      websocketConnection = global.ws[websocketNumber]
+    }
+
+    const placeInQueue = queue.getQueueLength();
+
+    const queueString = `Your place in the queue is ${placeInQueue + 1}. You'll start when others are done`;
+
+    websocketConnection.send(JSON.stringify(queueString), function () {});
+
+    queue.add(function () {
+      return transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection)
+    })
 
     const obj = JSON.parse(JSON.stringify(req.body));
     l(obj);

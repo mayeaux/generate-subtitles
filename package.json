@@ -18,6 +18,7 @@
     "jade": "~1.11.0",
     "morgan": "~1.6.1",
     "multer": "^1.4.5-lts.1",
+    "promise-queue": "^2.2.5",
     "serve-favicon": "~2.3.0",
     "which": "^3.0.0",
     "ws": "^8.10.0",
