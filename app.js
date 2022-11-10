@@ -39,9 +39,9 @@ wss.on('connection', function (websocketConnection, request, client) {
 
   l('websocket connected');
   //
-  l(websocketConnection);
-  l(request);
-  l(client);
+  // l(websocketConnection);
+  // l(request);
+  // l(client);
 
   const websocketNumber = request.url.split('/')[1];
 

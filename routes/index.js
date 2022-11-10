@@ -8,6 +8,7 @@ const downloadAndTranscribe = require('../download.js')
 const transcribe = require('../transcribe');
 const transcribeWrapped = require('../transcribe-wrapped');
 const Queue = require("promise-queue");
+const forHumans = require('../helpers').forHumans;
 
 var maxConcurrent = 1;
 var maxQueue = Infinity;
@@ -34,10 +35,11 @@ function decode_utf8(s) {
 // transcribe frontend page
 router.get('/', function(req, res, next) {
   // l(req.session);
-
+  
   res.render('index', {
     title: 'Transcribe File',
     uploadPath,
+    forHumans,
     // previousLanguage: req.session?.language,
     // previousModel: req.session?.model
   });

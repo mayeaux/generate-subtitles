@@ -108,6 +108,17 @@ block content
   script(src='//cdn.jsdelivr.net/npm/sweetalert2@11')
   script.
     l = console.log;
+
+    function unescapeHTML(escapedHTML) {
+      return escapedHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    }
+
+    // had to do this because of the greater than thing (remove backslash)
+    // otherwise could do const forHumans = #/{forHumans}
+    eval(unescapeHTML(`#{forHumans}`));
+
+    l(forHumans(100));
+
     // TODO: pass from frontend
     const languagesString = 'Afrikaans,Albanian,Amharic,Arabic,Armenian,Assamese,Azerbaijani,Bashkir,Basque,Belarusian,Bengali,Bosnian,Breton,Bulgarian,Burmese,Castilian,Catalan,Chinese,Croatian,Czech,Danish,Dutch,English,Estonian,Faroese,Finnish,Flemish,French,Galician,Georgian,German,Greek,Gujarati,Haitian,Haitian Creole,Hausa,Hawaiian,Hebrew,Hindi,Hungarian,Icelandic,Indonesian,Italian,Japanese,Javanese,Kannada,Kazakh,Khmer,Korean,Lao,Latin,Latvian,Letzeburgesch,Lingala,Lithuanian,Luxembourgish,Macedonian,Malagasy,Malay,Malayalam,Maltese,Maori,Marathi,Moldavian,Moldovan,Mongolian,Myanmar,Nepali,Norwegian,Nynorsk,Occitan,Panjabi,Pashto,Persian,Polish,Portuguese,Punjabi,Pushto,Romanian,Russian,Sanskrit,Serbian,Shona,Sindhi,Sinhala,Sinhalese,Slovak,Slovenian,Somali,Spanish,Sundanese,Swahili,Swedish,Tagalog,Tajik,Tamil,Tatar,Telugu,Thai,Tibetan,Turkish,Turkmen,Ukrainian,Urdu,Uzbek,Valencian,Vietnamese,Welsh,Yiddish,Yoruba';
     const languages = languagesString.split(',');
@@ -158,10 +169,11 @@ block content
       function capitalize(s) {
         return s[0].toUpperCase() + s.slice(1);
       }
-      
-      const existsAndNotValidLanguage = language &&
-                                        !languages.includes(language) &&
-                                        !languages.includes(capitalize(language));
+
+      const existsAndNotValidLanguage =
+        language &&
+        !languages.includes(language) &&
+        !languages.includes(capitalize(language));
 
       if(existsAndNotValidLanguage){
         return Swal.fire({
@@ -182,13 +194,6 @@ block content
           confirmButtonText: 'Cool'
         })
       }
-
-      // Swal.fire({
-      //   title: 'Error!',
-      //   text: languages,
-      //   icon: 'error',
-      //   confirmButtonText: 'Cool'
-      // })
 
       formData.append("file", passedFile);
       formData.append('language', language);
@@ -228,7 +233,7 @@ block content
           originalDate = new Date();
           setInterval(function(){
             // TODO: not honoring newlines
-            timeRemainingDiv.innerHTML = `[${timeElapsedInSeconds}/${estimatedUploadTimeInSeconds}s] ${estimatedSecondsRemaining} seconds remaining`
+            timeRemainingDiv.innerHTML = `[${timeElapsedInSeconds}/${estimatedUploadTimeInSeconds}s] ${forHumans(estimatedSecondsRemaining)} remaining`
           }, 1000)
         }
       }, false);
