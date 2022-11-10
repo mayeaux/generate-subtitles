@@ -91,9 +91,9 @@ block content
         label(for='file') Select file
         input#file(type='file')
         label(for='file') Language (aka English)
-        input#language(type='text')
+        input#language(type='text' value=previousLanguage)
         label(for='file') Model (aka medium)
-        input#model(type='text')
+        input#model(type='text' value=previousModel)
       button.submit-btn(type='submit') Upload
 
     p#progress

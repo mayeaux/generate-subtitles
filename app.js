@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 const { WebSocketServer } = require('ws');
 const fs = require('fs');
 const {createServer} = require("http");
+const sessions = require('express-session');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -65,6 +66,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+const oneWeek = 1000 * 60 * 60 * 24 * 7;
+
+//session middleware
+app.use(sessions({
+  secret: (Math.random() * 1000000000).toString(),
+  cookie: { maxAge: oneWeek },
+  saveUninitialized: true,
+  resave: true
+}));
 
 app.use(function(req, res, next){
   const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;

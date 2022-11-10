@@ -144,6 +144,7 @@ async function transcribe(filename, path, language, model, websocketConnection){
           fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
         } else {
           l('FAILED!');
+          reject();
         }
 
         console.log(`child process exited with code ${code}`);

@@ -33,7 +33,14 @@ function decode_utf8(s) {
 
 // transcribe frontend page
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Transcribe File', uploadPath  });
+  l(req.session);
+
+  res.render('index', {
+    title: 'Transcribe File',
+    uploadPath,
+    previousLanguage: req.session?.language,
+    previousModel: req.session?.model
+  });
 });
 
 router.post('/file', upload.single('file'), function (req, res, next) {
@@ -48,8 +55,14 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const path = req.file.path;
 
-    const utf8DecodedFileName = decode_utf8(req.file.originalname);
+    l(req.session);
+    if(req.session){
+      req.session.language = language;
+      req.session.model = model;
+      req.session.save()
+    }
 
+    const utf8DecodedFileName = decode_utf8(req.file.originalname);
 
     if(!path){ res.status(500); res.send('no file')}
 
@@ -63,10 +76,10 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     l(queue);
 
-    if(placeInQueue > 0){
-      const queueString = `Your place in the queue is ${placeInQueue + 1}. You'll start when others are done`;
-      websocketConnection.send(JSON.stringify(queueString), function () {});
-    }
+    // if(placeInQueue > 0){
+    const queueString = `Your place in the queue is ${placeInQueue + 1}. You'll start when others are done`;
+    websocketConnection.send(JSON.stringify(queueString), function () {});
+    // }
 
     queue.add(function () {
       return transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection)
