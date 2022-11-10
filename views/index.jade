@@ -254,9 +254,7 @@ block content
         timeRemainingDiv.style.display = 'none';
 
         header.innerHTML = 'Processing..';
-
         document.getElementById('startNewUpload').style.marginTop = '29px';
-
       }, false);
       // TODO: implement these
       // ajax.addEventListener("error", errorHandler, false);
@@ -298,7 +296,9 @@ block content
           placeInQueue = placeInQueue - 1;
           latestData.innerHTML = `Your place in the queue is ${placeInQueue}. You'll start when others are done`;
         } else if (data.message === 'fileDetails') {
-          document.getElementById('finishedData').innerHTML = data.fileDetails;
+          const niceDate = new Date().toString().replace(/GMT.*/g,"");
+          const niceString = `startedAt: ${niceDate}`;
+          document.getElementById('finishedData').innerHTML = data.fileDetails + niceString;
         } else {
           latestData.innerHTML = data;
         }

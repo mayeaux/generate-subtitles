@@ -122,6 +122,8 @@ async function transcribe(filename, path, language, model, websocketConnection){
             uploadDurationInSeconds: ${uploadDurationInSeconds}
             uploadDurationInSecondsHumanReadable: ${forHumans(uploadDurationInSeconds)}
             processingRatio: ${processingRatio}
+            startedAt: ${startingDate.toUTCString()}
+            finishedAT: ${new Date().toUTCString()}
           `.replace(/^ +/gm, ''); // remove indentation
 
           // tell frontend upload is done
