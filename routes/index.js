@@ -43,6 +43,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     const utf8DecodedFileName = decode_utf8(req.file.originalname);
 
+    if(!path){ res.status(500); res.send('no file')}
     transcribeWrapped(utf8DecodedFileName, path, language, model, websocketNumber)
 
     const obj = JSON.parse(JSON.stringify(req.body));
