@@ -73,7 +73,7 @@ const oneWeek = 1000 * 60 * 60 * 24 * 7;
 app.use(sessions({
   secret: (Math.random() * 1000000000).toString(),
   cookie: { maxAge: oneWeek },
-  saveUninitialized: true,
+  saveUninitialized: false,
   resave: false
 }));
 
