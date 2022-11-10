@@ -76,10 +76,18 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     l(queue);
 
-    // if(placeInQueue > 0){
-    const queueString = `Your place in the queue is ${placeInQueue + 1}. You'll start when others are done`;
-    websocketConnection.send(JSON.stringify(queueString), function () {});
-    // }
+    // general queue data
+    global.queue = {}
+
+    const amountOfCurrentPending = queue.getPendingLength()
+
+    global.queue.currentItemNumber = amountOfCurrentPending;
+
+
+    if(amountOfCurrentPending > 0){
+      const queueString = `Your place in the queue is ${placeInQueue + 1}. You'll start when others are done`;
+      websocketConnection.send(JSON.stringify(queueString), function () {});
+    }
 
     queue.add(function () {
       return transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection)

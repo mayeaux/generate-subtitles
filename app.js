@@ -26,7 +26,10 @@ app.set('port', port);
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
+// store websocket connection based on random number generated
 global.ws = {}
+
+global.wss = wss;
 
 wss.on('connection', function (websocketConnection, request, client) {
 
@@ -36,9 +39,9 @@ wss.on('connection', function (websocketConnection, request, client) {
 
   l('websocket connected');
   //
-  // l(ws);
-  // l(request);
-  // l(client);
+  l(websocketConnection);
+  l(request);
+  l(client);
 
   const websocketNumber = request.url.split('/')[1];
 

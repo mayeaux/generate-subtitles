@@ -88,7 +88,7 @@ block content
     h1#header File Upload
     form#form
       .input-group
-        label(for='file') Select file
+        label(for='file') Select (or drop) file
         input#file(type='file')
         label(for='file') Language (aka English)
         input#language(type='text' value=previousLanguage)
@@ -124,14 +124,14 @@ block content
     const header = document.getElementById('header')
     const refreshButton = document.getElementById('refreshButton');
     const latestData = document.getElementById('data');
+    const file = document.getElementById("file");
+    const language = document.getElementById("language").value;
+    const model = document.getElementById("model").value;
 
     form.addEventListener("submit", submitForm);
 
     function submitForm(e) {
       e.preventDefault();
-      const file = document.getElementById("file");
-      const language = document.getElementById("language").value;
-      const model = document.getElementById("model").value;
       const formData = new FormData();
 
       formData.append("file", file.files[0]);
@@ -217,3 +217,27 @@ block content
         }
       };
     })();
+
+    /** DRAG AND DROP FILES **/
+    file.ondragover = file.ondragenter = function (evt) {
+      evt.preventDefault();
+    };
+
+    file.ondrop = function (evt) {
+      evt.preventDefault();
+
+      let list = new DataTransfer();
+      let firstPassedFile = evt.dataTransfer.files[0];
+      list.items.add(firstPassedFile);
+
+      if(evt?.dataTransfer?.files){
+        l('running here');
+        // only add the first file
+        file.files = list.files;
+        l(list.files);
+        l(file.files);
+
+      } else {
+        l('no files found');
+      }
+    };
