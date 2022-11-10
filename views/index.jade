@@ -100,7 +100,13 @@ block content
 
     const randomNumber = Math.round(Math.random() * 1000000000000);
 
+    // grab elements
     const form = document.getElementById("form");
+    const progressDiv = document.getElementById('progress');
+    const timeRemainingDiv = document.getElementById('timeEstimator');
+    const header = document.getElementById('header')
+    const refreshButton = document.getElementById('refreshButton');
+    const latestData = document.getElementById('data');
 
     form.addEventListener("submit", submitForm);
 
@@ -130,22 +136,20 @@ block content
 
       ajax.upload.addEventListener("progress", function(event){
         l(event);
-        document.getElementById('form').style.display = 'none';
+        form.style.display = 'none';
 
         var percent = Math.round((event.loaded / event.total) * 100);
-        const percentDiv = document.getElementById('progress');
+        progressDiv.innerHTML = `${percent}% uploaded`;
 
-        percentDiv.innerHTML = `${percent}% uploaded`;
         const currentTime = new Date();
         timeElapsedInSeconds = Math.round((currentTime - originalDate) / 1000);
         estimatedUploadTimeInSeconds = Math.round(timeElapsedInSeconds * (100/percent));
 
+        // start up functionality to update estimate every second
         if(!uploadStarted){
           uploadStarted = true;
           originalDate = new Date();
           setInterval(function(){
-            const timeRemainingDiv = document.getElementById('timeEstimator');
-
             // TODO: not honoring newlines
             timeRemainingDiv.innerHTML = `${timeElapsedInSeconds} seconds spent processing
             \n\n ${estimatedUploadTimeInSeconds} estimated total upload time
@@ -156,14 +160,12 @@ block content
 
       ajax.addEventListener("load", function(res){
           console.log(res)
-        document.getElementById('progress').style.display = 'none';
-        document.getElementById('timeEstimator').style.display = 'none';
+        progressDiv.style.display = 'none';
+        timeRemainingDiv.style.display = 'none';
 
-        document.getElementById('header').innerHTML = 'Processing..';
+        header.innerHTML = 'Processing..';
 
-        const latestData = document.getElementById('data');
-
-          latestData.innerHTML = 'Whisper initializing, updates to come...';
+        latestData.innerHTML = 'Whisper initializing, updates to come...';
       }, false);
       // TODO: implement these
       // ajax.addEventListener("error", errorHandler, false);
@@ -188,8 +190,8 @@ block content
           const downloadLink = document.getElementById('downloadLink')
           downloadLink.href = data.url;
           downloadLink.style.display = 'block';
-          document.getElementById('header').innerHTML = 'Transcription Completed';
-          document.getElementById('refreshButton').style.display = 'block';
+          header.innerHTML = 'Transcription Completed';
+          refreshButton.style.display = 'block';
 
           l(data.url)
         }

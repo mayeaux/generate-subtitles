@@ -20,10 +20,12 @@ l = console.log;
 
 const uploadPath =  process.env.UPLOAD_PATH || 'localhost:3000';
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  // l(global.ws);
+function decode_utf8(s) {
+  return decodeURIComponent(escape(s));
+}
 
+// transcribe frontend page
+router.get('/', function(req, res, next) {
   res.render('index', { title: 'Transcribe File', uploadPath  });
 });
 
@@ -37,31 +39,11 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const language = req.body.language;
     const model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
+    const path = req.file.path;
 
-    function decode_utf8(s) {
-      return decodeURIComponent(escape(s));
-    }
+    const utf8DecodedFileName = decode_utf8(req.file.originalname);
 
-    transcribeWrapped(decode_utf8(req.file.originalname), req.file.path, language, model, websocketNumber)
-
-    const obj = JSON.parse(JSON.stringify(req.body));
-    l(obj);
-
-    // l(req.files);
-    // l(req.body);
-    res.send('ok');
-    // req.files is array of uploaded files
-    // req.body will contain the text fields, if there were any
-  } catch (err){
-    l('err')
-    l(err);
-  }
-});
-
-router.post('/your_path', upload.single('subtitles'), function (req, res, next) {
-  try {
-    l(req.file);
-    // l(req.body);
+    transcribeWrapped(utf8DecodedFileName, path, language, model, websocketNumber)
 
     const obj = JSON.parse(JSON.stringify(req.body));
     l(obj);
@@ -77,18 +59,13 @@ router.post('/your_path', upload.single('subtitles'), function (req, res, next) 
   }
 });
 
-const url = 'http://127.0.0.1:3000/your_path';
-
+// post file from backend
 router.post('/post', async function(req, res, next){
   try {
     l(req.body);
     l(req.params);
 
-    const videoUrl = req.body.video_url;
-
-    res.send('Starting to download ' + videoUrl);
-
-    await downloadAndTranscribe(videoUrl);
+    const endpointToHit = 'http:localhost:3000'
 
     // Create a new form instance
     const form = new FormData();
@@ -105,7 +82,7 @@ router.post('/post', async function(req, res, next){
     l('form headers');
     l(form.getHeaders())
 
-    const response = await axios.post(url, form, {
+    const response = await axios.post(endpointToHit, form, {
       headers: {
         ...form.getHeaders(),
       },

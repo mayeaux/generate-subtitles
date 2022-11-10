@@ -66,6 +66,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(function(req, res, next){
+  const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  l('IP Address')
+  l(ipAddress);
+  next();
+})
+
+
 app.use('/', routes);
 app.use('/users', users);
 
