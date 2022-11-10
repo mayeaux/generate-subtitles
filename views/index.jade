@@ -282,12 +282,12 @@ block content
         } else if (data.message === 'queue'){
           placeInQueue = data.placeInQueue;
           placeInQueue = placeInQueue + 1;
-          const queueString = `Your place in the queue is ${placeInQueue}. You'll start when others are done`;
-          latestData.innerHTML = queueString
+          latestData.innerHTML = `Your place in the queue is ${placeInQueue}. You'll start when others are done`;
         } else if(data === 'finishedProcessing' && uploadStarted){
           placeInQueue = placeInQueue - 1;
-          const queueString = `Your place in the queue is ${placeInQueue}. You'll start when others are done`;
-          latestData.innerHTML = queueString
+          latestData.innerHTML = `Your place in the queue is ${placeInQueue}. You'll start when others are done`;
+        } else if (data.message === 'fileDetails') {
+          document.getElementById('finishedData').innerHTML = data.fileDetails;
         } else {
           latestData.innerHTML = data;
         }

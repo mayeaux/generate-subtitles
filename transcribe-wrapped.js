@@ -20,6 +20,28 @@ async function transcribe(filename, path, language, model, websocketConnection){
 
       websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
 
+      // get the upload file name
+      let splitFilename = path.split("/").pop();
+
+      const originalUpload = `./uploads/${splitFilename}`;
+      const ffprobeResponse = await ffprobe(originalUpload, { path: ffprobePath });
+
+      const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
+      const uploadDurationInSeconds = Math.round(audioStream.duration);
+
+      const fileDetails = `
+            filename: ${filename}
+            language: ${language}
+            model: ${model}
+            uploadDurationInSeconds: ${uploadDurationInSeconds}
+            uploadDurationInSecondsHumanReadable: ${forHumans(uploadDurationInSeconds)}
+      `.replace(/^ +/gm, ''); // remove indentation
+
+      websocketConnection.send(JSON.stringify({
+        message: 'fileDetails',
+        fileDetails
+      }), function () {});
+
       // queue up arguments, path is the first one
       let arguments = [path];
 
@@ -35,9 +57,6 @@ async function transcribe(filename, path, language, model, websocketConnection){
 
       // set the language for whisper (if undefined with auto-detect and translate off that)
       arguments.push('--verbose', 'False');
-
-      // get the upload file name
-      let splitFilename = path.split("/").pop();
 
       // folder to save .txt, .vtt and .srt
       if(filename){
@@ -71,8 +90,6 @@ async function transcribe(filename, path, language, model, websocketConnection){
         l(code);
 
         if(code === 0){
-          const originalUpload = `./uploads/${splitFilename}`;
-
           // delete original upload to save space
           const shouldDeleteOriginalUpload = false;
           if(shouldDeleteOriginalUpload){
@@ -92,11 +109,6 @@ async function transcribe(filename, path, language, model, websocketConnection){
           resolve(code);
 
           const processingSeconds = Math.round((new Date() - startingDate) / 1000);
-
-          const ffprobeResponse = await ffprobe(originalUpload, { path: ffprobePath });
-
-          const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
-          const uploadDurationInSeconds = Math.round(audioStream.duration);
 
           const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
 
