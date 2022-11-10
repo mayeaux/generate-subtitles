@@ -141,6 +141,8 @@ async function transcribe(filename, path, language, model, websocketConnection){
             processingRatio: ${processingRatio}
           `.replace(/^ +/gm, ''); // remove indentation
 
+            // TODO: ^ send the info above here via websocket
+
             fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
           })()
         } else {

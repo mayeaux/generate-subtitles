@@ -118,22 +118,20 @@ block content
       const model = document.getElementById("model").value;
       const formData = new FormData();
 
-      l('file');
-      l(file);
-      l(file.file);
-
       formData.append("file", file.files[0]);
       formData.append('language', language);
       formData.append('model', model);
       formData.append('websocketNumber', randomNumber);
 
-
-      l(formData);
+      // Display the key/value pairs
+      for (const pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
 
       const uploadUrl = `http://${ipAndPort}/file`;
 
       var ajax = new XMLHttpRequest();
-      let originalDate, uploadStarted, timeElapsedInSeconds, estimatedUploadTimeInSeconds;
+      let originalDate, uploadStarted, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining;
 
       ajax.upload.addEventListener("progress", function(event){
         l(event);
@@ -145,6 +143,7 @@ block content
         const currentTime = new Date();
         timeElapsedInSeconds = Math.round((currentTime - originalDate) / 1000);
         estimatedUploadTimeInSeconds = Math.round(timeElapsedInSeconds * (100/percent));
+        estimatedSecondsRemaining = estimatedUploadTimeInSeconds - timeElapsedInSeconds;
 
         // start up functionality to update estimate every second
         if(!uploadStarted){
@@ -152,9 +151,7 @@ block content
           originalDate = new Date();
           setInterval(function(){
             // TODO: not honoring newlines
-            timeRemainingDiv.innerHTML = `${timeElapsedInSeconds} seconds spent processing
-            \n\n ${estimatedUploadTimeInSeconds} estimated total upload time
-            \n\n ${estimatedUploadTimeInSeconds - timeElapsedInSeconds} estimated seconds remaining`;
+            timeRemainingDiv.innerHTML = `[${timeElapsedInSeconds}/${estimatedUploadTimeInSeconds}s] ${estimatedSecondsRemaining} seconds remaining`
           }, 1000)
         }
       }, false);

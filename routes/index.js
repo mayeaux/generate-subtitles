@@ -63,8 +63,11 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     l(queue);
 
-    const queueString = `Your place in the queue is ${placeInQueue + 1}. You'll start when others are done`;
-    websocketConnection.send(JSON.stringify(queueString), function () {});
+    // TODO: doesn't seem to work?
+    // if(placeInQueue > 0){
+    //   const queueString = `Your place in the queue is ${placeInQueue + 1}. You'll start when others are done`;
+    //   websocketConnection.send(JSON.stringify(queueString), function () {});
+    // }
 
     queue.add(function () {
       return transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection)
