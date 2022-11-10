@@ -146,6 +146,8 @@ block content
       for (const pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
       }
+      const fileName = document.getElementById('file').files[0].name;
+      l(`filename: ${fileName}`)
 
       const uploadUrl = `http://${ipAndPort}/file`;
 
