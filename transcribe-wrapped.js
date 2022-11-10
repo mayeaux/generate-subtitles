@@ -1,12 +1,16 @@
 const which = require("which");
 const spawn = require('child_process').spawn;
-// const spawn = require('await-spawn')
 const fs = require('fs-extra');
+const ffprobe = require('ffprobe');
+
 const whisperPath = which.sync('whisper')
+const ffprobePath = which.sync('ffprobe')
 
 l = console.log;
 
+// ps aux
 // /usr/bin/python3 /usr/local/bin/whisper uploads/0
+
 /**
  * Translates seconds into human readable format of seconds, minutes, hours, days, and years
  *
@@ -31,7 +35,7 @@ function forHumans ( seconds ) {
 }
 
 async function transcribe(filename, path, language, model, websocketNumber){
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
       // queue up arguments, path is the first one
       let arguments = [path];
@@ -91,10 +95,11 @@ async function transcribe(filename, path, language, model, websocketNumber){
         l(code);
 
         if(code === 0){
+          const originalUpload = `./uploads/${splitFilename}`;
+
           // delete original upload to save space
           const shouldDeleteOriginalUpload = false;
           if(shouldDeleteOriginalUpload){
-            const originalUpload = `./uploads/${splitFilename}`;
             fs.unlinkSync(originalUpload);
           }
 
@@ -121,15 +126,23 @@ async function transcribe(filename, path, language, model, websocketNumber){
           const secondsDifference = (new Date() - startingDate) / 1000
           const humanReadableTime = forHumans(Math.round(secondsDifference));
 
-          const outputText = `
+          (async function(){
+            const ffprobeResponse = await ffprobe(originalUpload, { path: ffprobePath });
+
+            const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
+
+            const outputText = `
             filename: ${filename}
             secondsDifference: ${secondsDifference}
             humanReadableTime: ${humanReadableTime}
             language: ${language}
             model: ${model}
+            upload: ${splitFilename}
+            uploadDurationInSeconds: ${Math.round(audioStream.duration)}
           `.replace(/^ +/gm, ''); // remove indentation
 
-          fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
+            fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
+          })()
         } else {
           l('FAILED!');
         }
