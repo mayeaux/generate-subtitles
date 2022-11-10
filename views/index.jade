@@ -148,6 +148,8 @@ block content
 
     form.addEventListener("submit", submitForm);
 
+    let uploadStarted = false;
+
     function submitForm(e) {
       e.preventDefault();
 
@@ -213,7 +215,7 @@ block content
       const uploadUrl = `http://${ipAndPort}/file`;
 
       var ajax = new XMLHttpRequest();
-      let originalDate, uploadStarted, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining;
+      let originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining;
 
       ajax.upload.addEventListener("progress", function(event){
         l(event);
@@ -253,15 +255,15 @@ block content
       ajax.send(formData);
     }
 
-    (function () {
-      const ws = new WebSocket(`ws://${ipAndPort}/${randomNumber}`);
+    let placeInQueue = 0;
 
-      ws.onmessage = function (event) {
+    (function () {
+      const websocketConnection = new WebSocket(`ws://${ipAndPort}/${randomNumber}`);
+
+      websocketConnection.onmessage = function (event) {
         const data = JSON.parse(event.data);
 
         console.log(event.data);
-
-        latestData.innerHTML = data;
 
         if (data.status === 'Completed') {
           latestData.innerHTML = 'Congratulations, you\'re done!';
@@ -275,6 +277,19 @@ block content
           refreshButton.style.display = 'block';
 
           l(data.url)
+
+          websocketConnection.close()
+        } else if (data.message === 'queue'){
+          placeInQueue = data.placeInQueue;
+          placeInQueue = placeInQueue + 1;
+          const queueString = `Your place in the queue is ${placeInQueue}. You'll start when others are done`;
+          latestData.innerHTML = queueString
+        } else if(data === 'finishedProcessing' && uploadStarted){
+          placeInQueue = placeInQueue - 1;
+          const queueString = `Your place in the queue is ${placeInQueue}. You'll start when others are done`;
+          latestData.innerHTML = queueString
+        } else {
+          latestData.innerHTML = data;
         }
       };
     })();
@@ -287,16 +302,13 @@ block content
     file.ondrop = function (evt) {
       evt.preventDefault();
 
+      // only add the first file
       let list = new DataTransfer();
       let firstPassedFile = evt.dataTransfer.files[0];
       list.items.add(firstPassedFile);
 
       if(evt?.dataTransfer?.files){
-        l('running here');
-        // only add the first file
         file.files = list.files;
-        l(list.files);
-        l(file.files);
 
       } else {
         l('no files found');

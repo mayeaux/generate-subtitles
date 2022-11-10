@@ -32,16 +32,13 @@ function decode_utf8(s) {
   return decodeURIComponent(escape(s));
 }
 
-// transcribe frontend page
+// home page
 router.get('/', function(req, res, next) {
-  // l(req.session);
-  
+  // transcribe frontend page
   res.render('index', {
     title: 'Transcribe File',
     uploadPath,
     forHumans,
-    // previousLanguage: req.session?.language,
-    // previousModel: req.session?.model
   });
 });
 
@@ -57,13 +54,6 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const path = req.file.path;
 
-    // l(req.session);
-    // if(req.session){
-    //   req.session.language = language;
-    //   req.session.model = model;
-    //   req.session.save()
-    // }
-
     const utf8DecodedFileName = decode_utf8(req.file.originalname);
 
     if(!path){ res.status(500); res.send('no file')}
@@ -76,6 +66,9 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     const placeInQueue = queue.getQueueLength();
 
+    l('place in queue');
+    l(placeInQueue);
+
     l(queue);
 
     // general queue data
@@ -87,8 +80,10 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
 
     if(amountOfCurrentPending > 0){
-      const queueString = `Your place in the queue is ${placeInQueue + 1}. You'll start when others are done`;
-      websocketConnection.send(JSON.stringify(queueString), function () {});
+      websocketConnection.send(JSON.stringify({
+        message: 'queue',
+        placeInQueue
+      }), function () {});
     }
 
     queue.add(function () {

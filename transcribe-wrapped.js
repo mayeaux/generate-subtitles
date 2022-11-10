@@ -2,6 +2,7 @@ const which = require("which");
 const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
+const WebSocket = require('ws');
 
 const forHumans = require('./helpers').forHumans;
 
@@ -125,6 +126,12 @@ async function transcribe(filename, path, language, model, websocketConnection){
           l('FAILED!');
           reject();
         }
+
+        global.wss.clients.forEach(function each(client) {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify('finishedProcessing'));
+          }
+        });
 
         console.log(`child process exited with code ${code}`);
       });
