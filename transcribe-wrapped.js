@@ -3,6 +3,7 @@ const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
+var convert = require('cyrillic-to-latin')
 
 const forHumans = require('./helpers').forHumans;
 
@@ -104,6 +105,14 @@ async function transcribe(filename, path, language, model, websocketConnection){
 
           // copy srt with the original filename
           await fs.copy(`${containingDir}/${splitFilename}.srt`, transcribedSrtFile)
+
+          if(language === 'Serbian'){
+            var data = fs.readFileSync(transcribedSrtFile, 'utf-8');
+
+            var newValue = convert(data);
+
+            fs.writeFileSync(transcribedSrtFile, newValue, 'utf-8');
+          }
 
           // return await
           resolve(code);

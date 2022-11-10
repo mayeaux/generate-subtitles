@@ -160,7 +160,7 @@ block content
     function submitForm(e) {
       e.preventDefault();
 
-      const language = document.getElementById("language").value;
+      let language = document.getElementById("language").value;
       const model = document.getElementById("model").value;
 
       const formData = new FormData();
@@ -179,10 +179,10 @@ block content
         return s[0].toUpperCase() + s.slice(1);
       }
 
-      const existsAndNotValidLanguage =
-        language &&
-        !languages.includes(language) &&
-        !languages.includes(capitalize(language));
+      // capitalize for people who can't follow specs
+      language = capitalize(language);
+
+      const existsAndNotValidLanguage = language && !languages.includes(language)
 
       if(existsAndNotValidLanguage){
         return Swal.fire({
