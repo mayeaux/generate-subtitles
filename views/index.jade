@@ -67,6 +67,15 @@ block content
       display: none;
     }
 
+    #finishedData {
+      white-space: pre;
+      text-align: left;
+      font-size: 18px;
+      color: white;
+      margin-top: -18px;
+      margin-bottom: 29px;
+    }
+
     #refreshButton {
       cursor: pointer;
       text-decoration: underline;
@@ -90,6 +99,7 @@ block content
     p#progress
     p#timeEstimator
     p#data
+    p#finishedData
 
     a#downloadLink(href='#') Download Here
 
@@ -182,7 +192,10 @@ block content
         latestData.innerHTML = data;
 
         if (data.status === 'Completed') {
-          latestData.innerHTML = 'Congratulations, you\'re done!\n\n' + data.detailsString;
+          latestData.innerHTML = 'Congratulations, you\'re done!';
+
+          document.getElementById('finishedData').innerHTML = data.detailsString;
+
           const downloadLink = document.getElementById('downloadLink')
           downloadLink.href = data.url;
           downloadLink.style.display = 'block';
