@@ -108,6 +108,12 @@ block content
   script.
     l = console.log;
 
+    const previousModel = localStorage.getItem('model');
+    const previousLanguage = localStorage.getItem('language');
+
+    document.getElementById('model').value = previousModel;
+    document.getElementById("language").value = previousLanguage;
+
     const ipAndPort = location.host;
     const randomNumber = Math.round(Math.random() * 1000000000000);
 
@@ -132,6 +138,9 @@ block content
       formData.append('language', language);
       formData.append('model', model);
       formData.append('websocketNumber', randomNumber);
+
+      localStorage.setItem('model', model);
+      localStorage.setItem('language', language);
 
       // Display the key/value pairs
       for (const pair of formData.entries()) {
