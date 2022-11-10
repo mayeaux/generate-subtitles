@@ -97,8 +97,8 @@ block content
 
   script.
     l = console.log;
-    const uploadPath="#{uploadPath}";
 
+    const ipAndPort = location.host;
     const randomNumber = Math.round(Math.random() * 1000000000000);
 
     // grab elements
@@ -130,7 +130,7 @@ block content
 
       l(formData);
 
-      const uploadUrl = `http://${uploadPath}/file`;
+      const uploadUrl = `http://${ipAndPort}/file`;
 
       var ajax = new XMLHttpRequest();
       let originalDate, uploadStarted, timeElapsedInSeconds, estimatedUploadTimeInSeconds;
@@ -166,10 +166,6 @@ block content
 
         header.innerHTML = 'Processing..';
 
-        if(!latestData.innerHTML.startsWith('Your place')){
-          latestData.innerHTML = 'Whisper initializing, updates to come...';
-        }
-
       }, false);
       // TODO: implement these
       // ajax.addEventListener("error", errorHandler, false);
@@ -179,8 +175,7 @@ block content
     }
 
     (function () {
-      const latestData = document.getElementById('data');
-      const ws = new WebSocket(`ws://${uploadPath}/${randomNumber}`);
+      const ws = new WebSocket(`ws://${ipAndPort}/${randomNumber}`);
 
       ws.onmessage = function (event) {
         const data = JSON.parse(event.data);

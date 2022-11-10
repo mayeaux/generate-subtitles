@@ -37,6 +37,9 @@ function forHumans ( seconds ) {
 async function transcribe(filename, path, language, model, websocketConnection){
   return new Promise(async (resolve, reject) => {
     try {
+
+      websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
+
       // queue up arguments, path is the first one
       let arguments = [path];
 
