@@ -53,7 +53,7 @@ block content
       cursor: pointer;
     }
 
-    #data, #progress, #downloadLink, #refreshButton, #timeEstimator {
+    #data, #progress, #downloadLink, #refreshButton, #timeEstimator, #startNewUpload {
       color: white;
       font-size: 24px;
       text-align: center;
@@ -76,7 +76,7 @@ block content
       margin-bottom: 29px;
     }
 
-    #refreshButton {
+    #refreshButton, #startNewUpload {
       cursor: pointer;
       text-decoration: underline;
       margin-top: 29px;
@@ -101,9 +101,12 @@ block content
     p#data
     p#finishedData
 
+    // kind of duplicated, not sure it's needed
+    a#startNewUpload(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start Another Transcription
+
     a#downloadLink(href='#') Download Here
 
-    a#refreshButton(onclick='window.location.reload();') Transcribe Something Else
+    a#refreshButton(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start New Transcription
 
   script(src='//cdn.jsdelivr.net/npm/sweetalert2@11')
   script.
@@ -152,6 +155,8 @@ block content
 
     function submitForm(e) {
       e.preventDefault();
+
+      document.getElementById('startNewUpload').style.display = 'block';
 
       const language = document.getElementById("language").value;
       const model = document.getElementById("model").value;
@@ -278,6 +283,7 @@ block content
 
           l(data.url)
 
+          document.getElementById('startNewUpload').style.display = 'none';
           websocketConnection.close()
         } else if (data.message === 'queue'){
           placeInQueue = data.placeInQueue;
