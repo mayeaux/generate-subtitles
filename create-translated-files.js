@@ -8,16 +8,14 @@ if(global.debug === 'false'){
   l = function(){}
 }
 
-const transcribeDirectory = './transcriptions';
-
 async function createTranslatedSrts({
   uploadDirectoryName,
   transcribedFileName,
-  languageToConvertFrom,
-  languagesToConvertTo
+  languageToConvertFrom, // ISO 638 string ('en')
+  languagesToConvertTo //array
 }){
   const transcribedFilePath =
-    `${transcribeDirectory}/${uploadDirectoryName}/${transcribedFileName}`;
+    `${uploadDirectoryName}/${transcribedFileName}`;
   // without .srt at the end
 
   l('transcribedFilePath');
@@ -66,7 +64,7 @@ async function main(){
   l(completed);
 }
 
-main();
+// main();
 
 module.exports = createTranslatedSrts;
 

@@ -86,8 +86,8 @@ router.post('/file', upload.single('file'), function (req, res, next) {
       }), function () {});
     }
 
-    queue.add(function () {
-      return transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection)
+    queue.add(async function () {
+      await transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection)
     })
 
     const obj = JSON.parse(JSON.stringify(req.body));

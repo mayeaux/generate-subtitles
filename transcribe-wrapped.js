@@ -5,12 +5,18 @@ const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 var convert = require('cyrillic-to-latin')
 
+l = console.log;
+
 const forHumans = require('./helpers').forHumans;
+const shouldTranslate = process.env.LIBRETRANSLATE;
+const createTranslatedFiles = require('./create-translated-files');
+
+l('create translated');
+l(createTranslatedFiles);
 
 const whisperPath = which.sync('whisper')
 const ffprobePath = which.sync('ffprobe')
 
-l = console.log;
 
 // ps aux
 // /usr/bin/python3 /usr/local/bin/whisper uploads/0
@@ -112,6 +118,16 @@ async function transcribe(filename, path, language, model, websocketConnection){
             var newValue = convert(data);
 
             fs.writeFileSync(transcribedSrtFile, newValue, 'utf-8');
+          }
+
+          if(shouldTranslate && language === 'English'){
+            websocketConnection.send(JSON.stringify(`Doing translations with LibreTranslate`), function () {});
+            await createTranslatedFiles({
+              uploadDirectoryName: containingDir,
+              transcribedFileName: filename,
+              languagesToConvertTo: ['es', 'fr'],
+              languageToConvertFrom: 'en'
+            })
           }
 
           // return await
