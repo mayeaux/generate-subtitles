@@ -10,7 +10,7 @@ const transcribeWrapped = require('../transcribe-wrapped');
 const Queue = require("promise-queue");
 const forHumans = require('../helpers').forHumans;
 
-var maxConcurrent = 1;
+var maxConcurrent = 2;
 var maxQueue = Infinity;
 var queue = new Queue(maxConcurrent, maxQueue);
 

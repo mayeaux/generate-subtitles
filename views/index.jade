@@ -180,7 +180,7 @@ block content
       }
 
       // capitalize for people who can't follow specs
-      language = capitalize(language);
+      language = language && capitalize(language);
 
       const existsAndNotValidLanguage = language && !languages.includes(language)
 
@@ -219,7 +219,16 @@ block content
       const fileName = document.getElementById('file').files[0].name;
       l(`filename: ${fileName}`)
 
-      const uploadUrl = `http://${ipAndPort}/file`;
+      const httpProtocol = window.location.protocol;
+
+      let httpPrepend;
+      if (httpProtocol === "https:") {
+        httpPrepend = "https";
+      } else {
+        httpPrepend = "http";
+      }
+
+      const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
 
       var ajax = new XMLHttpRequest();
       let originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining;
@@ -265,8 +274,18 @@ block content
 
     let placeInQueue = 0;
 
+    /** WEBSOCKET CONNECTION **/
     (function () {
-      const websocketConnection = new WebSocket(`ws://${ipAndPort}/${randomNumber}`);
+      const httpProtocol = window.location.protocol;
+
+      let wssPrepend;
+      if (httpProtocol === "https:") {
+        wssPrepend = "wss";
+      } else {
+        wssPrepend = "ws";
+      }
+
+      const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
 
       websocketConnection.onmessage = function (event) {
         const data = JSON.parse(event.data);
@@ -283,6 +302,8 @@ block content
           downloadLink.style.display = 'block';
           header.innerHTML = 'Transcription Completed';
           refreshButton.style.display = 'block';
+
+          // TODO: add two more download buttons
 
           l(data.url)
 

@@ -8,6 +8,7 @@ if(global.debug === 'false'){
   l = function(){}
 }
 
+/** for translation **/
 async function createTranslatedSrts({
   uploadDirectoryName,
   transcribedFileName,
