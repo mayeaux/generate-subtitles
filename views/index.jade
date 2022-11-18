@@ -53,7 +53,7 @@ block content
       cursor: pointer;
     }
 
-    #data, #progress, #downloadLink, #refreshButton, #timeEstimator, #startNewUpload {
+    #data, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload {
       color: white;
       font-size: 24px;
       text-align: center;
@@ -63,9 +63,9 @@ block content
       font-size: 21px;
     }
 
-    #downloadLink {
-      display: none;
-    }
+    /*#srtDownloadLink, #vttDownloadLink, #txtDownloadLink {*/
+    /*  display: none;*/
+    /*}*/
 
     #finishedData {
       white-space: pre;
@@ -108,7 +108,11 @@ block content
     // kind of duplicated, not sure it's needed
     a#startNewUpload(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start Another Transcription
 
-    a#downloadLink(href='#') Download Here
+    a.downloadLink#srtDownloadLink(href='#')
+
+    a.downloadLink#vttDownloadLink(href='#')
+
+    a.downloadLink#txtDownloadLink(href='#')
 
     a#refreshButton(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start New Transcription
 
@@ -297,10 +301,27 @@ block content
 
           document.getElementById('finishedData').innerHTML = data.detailsString;
 
-          const downloadLink = document.getElementById('downloadLink')
-          downloadLink.href = data.url;
-          downloadLink.style.display = 'block';
+          // create srt download link
+          const srtDownloadLink = document.getElementById('srtDownloadLink')
+          srtDownloadLink.href = data.urlSrt;
+          srtDownloadLink.style.display = 'block';
+          srtDownloadLink.innerHTML = `${data.filename}.srt`
+
+          // create vtt download link
+          const vttDownloadLink = document.getElementById('vttDownloadLink')
+          vttDownloadLink.href = data.urlVtt;
+          vttDownloadLink.style.display = 'block';
+          vttDownloadLink.innerHTML = `${data.filename}.vtt`
+
+          // create txt download link
+          const txtDownloadLink = document.getElementById('txtDownloadLink')
+          txtDownloadLink.href = data.urlTxt;
+          txtDownloadLink.style.display = 'block';
+          txtDownloadLink.innerHTML = `${data.filename}.txt`
+
           header.innerHTML = 'Transcription Completed';
+
+          // show refresh button
           refreshButton.style.display = 'block';
 
           // TODO: add two more download buttons

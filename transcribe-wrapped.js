@@ -100,18 +100,31 @@ async function transcribe(filename, path, language, model, websocketConnection){
           // delete original upload to save space
           const shouldDeleteOriginalUpload = false;
           if(shouldDeleteOriginalUpload){
+            // TODO: move this to uploads directory
             fs.unlinkSync(originalUpload);
           }
 
           // where the transcription was saved
           const containingDir = `./transcriptions/${splitFilename}`;
 
-          // transcribed srt file
-          const transcribedSrtFile = `${containingDir}/${filename}.srt`;
+          // TODO: add the other srt files here
+          // may as well add the original file too
+
+          /** COPY TO BETTER NAME, SRT, VTT, TXT **/
+          const transcribedSrtFile = `${containingDir}/${filename}_${language}.srt`;
+
+          const transcribedVttFile = `${containingDir}/${filename}_${language}.vtt`;
+
+          const transcribedTxtFile = `${containingDir}/${filename}_${language}.txt`;
 
           // copy srt with the original filename
           await fs.copy(`${containingDir}/${splitFilename}.srt`, transcribedSrtFile)
 
+          await fs.copy(`${containingDir}/${splitFilename}.vtt`, transcribedVttFile)
+
+          await fs.copy(`${containingDir}/${splitFilename}.txt`, transcribedTxtFile)
+
+          // convert Serbian to latin
           if(language === 'Serbian'){
             var data = fs.readFileSync(transcribedSrtFile, 'utf-8');
 
@@ -154,7 +167,10 @@ async function transcribe(filename, path, language, model, websocketConnection){
           // tell frontend upload is done
           websocketConnection.send(JSON.stringify({
             status: 'Completed',
-            url: transcribedSrtFile,
+            urlSrt: transcribedSrtFile,
+            urlVtt: transcribedVttFile,
+            urlTxt: transcribedTxtFile,
+            filename,
             detailsString: outputText
           }), function () {});
 
