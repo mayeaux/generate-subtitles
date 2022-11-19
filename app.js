@@ -78,7 +78,7 @@ wss.on('connection', function (websocketConnection, request, client) {
 function checkForDeath(){
   const totalAmountOfWebsockets = global.webSocketData.length;
   l(`Disconnect Check for ${totalAmountOfWebsockets}`);
-  l(totalAmountOfWebsockets);
+  // l(totalAmountOfWebsockets);
   // loop through array of objects of websockets
   for(let [index, websocket] of global['webSocketData'].entries() ){
     // the actual websocket
@@ -90,7 +90,7 @@ function checkForDeath(){
     /** DEAD WEBSOCKET FUNCTIONALITY **/
     // destroy killed websockets and cancel their transcriptions
     if (websocketConnection.isAlive === false){
-      l('Dead found:');
+      l(`Disconnected user found: ${websocketNumber}`);
       websocketConnection.terminate();
       global.webSocketData.splice(index, 1);
 
