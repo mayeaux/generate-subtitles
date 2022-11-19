@@ -39,7 +39,7 @@ const ffprobePath = which.sync('ffprobe')
 global.transcriptions = [];
 
 let topLevelValue = 1;
-async function transcribe(filename, path, language, model, websocketConnection, websocketNumber){
+async function transcribe(filename, path, language, model, websocketConnection, websocketNumber, queue){
   return new Promise(async (resolve, reject) => {
     if(!global.queueData.includes(websocketNumber)){
       l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
@@ -126,11 +126,40 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
       global['transcriptions'].push(process)
 
+      let foundLanguage;
       // log output from bash
       // TODO: this doesnt use stdout at all
       ls.stdout.on('data', data => {
         websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
+        l('data');
+        l(data.toString());
         console.log(`STDOUT: ${data}`);
+
+        const dataAsString = data.toString();
+        if(dataAsString.includes('Detected language:')){
+          l('running hereee');
+          foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
+          l(foundLanguage)
+          if(!language) language = foundLanguage
+          if(foundLanguage){
+            language = `${language} (Auto-Detected)`
+          }
+
+          const fileDetails = `
+            filename: ${filename}
+            language: ${language}
+            model: ${model}
+            uploadDurationInSeconds: ${uploadDurationInSeconds}
+            uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
+          `.replace(/^ +/gm, ''); // remove indentation
+
+          websocketConnection.send(JSON.stringify({
+            message: 'fileDetails',
+            fileDetails
+          }), function () {});
+
+          // RESEND data files
+        }
 
         // loop through and do with websockets
         // TODO: I'm surprised this works actually
@@ -148,7 +177,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       // log output from bash (it all comes through stderr for some reason?)
       ls.stderr.on('data', data => {
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
-        l(`STDERR: ${data}, Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language ${language}, Filename: ${filename}`);
+        l(`STDERR: ${data}, Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language ${language}, Filename: ${filename}, Queue: ${queue.getPendingLength()}`);
 
         // loop through and do with websockets
         for(let [, websocket] of global['webSocketData'].entries() ) {
@@ -200,6 +229,10 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       ls.on('close', async (code) => {
         l('code');
         l(code);
+
+        if(!language){
+          language = foundLanguage;
+        }
 
         if(code === 0){
           // delete original upload to save space

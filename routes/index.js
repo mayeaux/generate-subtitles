@@ -65,7 +65,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     l(req.body);
 
     const language = req.body.language;
-    const model = req.body.model;
+    let model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
     const path = req.file.path;
 
@@ -118,8 +118,13 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     l('queue data');
     l(global.queueData);
 
+    // make the model medium by default
+    if(!model){
+      model = 'medium';
+    }
+
     queue.add(async function () {
-      await transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection, websocketNumber)
+      await transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection, websocketNumber, queue)
     })
 
     const obj = JSON.parse(JSON.stringify(req.body));
@@ -137,6 +142,15 @@ router.post('/file', upload.single('file'), function (req, res, next) {
   }
 });
 
+
+
+
+
+
+
+
+
+/** UNFINISHED FUNCTIONALITY **/
 // post file from backend
 router.post('/post', async function(req, res, next){
   try {

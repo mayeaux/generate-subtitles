@@ -490,6 +490,7 @@ block content
         }
 
       } else if (data.message === 'fileDetails') {
+        l('file details data');
         const niceDate = new Date().toString().replace(/GMT.*/g,"");
         const niceString = `startedAt: ${niceDate}`;
         document.getElementById('finishedData').innerHTML = data.fileDetails + niceString;
