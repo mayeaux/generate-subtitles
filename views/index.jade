@@ -240,9 +240,16 @@ block content
         })
       }
 
-      if(nodeEnvironment === 'prod'){
+      // http or https
+      const protocol = document.location.protocol.substring(1)
+      const servedWithSSL = protocol === 'https'
+
+      if(nodeEnvironment === 'prod' && servedWithSSL){
         // TODO: change this to onchange
-        if (passedFile.size > 100000000) {
+        const oneHundredMBinBytes = 100000000;
+
+        // swal with the error
+        if (passedFile.size > oneHundredMBinBytes) {
           return Swal.fire({
             title: 'Please upload something smaller than 100MB, Cloudflare limit for now',
             icon: 'error',
