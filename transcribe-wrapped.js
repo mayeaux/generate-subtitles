@@ -4,8 +4,16 @@ const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 var convert = require('cyrillic-to-latin')
+const filenamify = require('filenamify')
 
 l = console.log;
+
+const safeFileName = function(string){
+  return filenamify(string, {replacement: '_' })
+}
+
+const fred = safeFileName('hey this is the third???////////1/4\'');
+l(fred);
 
 const forHumans = require('./helpers').forHumans;
 const shouldTranslate = process.env.LIBRETRANSLATE;
@@ -17,11 +25,24 @@ l(createTranslatedFiles);
 const whisperPath = which.sync('whisper')
 const ffprobePath = which.sync('ffprobe')
 
+global['transcriptions'] = [];
+
+setInterval(function(){
+  l('current global transcriptions');
+  l(global['transcriptions']);
+}, 7000)
+
+// setInterval(function(){
+//   const process = global['transcriptions'][0].spawnedProcess;
+//   l(process)
+//   if(process) process.kill('SIGINT');
+//
+// }, 1000 * 15) // 20 seconds
 
 // ps aux
 // /usr/bin/python3 /usr/local/bin/whisper uploads/0
 
-async function transcribe(filename, path, language, model, websocketConnection){
+async function transcribe(filename, path, language, model, websocketConnection, websocketNumber){
   return new Promise(async (resolve, reject) => {
     try {
 
@@ -75,6 +96,13 @@ async function transcribe(filename, path, language, model, websocketConnection){
 
       const ls = spawn(whisperPath, arguments);
 
+      const process = {
+        websocketNumber: websocketNumber,
+        spawnedProcess: ls,
+      }
+
+      global['transcriptions'].push(process)
+
       // log output from bash
       ls.stdout.on('data', data => {
         websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
@@ -105,6 +133,7 @@ async function transcribe(filename, path, language, model, websocketConnection){
           }
 
           // where the transcription was saved
+          // TODO: stop using splitFileName
           const containingDir = `./transcriptions/${splitFilename}`;
 
           // TODO: add the other srt files here
@@ -124,7 +153,7 @@ async function transcribe(filename, path, language, model, websocketConnection){
 
           await fs.copy(`${containingDir}/${splitFilename}.txt`, transcribedTxtFile)
 
-          // convert Serbian to latin
+          // convert Cyrillic to latin
           if(language === 'Serbian'){
             var data = fs.readFileSync(transcribedSrtFile, 'utf-8');
 
@@ -133,12 +162,13 @@ async function transcribe(filename, path, language, model, websocketConnection){
             fs.writeFileSync(transcribedSrtFile, newValue, 'utf-8');
           }
 
+          // autotranslate with libretranslate
           if(shouldTranslate && language === 'English'){
             websocketConnection.send(JSON.stringify(`Doing translations with LibreTranslate`), function () {});
             await createTranslatedFiles({
               uploadDirectoryName: containingDir,
               transcribedFileName: filename,
-              languagesToConvertTo: ['es', 'fr'],
+              languagesToConvertTo: ['es', 'fr'], // convert to Spanish and French
               languageToConvertFrom: 'en'
             })
           }
@@ -174,8 +204,14 @@ async function transcribe(filename, path, language, model, websocketConnection){
             detailsString: outputText
           }), function () {});
 
-          // TODO: ^ send the info above here via websocket
+          // send a global message to move their frontend queue by one
+          global.wss.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify('finishedProcessing'));
+            }
+          });
 
+          // save data to the file
           fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
         } else {
           l('FAILED!');

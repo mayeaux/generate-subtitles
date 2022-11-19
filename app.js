@@ -8,52 +8,119 @@ const { WebSocketServer } = require('ws');
 const fs = require('fs');
 const {createServer} = require("http");
 const sessions = require('express-session');
+const _ = require('lodash');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
 
+
+
 l = console.log;
 
+// l = function(l){
+//   var stack = (new Error()).stack.split(/\n/);
+//   // Chrome includes a single "Error" line, FF doesn't.
+//   if(stack[0].indexOf('Error') === 0){
+//     stack = stack.slice(1);
+//   }
+//   var args = [].slice.apply(arguments).concat([stack[1].trim()]);
+//   return console.log(console, args);
+// }
 var port = process.env.PORT || '3000';
 app.set('port', port);
 
-/**
- * Create HTTP server.
- */
 
+
+/** BEGIN WEBSOCKETS **/
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
-// store websocket connection based on random number generated
-global.ws = {}
+global['webSocketData'] = []
 
-global.wss = wss;
+function heartbeat() {
+  l('checking heartbeat');
+  this.isAlive = true;
+}
 
 wss.on('connection', function (websocketConnection, request, client) {
 
-  // setInterval(function(){
-  //   ws.send(Math.random(), function () {});
-  // }, 2000);
-
-  l('websocket connected');
-  //
-  // l(websocketConnection);
-  // l(request);
-  // l(client);
+  // chart that it exists for first time (add to global.ws)
+  websocketConnection.isAlive = true;
+  // set up an event, when it receives pong it marks itself alive (overwriting the dead)
+  websocketConnection.on('pong', heartbeat);
 
   const websocketNumber = request.url.split('/')[1];
 
-  l(websocketNumber);
+  global['webSocketData'].push({
+    websocketNumber,
+    websocket: websocketConnection,
+    status: 'alive',
+  })
 
-  global.ws[websocketNumber] = websocketConnection;
+  l(`websocket connected: ${websocketNumber}`);
 
 
-  websocketConnection.on('close', function () {
-    console.log('websocket connection closed');
+  websocketConnection.on('close', function (ws) {
+    l(`websocket closed: ${websocketNumber}`);
   });
 });
+
+function checkForDeath(){
+  l('checking for death');
+  l(global.webSocketData.length);
+  // loop through array of objects of websockets
+  for(let [index, websocket] of global['webSocketData'].entries() ){
+    // the actual websocket
+    l(websocket.websocketNumber)
+    const websocketConnection = websocket.websocket;
+
+    // destroy killed websockets and cancel their transcriptions
+    if (websocketConnection.isAlive === false){
+      l('found a dead one!');
+      //
+      websocketConnection.terminate();
+      global.webSocketData.splice(index, 1);
+      const closerTranscription = global['transcriptions'].find(function(transcription){
+        return transcription.websocketNumber === websocket.websocketNumber;
+      })
+
+      l('closer transcription');
+      l(closerTranscription)
+
+      // kill the process
+      if(closerTranscription && closerTranscription.process)
+
+        closerTranscription.process.kill('SIGINT');
+
+        const transcriptionIndex =  global['transcriptions'].indexOf(closerTranscription);
+        if (index > -1) { // only splice array when item is found
+          global['transcriptions'].splice(transcriptionIndex, 1); // 2nd parameter means remove one item only
+        } else {
+          l('Didnt find huh?')
+        }
+
+      continue
+    }
+
+    // KILL THE PROCESS FROM THE GLOBAL THING
+
+    /** TEST FOR ALIVENESS */
+    // mark them as dead, but then check immediately after for redemption chance
+    websocketConnection.isAlive = false;
+    // trigger their pong event
+    websocketConnection.ping();
+  }
+}
+
+// todo: change to 10
+setInterval(checkForDeath, 1000 * 10);
+
+
+/** END WEBSOCKETS **/
+
+
 
 fs.mkdirSync('uploads', { recursive: true })
 fs.mkdirSync('transcriptions', { recursive: true })

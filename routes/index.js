@@ -10,7 +10,8 @@ const transcribeWrapped = require('../transcribe-wrapped');
 const Queue = require("promise-queue");
 const forHumans = require('../helpers').forHumans;
 
-var maxConcurrent = 2;
+// todo: on dif node-env change it to 2
+var maxConcurrent = 1;
 var maxQueue = Infinity;
 var queue = new Queue(maxConcurrent, maxQueue);
 
@@ -60,16 +61,26 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     // load websocket by passed number
     let websocketConnection;
-    if(global.ws[websocketNumber]){
-      websocketConnection = global.ws[websocketNumber]
+    if(global.webSocketData){
+      l(global.webSocketData);
+      const websocket = global.webSocketData.find(function(websocket){
+        return websocketNumber === websocket.websocketNumber;
+      })
+      if(websocket){
+        websocketConnection = websocket.websocket;
+      } else {
+        throw new Error('broken!');
+      }
+
     }
 
     const placeInQueue = queue.getQueueLength();
 
+    l(queue);
+
     l('place in queue');
     l(placeInQueue);
 
-    l(queue);
 
     // general queue data
     global.queue = {}
@@ -87,7 +98,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     }
 
     queue.add(async function () {
-      await transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection)
+      await transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection, websocketNumber)
     })
 
     const obj = JSON.parse(JSON.stringify(req.body));
@@ -101,6 +112,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
   } catch (err){
     l('err')
     l(err);
+    throw(err);
   }
 });
 
