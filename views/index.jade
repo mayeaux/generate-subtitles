@@ -245,18 +245,18 @@ block content
 
     let videoDuration;
 
-    selectElement.addEventListener('change', async function () {
-      l('getting video duration!');
-      // l(new Date())
-      // freezes everything up
-      // videoDuration = getVideoDuration(file.files[0]).then(function(response){
-      //   videoDuration = response;
-      //   l(new Date())
-      //   l('videoDuration');
-      //   l(videoDuration);
-      //
-      // });
-    });
+    // selectElement.addEventListener('change', async function () {
+    //   l('getting video duration!');
+    //   // l(new Date())
+    //   // freezes everything up
+    //   // videoDuration = getVideoDuration(file.files[0]).then(function(response){
+    //   //   videoDuration = response;
+    //   //   l(new Date())
+    //   //   l('videoDuration');
+    //   //   l(videoDuration);
+    //   //
+    //   // });
+    // });
 
     async function submitForm(e) {
       e.preventDefault();
@@ -292,7 +292,7 @@ block content
 
         l('geting duration');
         // TODO: get here
-        const duration = await getVideoDuration(file.files[0]);
+        videoDuration = await getVideoDuration(passedFile);
         l(videoDuration);
         l('duration');
         l(videoDuration);
