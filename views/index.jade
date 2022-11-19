@@ -106,12 +106,13 @@ block content
         input#model(type='text' value=previousModel)
       button.submit-btn(type='submit') Upload
 
+    //DISPLAY DIFFERENT DATA
     p#progress
     p#timeEstimator
     p#latestData
     p#processingData
+    p#secondProcessingData
     p#finishedData
-
 
     // kind of duplicated, not sure it's needed
     a#startNewUpload(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start Another Transcription
@@ -305,6 +306,9 @@ block content
 
         console.log(event.data);
 
+        let myUploadStarted = false;
+
+        /** WHEN WEBSOCKET SAYS COMPLETED **/
         if (data.status === 'Completed') {
           latestData.innerHTML = 'Congratulations, you\'re done!';
 
@@ -341,6 +345,7 @@ block content
           document.getElementById('startNewUpload').style.display = 'none';
 
           websocketConnection.close()
+
         } else if (data.message === 'queue'){
           placeInQueue = data.placeInQueue;
           placeInQueue = placeInQueue + 1;
@@ -356,10 +361,17 @@ block content
           const ownershipPerson = data.ownershipPerson;
           let textToSay = `Latest processing data`;
           if(ownershipPerson === 'you'){
+            myUploadStarted = true;
             textToSay = `Your processing data`;
             latestData.innerHTML = ''
           }
-          document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
+
+          const dontCareAnyMore = myUploadStarted && ownershipPerson !== 'you';
+
+          // dont care about others data anymore
+          if(!dontCareAnyMore){
+            document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
+          }
 
         } else if(data === 'finishedProcessing' && uploadStarted){
           placeInQueue = placeInQueue - 1;
