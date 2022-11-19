@@ -277,7 +277,7 @@ block content
       }
 
       // http or https
-      const protocol = document.location.protocol.substring(1)
+      const protocol = document.location.protocol.slice(0, -1)
       const servedWithSSL = protocol === 'https'
 
 
