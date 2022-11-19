@@ -192,6 +192,16 @@ block content
         })
       }
 
+      if (passedFile.size > 100000000) {
+        return Swal.fire({
+          title: 'Please upload something smaller than 100MB, Cloudflare limit for now',
+          icon: 'error',
+          confirmButtonText: 'Cool'
+        })
+      }
+
+
+
       function capitalize(s) {
         return s[0].toUpperCase() + s.slice(1);
       }
