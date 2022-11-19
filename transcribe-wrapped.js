@@ -146,7 +146,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       // log output from bash (it all comes through stderr for some reason?)
       ls.stderr.on('data', data => {
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
-        // console.log(`stderr: ${data}`);
+        l(`STDERR: ${data}, number: ${websocketNumber}`);
 
         // loop through and do with websockets
         for(let [, websocket] of global['webSocketData'].entries() ) {
