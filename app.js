@@ -96,14 +96,18 @@ function checkForDeath(){
       const closerTranscription = global['transcriptions'].find(function(transcription){
         return transcription.websocketNumber === websocket.websocketNumber;
       })
-      l('closer transcription')
-      l(websocketNumber);
-      l(closerTranscription)
+
+      l(`Checking transcriptions for ${websocketNumber}`)
 
       // kill the process
       if(closerTranscription && closerTranscription.spawnedProcess){
+        l('closer transcription')
+        l(websocketNumber);
+        l(closerTranscription)
+
         l('found spawned process');
 
+        // TODO: save processing info and conditionally kill
         closerTranscription.spawnedProcess.kill('SIGINT');
         l(`killed process: ${websocketNumber}`);
 
@@ -111,6 +115,8 @@ function checkForDeath(){
         if (index > -1) { // only splice array when item is found
           global['transcriptions'].splice(transcriptionIndex, 1); // 2nd parameter means remove one item only
         }
+      } else {
+        l('no closer transcription')
       }
     }
 

@@ -10,8 +10,10 @@ const transcribeWrapped = require('../transcribe-wrapped');
 const Queue = require("promise-queue");
 const forHumans = require('../helpers').forHumans;
 
+const concurrentJobs = process.env.CONCURRENT_AMOUNT;
+
 // todo: on dif node-env change it to 2
-var maxConcurrent = 1;
+var maxConcurrent = ( concurrentJobs && Number(concurrentJobs) ) || 1;
 var maxQueue = Infinity;
 var queue = new Queue(maxConcurrent, maxQueue);
 
