@@ -100,7 +100,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
         if(topLevelValue === 1){
           arguments.push('--device', 'cuda:0');
         } else if(topLevelValue === 2){
-          arguments.push('--model', 'cuda:1');
+          arguments.push('--device', 'cuda:1');
         }
       }
 
