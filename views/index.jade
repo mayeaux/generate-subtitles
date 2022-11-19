@@ -381,7 +381,7 @@ block content
         if (placeInQueue === 1) {
           latestData.innerHTML = `You're next up`;
         } else {
-          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+          latestData.innerHTML = `There are ${placeInQueue - 1} people ahead of you`;
         }
 
         if(1 > placeInQueue){
@@ -395,7 +395,7 @@ block content
         if (placeInQueue === 1) {
           latestData.innerHTML = `You're next up`;
         } else {
-          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+          latestData.innerHTML = `There are ${placeInQueue - 1} people ahead of you`;
         }
 
         if (1 > placeInQueue) {

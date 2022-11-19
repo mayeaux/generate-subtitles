@@ -124,11 +124,13 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       global['transcriptions'].push(process)
 
       // log output from bash
+      // TODO: this doesnt use stdout at all
       ls.stdout.on('data', data => {
         websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
-        console.log(`stdout: ${data}`);
+        console.log(`STDOUT: ${data}`);
 
         // loop through and do with websockets
+        // TODO: I'm surprised this works actually
         for(let [, websocket] of global['webSocketData'].entries() ) {
           // the actual websocket
           l(websocket.websocketNumber)
@@ -140,7 +142,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
       });
 
-      // log output from bash
+      // log output from bash (it all comes through stderr for some reason?)
       ls.stderr.on('data', data => {
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
         // console.log(`stderr: ${data}`);
@@ -173,8 +175,9 @@ async function transcribe(filename, path, language, model, websocketConnection, 
           // SEND DATA TO ALL THE FRONTENDS WITH LATEST DATA
           // TODO: we need the global process thing to see it
 
+          // pass latest data to all the open sockets
           if (websocketConnection.readyState === WebSocket.OPEN) {
-            // TODO: add it here
+            /** websocketData message **/
             websocketConnection.send(JSON.stringify({
               message: 'websocketData',
               processingData: data.toString(),
@@ -190,6 +193,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       const startingDate = new Date();
       l(startingDate);
 
+      /** when whisper closes connection **/
       ls.on('close', async (code) => {
         l('code');
         l(code);
@@ -245,6 +249,8 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
           // return await
           resolve(code);
+
+          // just post-processing, you can return the response
 
           const processingSeconds = Math.round((new Date() - startingDate) / 1000);
 

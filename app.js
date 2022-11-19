@@ -12,6 +12,7 @@ const _ = require('lodash');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+const WebSocket = require("ws");
 
 var app = express();
 
@@ -128,7 +129,16 @@ function checkForDeath(){
        }
 
       if(queueHasThing || existingProcess){
-        // TODO: send data here
+
+        for(let [, websocket] of global['webSocketData'].entries() ) {
+          // the actual websocket
+          l(websocket.websocketNumber)
+          const websocketConnection = websocket.websocket;
+          if (websocketConnection.readyState === WebSocket.OPEN) {
+            // TODO: redo this to refactor the thing
+            websocketConnection.send(JSON.stringify('finishedProcessing'));
+          }
+        }
       }
     }
 
