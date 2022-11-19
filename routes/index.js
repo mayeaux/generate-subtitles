@@ -11,7 +11,7 @@ const Queue = require("promise-queue");
 const forHumans = require('../helpers').forHumans;
 
 let concurrentJobs = process.env.CONCURRENT_AMOUNT;
-if(process.NODE.env === 'development'){
+if(process.NODE_ENV === 'development'){
   concurrentJobs = 1;
 }
 
