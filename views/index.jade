@@ -273,17 +273,6 @@ block content
 
     const nodeEnvironment = `#{nodeEnv}`
 
-    // const getVideoDuration = file =>
-    //   new Promise((resolve, reject) => {
-    //     const reader = new FileReader();
-    //     reader.onload = () => {
-    //       const media = new Audio(reader.result);
-    //       media.onloadedmetadata = () => resolve(media.duration);
-    //     };
-    //     reader.readAsDataURL(file);
-    //     reader.onerror = error => reject(error);
-    //   });
-
     const selectElement = document.querySelector('#file');
 
     l('selecteleemnt');
@@ -298,9 +287,6 @@ block content
       l(new Date())
       l('videoDuration');
       l(videoDuration);
-
-      // const result = document.querySelector('.result');
-      // result.textContent = `You like ${event.target.value}`;
     });
 
     async function submitForm(e) {
@@ -312,9 +298,7 @@ block content
       const formData = new FormData();
 
       const passedFile = file.files[0]
-
-
-
+      
       if(!passedFile){
         return Swal.fire({
           title: 'You didn\'t pass a file',
@@ -331,19 +315,6 @@ block content
       l('passedFile');
       l(passedFile)
 
-      // let videoDuration;
-
-      // const handleChange = async (e) => {
-      //   l('running here!!');
-      //   videoDuration = await getVideoDuration(e.target.files[0]);
-      //   l('video duration');
-      //   l(videoDuration);
-      //   // document.querySelector("#duration").innerText = `Duration: ${duration}`;
-      // };
-      //
-      // // load on change
-      // $('#file').on("change", handleChange);
-
 
       if(nodeEnvironment === 'prod' && servedWithSSL){
 
@@ -351,13 +322,14 @@ block content
       // if(1 === 1){
 
         l('geting duration');
+        // TODO: get here
         // const duration = await getVideoDuration(file.files[0]);
         l(videoDuration);
         l('duration');
         l(videoDuration);
 
         // 3600
-        if (videoDuration && videoDuration > 1600) {
+        if (videoDuration && videoDuration > 3600) {
           return Swal.fire({
             title: 'The video is too long',
             text: 'To share time more evenly 1h+ uploads are not allowed',
