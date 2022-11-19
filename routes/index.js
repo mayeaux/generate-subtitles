@@ -35,6 +35,10 @@ function decode_utf8(s) {
   return decodeURIComponent(escape(s));
 }
 
+const nodeEnv = process.env.NODE_ENV || 'development';
+l('nodeEnv');
+l(nodeEnv);
+
 // home page
 router.get('/', function(req, res, next) {
   // transcribe frontend page
@@ -42,6 +46,7 @@ router.get('/', function(req, res, next) {
     title: 'Transcribe File',
     uploadPath,
     forHumans,
+    nodeEnv
   });
 });
 
