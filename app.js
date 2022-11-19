@@ -99,7 +99,7 @@ function checkForDeath(){
         return transcription.websocketNumber === websocket.websocketNumber;
       })
 
-      l(`Checking transcriptions for ${websocketNumber}`)
+      // l(`Checking transcriptions for ${websocketNumber}`)
 
       const existingProcess = closerTranscription && closerTranscription.spawnedProcess;
 
@@ -130,14 +130,13 @@ function checkForDeath(){
        }
 
       if(queueHasThing || existingProcess){
-        if(queueHasThing) l(`Shutoff because of detected deletion from queueData`)
-        if(existingProcess) l(`Shutoff because its process was killed`)
-
+        if(queueHasThing) l(`${websocketNumber} Deleted from global.queueData`)
+        if(existingProcess) l(`\`${websocketNumber} Whisper process killed, deleted from global.transcriptions`)
 
         // loop through websockets and tell them one less is processing
         for(let [, websocket] of global['webSocketData'].entries() ) {
           // the actual websocket
-          l(websocket.websocketNumber)
+          // l(websocket.websocketNumber)
           const websocketConnection = websocket.websocket;
           if (websocketConnection.readyState === WebSocket.OPEN) {
             // TODO: redo this to use an object
