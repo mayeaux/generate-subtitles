@@ -345,12 +345,14 @@ block content
 
         // create srt download link
         const srtDownloadLink = document.getElementById('srtDownloadLink')
+        srtDownloadLink.target = "_blank"
         srtDownloadLink.href = data.urlSrt;
         srtDownloadLink.style.display = 'block';
         srtDownloadLink.innerHTML = `${data.filename}.srt`
 
         // create vtt download link
         const vttDownloadLink = document.getElementById('vttDownloadLink')
+        vttDownloadLink.target = "_blank"
         vttDownloadLink.href = data.urlVtt;
         vttDownloadLink.style.display = 'block';
         vttDownloadLink.innerHTML = `${data.filename}.vtt`
@@ -358,6 +360,7 @@ block content
         // create txt download link
         const txtDownloadLink = document.getElementById('txtDownloadLink')
         txtDownloadLink.href = data.urlTxt;
+        txtDownloadLink.target = "_blank"
         txtDownloadLink.style.display = 'block';
         txtDownloadLink.innerHTML = `${data.filename}.txt`
 
