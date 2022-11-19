@@ -216,15 +216,20 @@ async function transcribe(filename, path, language, model, websocketConnection, 
           // save data to the file
           fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
         } else {
+
+          for(let [index, websocket] of global['webSocketData'].entries() ) {
+            // the actual websocket
+            l(websocket.websocketNumber)
+            const websocketConnection = websocket.websocket;
+            if (websocketConnection.readyState === WebSocket.OPEN) {
+              websocketConnection.send(JSON.stringify('finishedProcessing'));
+            }
+          }
+
           l('FAILED!');
           reject();
         }
 
-        global.wss.clients.forEach(function each(client) {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify('finishedProcessing'));
-          }
-        });
 
         console.log(`child process exited with code ${code}`);
       });
