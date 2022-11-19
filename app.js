@@ -99,8 +99,10 @@ function checkForDeath(){
 
       l(`Checking transcriptions for ${websocketNumber}`)
 
+      const existingProcess = closerTranscription && closerTranscription.spawnedProcess;
+
       // kill the process
-      if(closerTranscription && closerTranscription.spawnedProcess){
+      if(existingProcess){
         l('closer transcription')
         l(websocketNumber);
         l(closerTranscription)
@@ -110,15 +112,19 @@ function checkForDeath(){
         // TODO: save processing info and conditionally kill
         closerTranscription.spawnedProcess.kill('SIGINT');
         l(`killed process: ${websocketNumber}`);
-
-        const transcriptionIndex =  global['transcriptions'].indexOf(closerTranscription);
-        if (index > -1) { // only splice array when item is found
-          global['transcriptions'].splice(transcriptionIndex, 1); // 2nd parameter means remove one item only
-        }
-      } else {
-        l('no closer transcription')
       }
+
+      const queueIndex =  global.queueData.indexOf(websocketNumber);
+
+      const queueHasThing = queueIndex > 1;
+
+      if(queueHasThing){
+          global['transcriptions'].splice(transcriptionIndex, 1);
+          // TODO: signal to websockets a 'finished' thing
+       }
     }
+
+    /** END ON DEATH FUNCTION **/
 
     /** TEST FOR ALIVENESS */
     // mark them as dead, but then check immediately after for redemption chance
