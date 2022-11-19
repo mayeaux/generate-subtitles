@@ -94,7 +94,7 @@ block content
       margin-bottom: 35px;
     }
 
-    #secondProcessingData {
+    #secondProcessingData, #latestData {
       white-space: pre;
       display: none;
     }
@@ -143,9 +143,6 @@ block content
     eval(unescapeHTML(`#{forHumans}`));
 
     // l(forHumans(100));
-
-    let hitTheBackend = false;
-
     // TODO: pass from frontend
     const languagesString = 'Afrikaans,Albanian,Amharic,Arabic,Armenian,Assamese,Azerbaijani,Bashkir,Basque,Belarusian,Bengali,Bosnian,Breton,Bulgarian,Burmese,Castilian,Catalan,Chinese,Croatian,Czech,Danish,Dutch,English,Estonian,Faroese,Finnish,Flemish,French,Galician,Georgian,German,Greek,Gujarati,Haitian,Haitian Creole,Hausa,Hawaiian,Hebrew,Hindi,Hungarian,Icelandic,Indonesian,Italian,Japanese,Javanese,Kannada,Kazakh,Khmer,Korean,Lao,Latin,Latvian,Letzeburgesch,Lingala,Lithuanian,Luxembourgish,Macedonian,Malagasy,Malay,Malayalam,Maltese,Maori,Marathi,Moldavian,Moldovan,Mongolian,Myanmar,Nepali,Norwegian,Nynorsk,Occitan,Panjabi,Pashto,Persian,Polish,Portuguese,Punjabi,Pushto,Romanian,Russian,Sanskrit,Serbian,Shona,Sindhi,Sinhala,Sinhalese,Slovak,Slovenian,Somali,Spanish,Sundanese,Swahili,Swedish,Tagalog,Tajik,Tamil,Tatar,Telugu,Thai,Tibetan,Turkish,Turkmen,Ukrainian,Urdu,Uzbek,Valencian,Vietnamese,Welsh,Yiddish,Yoruba';
     const languages = languagesString.split(',');
@@ -279,8 +276,10 @@ block content
       }, false);
 
       ajax.addEventListener("load", function(res){
+        l('hit the backend!');
         hitTheBackend = true;
         document.getElementById('processingData').style.display = 'block';
+        document.getElementById('latestData').style.display = 'block';
         console.log(res)
         progressDiv.style.display = 'none';
         timeRemainingDiv.style.display = 'none';
@@ -298,134 +297,142 @@ block content
     let placeInQueue = 0;
 
     /** WEBSOCKET CONNECTION **/
-    (function () {
-      const httpProtocol = window.location.protocol;
+    const httpProtocol = window.location.protocol;
 
-      let wssPrepend;
-      if (httpProtocol === "https:") {
-        wssPrepend = "wss";
-      } else {
-        wssPrepend = "ws";
-      }
+    let wssPrepend;
+    if (httpProtocol === "https:") {
+      wssPrepend = "wss";
+    } else {
+      wssPrepend = "ws";
+    }
 
-      const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
+    const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
 
-      let myUploadStarted = false;
-      websocketConnection.onmessage = function (event) {
-        const data = JSON.parse(event.data);
+    let myUploadStarted = false;
+    let hitTheBackend = false;
+    websocketConnection.onmessage = function (event) {
+      const data = JSON.parse(event.data);
 
-        console.log(event.data);
+      console.log(event.data);
 
-        /** WHEN WEBSOCKET SAYS COMPLETED **/
-        if (data.status === 'Completed') {
-          latestData.innerHTML = 'Congratulations, you\'re done!';
+      /** WHEN WEBSOCKET SAYS COMPLETED **/
+      if (data.status === 'Completed') {
+        latestData.innerHTML = 'Congratulations, you\'re done!';
 
-          document.getElementById('finishedData').innerHTML = data.detailsString;
+        document.getElementById('finishedData').innerHTML = data.detailsString;
 
-          // create srt download link
-          const srtDownloadLink = document.getElementById('srtDownloadLink')
-          srtDownloadLink.href = data.urlSrt;
-          srtDownloadLink.style.display = 'block';
-          srtDownloadLink.innerHTML = `${data.filename}.srt`
+        // create srt download link
+        const srtDownloadLink = document.getElementById('srtDownloadLink')
+        srtDownloadLink.href = data.urlSrt;
+        srtDownloadLink.style.display = 'block';
+        srtDownloadLink.innerHTML = `${data.filename}.srt`
 
-          // create vtt download link
-          const vttDownloadLink = document.getElementById('vttDownloadLink')
-          vttDownloadLink.href = data.urlVtt;
-          vttDownloadLink.style.display = 'block';
-          vttDownloadLink.innerHTML = `${data.filename}.vtt`
+        // create vtt download link
+        const vttDownloadLink = document.getElementById('vttDownloadLink')
+        vttDownloadLink.href = data.urlVtt;
+        vttDownloadLink.style.display = 'block';
+        vttDownloadLink.innerHTML = `${data.filename}.vtt`
 
-          // create txt download link
-          const txtDownloadLink = document.getElementById('txtDownloadLink')
-          txtDownloadLink.href = data.urlTxt;
-          txtDownloadLink.style.display = 'block';
-          txtDownloadLink.innerHTML = `${data.filename}.txt`
+        // create txt download link
+        const txtDownloadLink = document.getElementById('txtDownloadLink')
+        txtDownloadLink.href = data.urlTxt;
+        txtDownloadLink.style.display = 'block';
+        txtDownloadLink.innerHTML = `${data.filename}.txt`
 
-          header.innerHTML = 'Transcription Completed';
-          document.getElementById('processingData').style.display = 'none';
+        header.innerHTML = 'Transcription Completed';
+        document.getElementById('processingData').style.display = 'none';
 
-          // show refresh button
-          refreshButton.style.display = 'block';
+        // show refresh button
+        refreshButton.style.display = 'block';
 
-          // TODO: add two more download buttons
+        // TODO: add two more download buttons
 
-          l(data.url)
+        l(data.url)
 
-          document.getElementById('startNewUpload').style.display = 'none';
+        document.getElementById('startNewUpload').style.display = 'none';
 
-          websocketConnection.close()
+        websocketConnection.close()
 
-        } else if (data.message === 'queue'){
-          placeInQueue = data.placeInQueue;
-          placeInQueue = placeInQueue + 1;
-          if (placeInQueue === 1) {
-            latestData.innerHTML = `There is one ${placeInQueue} person ahead of you`;
-          } else {
-            latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
-          }
-
-          if(1 > placeInQueue){
-            latestData.innerHTML = `Starting now...`;
-          }
-
-        } else if (data.message === 'websocketData') {
-          l('data');
-          l(data);
-          const myUpload = data.ownershipPerson === 'you';
-          const processNumber = data.serverNumber; // 1 || 2, really means process
-
-          // by default let to 'latest processing'
-          // TODO: this is misnamed
-          let textToSay = `Latest processing data (process ${processNumber})`;
-          if(myUpload){
-            /** it's your upload **/
-            // data is no longer relevant
-            document.getElementById('secondProcessingData').style.display = 'none';
-            myUploadStarted = true; // force this to true
-            textToSay = `Your processing data`;
-            latestData.style.display = 'none';
-          }
-
-          // TODO: need my upload finished? && !myUploadFinished
-          if(processNumber ===  1 || processNumber === 2 && myUpload){
-            document.getElementById('processingData').style.display = 'block';
-            document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
-          }
-
-          // TODO: this seems off
-          // update the process 2 info if appropriate
-          if (processNumber === 1 && !myUpload && !myUploadStarted && hitTheBackend) {
-            document.getElementById('processingData]').style.display = 'block';
-            document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
-          }
-          // update the process 2 info if appropriate
-          if (processNumber === 2 && !myUpload && !myUploadStarted && hitTheBackend) {
-            document.getElementById('secondProcessingData').style.display = 'block';
-            document.getElementById('secondProcessingData').innerHTML = `${textToSay}\n${data.processingData}`;
-          }
-
-        } else if(data === 'finishedProcessing' && uploadStarted){
-          placeInQueue = placeInQueue - 1;
-
-          // TODO: hate how this is duped, so annoying
-          if(placeInQueue === 1){
-            latestData.innerHTML = `There is one ${placeInQueue} person ahead of you`;
-          } else {
-            latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
-          }
-
-          if (1 > placeInQueue) {
-            latestData.innerHTML = `Starting now...`;
-          }
-
-        } else if (data.message === 'fileDetails') {
-          const niceDate = new Date().toString().replace(/GMT.*/g,"");
-          const niceString = `startedAt: ${niceDate}`;
-          document.getElementById('finishedData').innerHTML = data.fileDetails + niceString;
+      } else if (data.message === 'queue'){
+        placeInQueue = data.placeInQueue;
+        placeInQueue = placeInQueue + 1;
+        if (placeInQueue === 1) {
+          latestData.innerHTML = `You're next up`;
         } else {
-          latestData.innerHTML = data;
+          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
         }
-      };
-    })();
+
+        if(1 > placeInQueue){
+          latestData.innerHTML = `Starting now...`;
+        }
+
+      } else if (data === 'finishedProcessing' && uploadStarted) {
+        placeInQueue = placeInQueue - 1;
+
+        // TODO: hate how this is duped, so annoying
+        if (placeInQueue === 1) {
+          latestData.innerHTML = `You're next up`;
+        } else {
+          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+        }
+
+        if (1 > placeInQueue) {
+          latestData.innerHTML = `Starting now...`;
+        }
+
+      } else if (data.message === 'websocketData') {
+        l('data');
+        l(data);
+        const myUpload = data.ownershipPerson === 'you';
+        l('my upload');
+        l(myUpload);
+        const processNumber = data.serverNumber; // 1 || 2, really means process
+
+        // by default let to 'latest processing'
+        // TODO: this is misnamed
+        let textToSay = `Latest processing data (process ${processNumber})`;
+        if(myUpload){
+          /** it's your upload **/
+          // data is no longer relevant
+          document.getElementById('secondProcessingData').style.display = 'none';
+          myUploadStarted = true; // force this to true
+          textToSay = `Your processing data`;
+          latestData.style.display = 'none';
+        }
+
+        const eitherProcess = processNumber ===  1 || processNumber === 2;
+        l('either process');
+        l(eitherProcess);
+
+        // TODO: need my upload finished? && !myUploadFinished
+        if(eitherProcess && myUpload && hitTheBackend && myUploadStarted){
+          l('found my data');
+          document.getElementById('processingData').style.display = 'block';
+          document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
+        }
+
+        // TODO: this seems off
+        // update the process 2 info if appropriate
+        if (processNumber === 1 && !myUpload && !myUploadStarted && hitTheBackend) {
+          l('getting process 1 data');
+          document.getElementById('processingData').style.display = 'block';
+          document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
+        }
+        // update the process 2 info if appropriate
+        if (processNumber === 2 && !myUpload && !myUploadStarted && hitTheBackend) {
+          l('getting process 2 data');
+          document.getElementById('secondProcessingData').style.display = 'block';
+          document.getElementById('secondProcessingData').innerHTML = `${textToSay}\n${data.processingData}`;
+        }
+
+      } else if (data.message === 'fileDetails') {
+        const niceDate = new Date().toString().replace(/GMT.*/g,"");
+        const niceString = `startedAt: ${niceDate}`;
+        document.getElementById('finishedData').innerHTML = data.fileDetails + niceString;
+      } else {
+        latestData.innerHTML = data;
+      }
+    };
 
     /** DRAG AND DROP FILES **/
     file.ondragover = file.ondragenter = function (evt) {
