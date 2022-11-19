@@ -364,7 +364,7 @@ block content
 
     let placeInQueue = 0;
 
-    /** WEBSOCKET CONNECTION **/
+    /** WEBSOCKET CONNECTION FUNCTIONALITY BEGINS **/
     const httpProtocol = window.location.protocol;
 
     let wssPrepend;
@@ -425,29 +425,29 @@ block content
         websocketConnection.close()
 
       } else if (data.message === 'queue'){
-        let amountOfPeopleInFront = data.placeInQueue;
-        amountOfPeopleInFront = amountOfPeopleInFront + 1;
-        if (amountOfPeopleInFront === 1) {
+        placeInQueue = data.placeInQueue;
+        if (placeInQueue === 1) {
           latestData.innerHTML = `You're next up`;
-        } else if(amountOfPeopleInFront > 1){
-          latestData.innerHTML = `There are ${amountOfPeopleInFront} people ahead of you`;
+        } else if(placeInQueue > 1){
+          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
         }
 
-        if(amountOfPeopleInFront === 0){
+        if(placeInQueue === 0){
           latestData.innerHTML = `Starting now...`;
         }
 
+        // TODO: likely a bug here
       } else if (data === 'finishedProcessing' && uploadStarted) {
         // placeInQueue = data.placeInQueue;
-        const amountOfPeopleInFront = placeInQueue + 1;
+        placeInQueue = placeInQueue - 1
         // TODO: hate how this is duped, so annoying
-        if (amountOfPeopleInFront === 1) {
+        if (placeInQueue === 1) {
           latestData.innerHTML = `You're next up`;
-        } else if(amountOfPeopleInFront > 1){
-          latestData.innerHTML = `There are ${amountOfPeopleInFront} people ahead of you`;
+        } else if(placeInQueue > 1){
+          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
         }
 
-        if (amountOfPeopleInFront === 0) {
+        if (placeInQueue === 0) {
           latestData.innerHTML = `Starting now...`;
         }
 

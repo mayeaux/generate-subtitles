@@ -163,14 +163,14 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
         // loop through and do with websockets
         // TODO: I'm surprised this works actually
-        for(let [, websocket] of global['webSocketData'].entries() ) {
-          // the actual websocket
-          // l(websocket.websocketNumber)
-          const websocketConnection = websocket.websocket;
-          if (websocketConnection.readyState === WebSocket.OPEN) {
-            websocketConnection.send(JSON.stringify('finishedProcessing'));
-          }
-        }
+        // for(let [, websocket] of global['webSocketData'].entries() ) {
+        //   // the actual websocket
+        //   // l(websocket.websocketNumber)
+        //   const websocketConnection = websocket.websocket;
+        //   if (websocketConnection.readyState === WebSocket.OPEN) {
+        //     websocketConnection.send(JSON.stringify('finishedProcessing'));
+        //   }
+        // }
 
       });
 
@@ -316,14 +316,15 @@ async function transcribe(filename, path, language, model, websocketConnection, 
             detailsString: outputText
           }), function () {});
 
-          for(let [index, websocket] of global['webSocketData'].entries() ) {
-            // the actual websocket
-            // l(websocket.websocketNumber)
-            const websocketConnection = websocket.websocket;
-            if (websocketConnection.readyState === WebSocket.OPEN) {
-              websocketConnection.send(JSON.stringify('finishedProcessing'));
-            }
-          }
+          // ONSUCCESS
+          // for(let [index, websocket] of global['webSocketData'].entries() ) {
+          //   // the actual websocket
+          //   // l(websocket.websocketNumber)
+          //   const websocketConnection = websocket.websocket;
+          //   if (websocketConnection.readyState === WebSocket.OPEN) {
+          //     websocketConnection.send(JSON.stringify('finishedProcessing'));
+          //   }
+          // }
 
           // save data to the file
           fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
@@ -331,6 +332,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
           l('FAILED!');
           reject();
+          throw new Error('broken')
         }
 
 
@@ -339,6 +341,17 @@ async function transcribe(filename, path, language, model, websocketConnection, 
     } catch (err){
       l('error from transcribe')
       l(err);
+
+      // ON FAILURE
+      // for(let [index, websocket] of global['webSocketData'].entries() ) {
+      //   // the actual websocket
+      //   // l(websocket.websocketNumber)
+      //   const websocketConnection = websocket.websocket;
+      //   if (websocketConnection.readyState === WebSocket.OPEN) {
+      //     websocketConnection.send(JSON.stringify('finishedProcessing'));
+      //   }
+      // }
+
       reject(err);
     }
 

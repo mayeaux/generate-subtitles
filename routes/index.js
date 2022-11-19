@@ -88,28 +88,37 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     }
 
+    // TODO: this is wrong, it's with adding the pending length to get amount in front
     const placeInQueue = queue.getQueueLength();
 
     l(queue);
     l('place in queue');
     l(placeInQueue);
 
-    l('amount of people in front')
-    l(placeInQueue);
+    // l('amount of people in front')
+    // l(placeInQueue);
 
     // general queue data
     global.queue = {}
 
     const amountOfCurrentPending = queue.getPendingLength()
 
-    global.queue.currentItemNumber = amountOfCurrentPending;
+    const amountinQueue = queue.getQueueLength()
+
+    const totalOutstanding = amountOfCurrentPending + amountinQueue;
+
+
+    l('totaloutstanding');
+    l(totalOutstanding);
+
+    // global.queue.currentItemNumber = amountOfCurrentPending;
 
 
     // give frontend their queue position
     if(amountOfCurrentPending > 0){
       websocketConnection.send(JSON.stringify({
         message: 'queue',
-        placeInQueue
+        placeInQueue: totalOutstanding
       }), function () {});
     }
 
