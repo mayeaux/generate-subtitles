@@ -39,6 +39,9 @@ const nodeEnv = process.env.NODE_ENV || 'development';
 l('nodeEnv');
 l(nodeEnv);
 
+// if it says Whisper initiliazing, don't show updates, overwrite them or something
+
+
 // home page
 router.get('/', function(req, res, next) {
   // transcribe frontend page

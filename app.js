@@ -40,7 +40,7 @@ const wss = new WebSocketServer({ server });
 global['webSocketData'] = []
 
 function heartbeat() {
-  l('checking heartbeat');
+  // l('checking heartbeat');
   this.isAlive = true;
 }
 
@@ -80,7 +80,7 @@ function checkForDeath(){
   // loop through array of objects of websockets
   for(let [index, websocket] of global['webSocketData'].entries() ){
     // the actual websocket
-    l(websocket.websocketNumber)
+    // l(websocket.websocketNumber)
     const websocketNumber = websocket.websocketNumber
     const websocketConnection = websocket.websocket;
 

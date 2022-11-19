@@ -14,35 +14,36 @@ const safeFileName = function(string){
   return filenamify(string, {replacement: '_' })
 }
 
-const fred = safeFileName('hey this is the third???////////1/4\'');
-l(fred);
+// const fred = safeFileName('hey this is the third???////////1/4\'');
+// l(fred);
 
 const forHumans = require('./helpers').forHumans;
 const shouldTranslate = process.env.LIBRETRANSLATE;
 const createTranslatedFiles = require('./create-translated-files');
 
-l('create translated');
-l(createTranslatedFiles);
+// l('create translated');
+// l(createTranslatedFiles);
 
 const whisperPath = which.sync('whisper')
 const ffprobePath = which.sync('ffprobe')
 
-global['transcriptions'] = [];
 
-setInterval(function(){
-  l('current global transcriptions');
-  l(global['transcriptions']);
-}, 7000)
+// setInterval(function(){
+//   l('current global transcriptions');
+//   l(global['transcriptions']);
+// }, 7000)
 
 // ps aux
 // /usr/bin/python3 /usr/local/bin/whisper uploads/0
 
+global['transcriptions'] = [];
 
 let topLevelValue = 1;
 async function transcribe(filename, path, language, model, websocketConnection, websocketNumber){
   return new Promise(async (resolve, reject) => {
     try {
 
+      // todo: refactor this a bit
       websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
 
       // get the upload file name
