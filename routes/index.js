@@ -15,6 +15,8 @@ if(process.NODE_ENV === 'development'){
   concurrentJobs = 1;
 }
 
+l(`CONCURRENT JOBS AMOUNT: ${concurrentJobs} `)
+
 // todo: on dif node-env change it to 2
 var maxConcurrent = ( concurrentJobs && Number(concurrentJobs) ) || 1;
 var maxQueue = Infinity;
