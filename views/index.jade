@@ -111,6 +111,10 @@ block content
       float: right;
     }
 
+    #languageLabel, #modelLabel {
+      cursor: pointer;
+    }
+
   a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
     img#githubLogo(src='/images/inverted.png')
 
@@ -120,10 +124,10 @@ block content
       .input-group
         label(for='file') Select (or drop) file
         input#file(type='file')
-        label(for='language') Language (aka English)
-        input#language(type='text' value=previousLanguage)
-        label(for='model') Model (aka medium)
-        input#model(type='text' value=previousModel)
+        label#languageLabel Language (aka English)
+        input#language(type='text' value=previousLanguage placeholder="Leave empty for Auto-Detect")
+        label#modelLabel Model (aka medium)
+        input#model(type='text' value=previousModel placeholder="Leave empty for medium")
       button.submit-btn(type='submit') Upload
 
     //DISPLAY DIFFERENT DATA
@@ -146,8 +150,37 @@ block content
     a#refreshButton(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start New Transcription
 
   script(src='//cdn.jsdelivr.net/npm/sweetalert2@11')
+  script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js' integrity='sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==' crossorigin='anonymous' referrerpolicy='no-referrer')
+
   script.
     l = console.log;
+
+    $(document).ready(function () {
+      // swal data with languages
+      $("#languageLabel").on('click', function () {
+        l('models');
+        l(models);
+        return Swal.fire({
+          title: 'The following languages are valid',
+          text: languages.join(' '),
+          icon: 'question',
+          confirmButtonText: 'Cool'
+        })
+      });
+
+      // swal data with languages
+      $("#modelLabel").on('click', function () {
+        l('models');
+        l(models);
+        return Swal.fire({
+          title: 'The following models are valid',
+          text: models.join(' '),
+          icon: 'question',
+          confirmButtonText: 'Cool'
+        })
+      });
+
+    });
 
     function unescapeHTML(escapedHTML) {
       return escapedHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
@@ -182,8 +215,6 @@ block content
     const refreshButton = document.getElementById('refreshButton');
     const latestData = document.getElementById('latestData');
     const file = document.getElementById("file");
-    const language = document.getElementById("language").value;
-    const model = document.getElementById("model").value;
 
     form.addEventListener("submit", submitForm);
 
