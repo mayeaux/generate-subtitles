@@ -91,6 +91,9 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     l('place in queue');
     l(placeInQueue);
 
+    l('amount of people in front')
+    l(placeInQueue);
+
     // general queue data
     global.queue = {}
 

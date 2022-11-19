@@ -42,6 +42,7 @@ let topLevelValue = 1;
 async function transcribe(filename, path, language, model, websocketConnection, websocketNumber){
   return new Promise(async (resolve, reject) => {
     if(!global.queueData.includes(websocketNumber)){
+      l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
       // if they're not in the queue, cut them off
       return resolve(true);
     }

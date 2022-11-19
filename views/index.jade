@@ -376,29 +376,29 @@ block content
         websocketConnection.close()
 
       } else if (data.message === 'queue'){
-        placeInQueue = data.placeInQueue;
-        placeInQueue = placeInQueue + 1;
-        const amountOfPeopleInFront = placeInQueue - 1;
-        if (placeInQueue) {
+        let amountOfPeopleInFront = data.placeInQueue;
+        amountOfPeopleInFront = amountOfPeopleInFront + 1;
+        if (amountOfPeopleInFront === 1) {
           latestData.innerHTML = `You're next up`;
-        } else if(placeInQueue > 1){
-          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+        } else if(amountOfPeopleInFront > 1){
+          latestData.innerHTML = `There are ${amountOfPeopleInFront} people ahead of you`;
         }
 
-        if(placeInQueue === 0){
+        if(amountOfPeopleInFront === 0){
           latestData.innerHTML = `Starting now...`;
         }
 
       } else if (data === 'finishedProcessing' && uploadStarted) {
-        const amountOfPeopleInFront = placeInQueue - 1;
+        // placeInQueue = data.placeInQueue;
+        const amountOfPeopleInFront = placeInQueue + 1;
         // TODO: hate how this is duped, so annoying
-        if (placeInQueue === 1) {
+        if (amountOfPeopleInFront === 1) {
           latestData.innerHTML = `You're next up`;
-        } else {
+        } else if(amountOfPeopleInFront > 1){
           latestData.innerHTML = `There are ${amountOfPeopleInFront} people ahead of you`;
         }
 
-        if (amountOfPeopleInFront) {
+        if (amountOfPeopleInFront === 0) {
           latestData.innerHTML = `Starting now...`;
         }
 

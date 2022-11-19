@@ -153,7 +153,7 @@ function checkForDeath(){
 }
 
 // todo: change to 10
-setInterval(checkForDeath, 1000 * 10);
+setInterval(checkForDeath, 1000 * 5);
 
 
 /** END WEBSOCKETS **/
