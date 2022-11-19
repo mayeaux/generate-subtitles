@@ -10,7 +10,7 @@ l = console.log;
 
 const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 
-const safeFileName = function(string){
+const makeFileNameSafe = function(string){
   return filenamify(string, {replacement: '_' })
 }
 
@@ -63,12 +63,16 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
       const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
 
+      const safeFilename = makeFileNameSafe(filename)
+
+      // todo: just do JSON?
       const fileDetails = `
             filename: ${filename}
             language: ${language}
             model: ${model}
             uploadDurationInSeconds: ${uploadDurationInSeconds}
             uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
+            safeFilename: ${safeFilename}
       `.replace(/^ +/gm, ''); // remove indentation
 
       websocketConnection.send(JSON.stringify({
@@ -94,7 +98,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
       // folder to save .txt, .vtt and .srt
       if(filename){
-        arguments.push('-o', `transcriptions/${splitFilename}`);
+        arguments.push('-o', `transcriptions/${safeFilename}`);
       }
 
       l('transcribe arguments');
@@ -249,7 +253,11 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
           // where the transcription was saved
           // TODO: stop using splitFileName
-          const containingDir = `./transcriptions/${splitFilename}`;
+          // TODO: use that formatting thing
+
+          // safeFileName
+
+          const containingDir = `./transcriptions/${safeFilename}`;
 
           // TODO: add the other srt files here
           // may as well add the original file too
@@ -358,6 +366,8 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       // }
 
       reject(err);
+
+      throw new Error('something broke')
     }
 
   });

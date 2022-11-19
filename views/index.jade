@@ -297,16 +297,6 @@ block content
         l('duration');
         l(videoDuration);
 
-        // 3600
-        if (videoDuration && videoDuration > 3600) {
-          return Swal.fire({
-            title: 'The video is too long',
-            text: 'To share time more evenly 1h+ uploads are not allowed',
-            icon: 'error',
-            confirmButtonText: 'Cool'
-          })
-        }
-
         // TODO: change this to onchange
         const oneHundredMBinBytes = 100000000;
 
@@ -314,6 +304,17 @@ block content
         if (passedFile.size > oneHundredMBinBytes) {
           return Swal.fire({
             title: 'Please upload something smaller than 100MB, Cloudflare limit for now',
+            icon: 'error',
+            confirmButtonText: 'Cool'
+          })
+        }
+
+        // 3600
+        if (videoDuration && videoDuration > 3600) {
+          videoDuration = 0;
+          return Swal.fire({
+            title: 'The video is too long',
+            text: 'To share time more evenly 1h+ uploads are not allowed',
             icon: 'error',
             confirmButtonText: 'Cool'
           })
