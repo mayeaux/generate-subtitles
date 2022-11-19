@@ -76,8 +76,9 @@ wss.on('connection', function (websocketConnection, request, client) {
 // }, 1000 * 15) // 20 seconds
 
 function checkForDeath(){
-  l('checking for death');
-  l(global.webSocketData.length);
+  const totalAmountOfWebsockets = global.webSocketData.length;
+  l(`Disconnect Check for ${totalAmountOfWebsockets}`);
+  l(totalAmountOfWebsockets);
   // loop through array of objects of websockets
   for(let [index, websocket] of global['webSocketData'].entries() ){
     // the actual websocket
@@ -89,7 +90,7 @@ function checkForDeath(){
     /** DEAD WEBSOCKET FUNCTIONALITY **/
     // destroy killed websockets and cancel their transcriptions
     if (websocketConnection.isAlive === false){
-      l('found a dead one!');
+      l('Dead found:');
       websocketConnection.terminate();
       global.webSocketData.splice(index, 1);
 
@@ -104,15 +105,15 @@ function checkForDeath(){
 
       // kill the process
       if(existingProcess){
-        l('found transcription process to kill')
-        l(websocketNumber);
-        l(closerTranscription)
-
-        l('found spawned process');
+        // l('found transcription process to kill')
+        // l(websocketNumber);
+        // l(closerTranscription)
+        //
+        // l('found spawned process');
 
         // TODO: save processing info and conditionally kill
         closerTranscription.spawnedProcess.kill('SIGINT');
-        l(`killed process: ${websocketNumber}`);
+        l(`Found and killed process: ${websocketNumber}`);
 
         const transcriptionIndex = global.transcriptions.indexOf(closerTranscription);
         if (index > -1) { // only splice array when item is found
@@ -129,13 +130,17 @@ function checkForDeath(){
        }
 
       if(queueHasThing || existingProcess){
+        if(queueHasThing) l(`Shutoff because of detected deletion from queueData`)
+        if(existingProcess) l(`Shutoff because its process was killed`)
 
+
+        // loop through websockets and tell them one less is processing
         for(let [, websocket] of global['webSocketData'].entries() ) {
           // the actual websocket
           l(websocket.websocketNumber)
           const websocketConnection = websocket.websocket;
           if (websocketConnection.readyState === WebSocket.OPEN) {
-            // TODO: redo this to refactor the thing
+            // TODO: redo this to use an object
             websocketConnection.send(JSON.stringify('finishedProcessing'));
           }
         }
@@ -152,7 +157,7 @@ function checkForDeath(){
   }
 }
 
-// todo: change to 10
+// check every 5 seconds for dead sockets (still takes 10s)
 setInterval(checkForDeath, 1000 * 5);
 
 

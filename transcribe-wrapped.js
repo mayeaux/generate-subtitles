@@ -61,12 +61,14 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
       const uploadDurationInSeconds = Math.round(audioStream.duration);
 
+      const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
+
       const fileDetails = `
             filename: ${filename}
             language: ${language}
             model: ${model}
             uploadDurationInSeconds: ${uploadDurationInSeconds}
-            uploadDurationInSecondsHumanReadable: ${forHumans(uploadDurationInSeconds)}
+            uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
       `.replace(/^ +/gm, ''); // remove indentation
 
       websocketConnection.send(JSON.stringify({
@@ -134,7 +136,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
         // TODO: I'm surprised this works actually
         for(let [, websocket] of global['webSocketData'].entries() ) {
           // the actual websocket
-          l(websocket.websocketNumber)
+          // l(websocket.websocketNumber)
           const websocketConnection = websocket.websocket;
           if (websocketConnection.readyState === WebSocket.OPEN) {
             websocketConnection.send(JSON.stringify('finishedProcessing'));
@@ -146,12 +148,12 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       // log output from bash (it all comes through stderr for some reason?)
       ls.stderr.on('data', data => {
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
-        l(`STDERR: ${data}, number: ${websocketNumber}`);
+        l(`STDERR: ${data}, Duration: ${uploadDurationInSecondsHumanReadable}`);
 
         // loop through and do with websockets
         for(let [, websocket] of global['webSocketData'].entries() ) {
           // the actual websocket
-          l(websocket.websocketNumber)
+          // l(websocket.websocketNumber)
           // const websocketNumber = websocket.websocketNumber;
           const websocketConnection = websocket.websocket;
           const clientWebsocketNumber = websocket.websocketNumber;
