@@ -39,9 +39,6 @@ const nodeEnv = process.env.NODE_ENV || 'development';
 l('nodeEnv');
 l(nodeEnv);
 
-// if it says Whisper initiliazing, don't show updates, overwrite them or something
-
-
 // home page
 router.get('/', function(req, res, next) {
   // transcribe frontend page
@@ -52,6 +49,8 @@ router.get('/', function(req, res, next) {
     nodeEnv
   });
 });
+
+global.queueData = [];
 
 router.post('/file', upload.single('file'), function (req, res, next) {
   // l(global.ws);
@@ -87,10 +86,8 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const placeInQueue = queue.getQueueLength();
 
     l(queue);
-
     l('place in queue');
     l(placeInQueue);
-
 
     // general queue data
     global.queue = {}
@@ -100,12 +97,18 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     global.queue.currentItemNumber = amountOfCurrentPending;
 
 
+    // give frontend their queue position
     if(amountOfCurrentPending > 0){
       websocketConnection.send(JSON.stringify({
         message: 'queue',
         placeInQueue
       }), function () {});
     }
+
+    global.queueData.push(websocketNumber)
+
+    l('queue data');
+    l(global.queueData);
 
     queue.add(async function () {
       await transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection, websocketNumber)

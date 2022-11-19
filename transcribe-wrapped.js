@@ -36,11 +36,16 @@ const ffprobePath = which.sync('ffprobe')
 // ps aux
 // /usr/bin/python3 /usr/local/bin/whisper uploads/0
 
-global['transcriptions'] = [];
+global.transcriptions = [];
 
 let topLevelValue = 1;
 async function transcribe(filename, path, language, model, websocketConnection, websocketNumber){
   return new Promise(async (resolve, reject) => {
+    if(!global.queueData.includes(websocketNumber)){
+      // if they're not in the queue, cut them off
+      return resolve(true);
+    }
+
     try {
 
       // todo: refactor this a bit
