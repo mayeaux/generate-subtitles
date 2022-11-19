@@ -53,7 +53,7 @@ block content
       cursor: pointer;
     }
 
-    #latestData, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload, #processingData {
+    #latestData, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload, #processingData, #secondProcessingData {
       color: white;
       font-size: 24px;
       text-align: center;
@@ -92,6 +92,11 @@ block content
       display: none;
       white-space: pre;
       margin-bottom: 35px;
+    }
+
+    #secondProcessingData {
+      white-space: pre;
+      display: none;
     }
 
   .container
@@ -137,7 +142,9 @@ block content
     // otherwise could do const forHumans = #/{forHumans}
     eval(unescapeHTML(`#{forHumans}`));
 
-    l(forHumans(100));
+    // l(forHumans(100));
+
+    let hitTheBackend = false;
 
     // TODO: pass from frontend
     const languagesString = 'Afrikaans,Albanian,Amharic,Arabic,Armenian,Assamese,Azerbaijani,Bashkir,Basque,Belarusian,Bengali,Bosnian,Breton,Bulgarian,Burmese,Castilian,Catalan,Chinese,Croatian,Czech,Danish,Dutch,English,Estonian,Faroese,Finnish,Flemish,French,Galician,Georgian,German,Greek,Gujarati,Haitian,Haitian Creole,Hausa,Hawaiian,Hebrew,Hindi,Hungarian,Icelandic,Indonesian,Italian,Japanese,Javanese,Kannada,Kazakh,Khmer,Korean,Lao,Latin,Latvian,Letzeburgesch,Lingala,Lithuanian,Luxembourgish,Macedonian,Malagasy,Malay,Malayalam,Maltese,Maori,Marathi,Moldavian,Moldovan,Mongolian,Myanmar,Nepali,Norwegian,Nynorsk,Occitan,Panjabi,Pashto,Persian,Polish,Portuguese,Punjabi,Pushto,Romanian,Russian,Sanskrit,Serbian,Shona,Sindhi,Sinhala,Sinhalese,Slovak,Slovenian,Somali,Spanish,Sundanese,Swahili,Swedish,Tagalog,Tajik,Tamil,Tatar,Telugu,Thai,Tibetan,Turkish,Turkmen,Ukrainian,Urdu,Uzbek,Valencian,Vietnamese,Welsh,Yiddish,Yoruba';
@@ -246,6 +253,7 @@ block content
       var ajax = new XMLHttpRequest();
       let originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining;
 
+      /** TIME COUNTDOWN FUNCTIONALITY **/
       ajax.upload.addEventListener("progress", function(event){
         l(event);
         form.style.display = 'none';
@@ -271,6 +279,7 @@ block content
       }, false);
 
       ajax.addEventListener("load", function(res){
+        hitTheBackend = true;
         document.getElementById('processingData').style.display = 'block';
         console.log(res)
         progressDiv.style.display = 'none';
@@ -361,19 +370,37 @@ block content
         } else if (data.message === 'websocketData') {
           l('data');
           l(data);
-          const ownershipPerson = data.ownershipPerson;
-          let textToSay = `Latest processing data`;
-          if(ownershipPerson === 'you'){
-            myUploadStarted = true;
+          const myUpload = data.ownershipPerson === 'you';
+          const processNumber = data.serverNumber; // 1 || 2, really means process
+
+          // by default let to 'latest processing'
+          // TODO: this is misnamed
+          let textToSay = `Latest processing data (process ${processNumber})`;
+          if(myUpload){
+            /** it's your upload **/
+            // data is no longer relevant
+            document.getElementById('secondProcessingData').style.display = 'none';
+            myUploadStarted = true; // force this to true
             textToSay = `Your processing data`;
-            latestData.innerHTML = ''
+            latestData.style.display = 'none';
           }
 
-          const dontCareAnyMore = myUploadStarted && ownershipPerson !== 'you';
-
-          // dont care about others data anymore
-          if(!dontCareAnyMore){
+          // TODO: need my upload finished? && !myUploadFinished
+          if(processNumber ===  1 || processNumber === 2 && myUpload){
+            document.getElementById('processingData').style.display = 'block';
             document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
+          }
+
+          // TODO: this seems off
+          // update the process 2 info if appropriate
+          if (processNumber === 1 && !myUpload && !myUploadStarted && hitTheBackend) {
+            document.getElementById('processingData]').style.display = 'block';
+            document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
+          }
+          // update the process 2 info if appropriate
+          if (processNumber === 2 && !myUpload && !myUploadStarted && hitTheBackend) {
+            document.getElementById('secondProcessingData').style.display = 'block';
+            document.getElementById('secondProcessingData').innerHTML = `${textToSay}\n${data.processingData}`;
           }
 
         } else if(data === 'finishedProcessing' && uploadStarted){

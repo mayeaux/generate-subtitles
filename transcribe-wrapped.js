@@ -8,6 +8,8 @@ const filenamify = require('filenamify')
 
 l = console.log;
 
+const concurrentAmount = process.env.CONCURRENT_AMOUNT;
+
 const safeFileName = function(string){
   return filenamify(string, {replacement: '_' })
 }
@@ -35,6 +37,8 @@ setInterval(function(){
 // ps aux
 // /usr/bin/python3 /usr/local/bin/whisper uploads/0
 
+
+let topLevelValue = 1;
 async function transcribe(filename, path, language, model, websocketConnection, websocketNumber){
   return new Promise(async (resolve, reject) => {
     try {
@@ -89,9 +93,26 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
       const ls = spawn(whisperPath, arguments);
 
+      let serverNumber = topLevelValue;
+
+      // TODO: get the server here
+
+      // const process = {
+      //   websocketNumber: websocketNumber,
+      //   spawnedProcess: ls,
+      //   serverNumber,
+      // }
+
+      if(serverNumber === 1){
+        topLevelValue = 2
+      } else if(serverNumber === 2){
+        topLevelValue = 1
+      }
+
       const process = {
-        websocketNumber: websocketNumber,
+        websocketNumber,
         spawnedProcess: ls,
+        serverNumber,
       }
 
       global['transcriptions'].push(process)
@@ -132,11 +153,27 @@ async function transcribe(filename, path, language, model, websocketConnection, 
             ownershipPerson = 'you'
           }
 
+          // TODO : find the global.
+          const foundProcess = global.transcriptions.find(function(transcriptionObject){
+            return transcriptionObject.websocketNumber === websocketNumber;
+          })
+
+          // const  {
+          //   websocketNumber: websocketNumber,
+          //   spawnedProcess,
+          //   serverNumber,
+          // } = foundProcess;
+
+          // SEND DATA TO ALL THE FRONTENDS WITH LATEST DATA
+          // TODO: we need the global process thing to see it
+
           if (websocketConnection.readyState === WebSocket.OPEN) {
+            // TODO: add it here
             websocketConnection.send(JSON.stringify({
               message: 'websocketData',
               processingData: data.toString(),
-              ownershipPerson
+              ownershipPerson,
+              serverNumber // on the frontend we'll react different if it it's on server 1 or two
             }));
           }
         }
