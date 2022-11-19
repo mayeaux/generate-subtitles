@@ -53,7 +53,7 @@ block content
       cursor: pointer;
     }
 
-    #data, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload {
+    #latestData, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload, #processingData {
       color: white;
       font-size: 24px;
       text-align: center;
@@ -88,6 +88,12 @@ block content
       margin-top: 45px;
     }
 
+    #processingData {
+      display: none;
+      white-space: pre;
+      margin-bottom: 35px;
+    }
+
   .container
     h1#header File Upload
     form#form
@@ -102,8 +108,10 @@ block content
 
     p#progress
     p#timeEstimator
-    p#data
+    p#latestData
+    p#processingData
     p#finishedData
+
 
     // kind of duplicated, not sure it's needed
     a#startNewUpload(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start Another Transcription
@@ -152,7 +160,7 @@ block content
     const timeRemainingDiv = document.getElementById('timeEstimator');
     const header = document.getElementById('header')
     const refreshButton = document.getElementById('refreshButton');
-    const latestData = document.getElementById('data');
+    const latestData = document.getElementById('latestData');
     const file = document.getElementById("file");
     const language = document.getElementById("language").value;
     const model = document.getElementById("model").value;
@@ -262,7 +270,8 @@ block content
       }, false);
 
       ajax.addEventListener("load", function(res){
-          console.log(res)
+        document.getElementById('processingData').style.display = 'block';
+        console.log(res)
         progressDiv.style.display = 'none';
         timeRemainingDiv.style.display = 'none';
 
@@ -320,6 +329,7 @@ block content
           txtDownloadLink.innerHTML = `${data.filename}.txt`
 
           header.innerHTML = 'Transcription Completed';
+          document.getElementById('processingData').style.display = 'none';
 
           // show refresh button
           refreshButton.style.display = 'block';
@@ -329,14 +339,32 @@ block content
           l(data.url)
 
           document.getElementById('startNewUpload').style.display = 'none';
+
           websocketConnection.close()
         } else if (data.message === 'queue'){
           placeInQueue = data.placeInQueue;
           placeInQueue = placeInQueue + 1;
-          latestData.innerHTML = `Your place in the queue is ${placeInQueue}. You'll start when others are done`;
+          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+
+        } else if (data.message === 'websocketData') {
+          l('data');
+          l(data);
+          const ownershipPerson = data.ownershipPerson;
+          let textToSay = `Latest processing data`;
+          if(ownershipPerson === 'you'){
+            textToSay = `Your processing data`;
+            latestData.innerHTML = ''
+          }
+          document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
+
         } else if(data === 'finishedProcessing' && uploadStarted){
           placeInQueue = placeInQueue - 1;
-          latestData.innerHTML = `Your place in the queue is ${placeInQueue}. You'll start when others are done`;
+          if(placeInQueue === 1){
+            latestData.innerHTML = `There is one ${placeInQueue} person ahead of you`;
+          } else {
+            latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+          }
+
         } else if (data.message === 'fileDetails') {
           const niceDate = new Date().toString().replace(/GMT.*/g,"");
           const niceString = `startedAt: ${niceDate}`;

@@ -100,12 +100,46 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       ls.stdout.on('data', data => {
         websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
         console.log(`stdout: ${data}`);
+
+        // loop through and do with websockets
+        for(let [, websocket] of global['webSocketData'].entries() ) {
+          // the actual websocket
+          l(websocket.websocketNumber)
+          const websocketConnection = websocket.websocket;
+          if (websocketConnection.readyState === WebSocket.OPEN) {
+            websocketConnection.send(JSON.stringify('finishedProcessing'));
+          }
+        }
+
       });
 
       // log output from bash
       ls.stderr.on('data', data => {
-        websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
-        console.log(`stderr: ${data}`);
+        // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
+        // console.log(`stderr: ${data}`);
+
+        // loop through and do with websockets
+        for(let [, websocket] of global['webSocketData'].entries() ) {
+          // the actual websocket
+          l(websocket.websocketNumber)
+          // const websocketNumber = websocket.websocketNumber;
+          const websocketConnection = websocket.websocket;
+          const clientWebsocketNumber = websocket.websocketNumber;
+          const websocketFromProcess = websocketNumber;
+
+          let ownershipPerson = 'others'
+          if(clientWebsocketNumber === websocketFromProcess){
+            ownershipPerson = 'you'
+          }
+
+          if (websocketConnection.readyState === WebSocket.OPEN) {
+            websocketConnection.send(JSON.stringify({
+              message: 'websocketData',
+              processingData: data.toString(),
+              ownershipPerson
+            }));
+          }
+        }
       });
 
 
@@ -209,15 +243,6 @@ async function transcribe(filename, path, language, model, websocketConnection, 
           // save data to the file
           fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
         } else {
-
-          for(let [index, websocket] of global['webSocketData'].entries() ) {
-            // the actual websocket
-            l(websocket.websocketNumber)
-            const websocketConnection = websocket.websocket;
-            if (websocketConnection.readyState === WebSocket.OPEN) {
-              websocketConnection.send(JSON.stringify('finishedProcessing'));
-            }
-          }
 
           l('FAILED!');
           reject();
