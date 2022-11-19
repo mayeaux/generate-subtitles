@@ -301,12 +301,11 @@ block content
 
       const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
 
+      let myUploadStarted = false;
       websocketConnection.onmessage = function (event) {
         const data = JSON.parse(event.data);
 
         console.log(event.data);
-
-        let myUploadStarted = false;
 
         /** WHEN WEBSOCKET SAYS COMPLETED **/
         if (data.status === 'Completed') {
@@ -355,6 +354,10 @@ block content
             latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
           }
 
+          if(1 > placeInQueue){
+            latestData.innerHTML = `Starting now...`;
+          }
+
         } else if (data.message === 'websocketData') {
           l('data');
           l(data);
@@ -375,10 +378,16 @@ block content
 
         } else if(data === 'finishedProcessing' && uploadStarted){
           placeInQueue = placeInQueue - 1;
+
+          // TODO: hate how this is duped, so annoying
           if(placeInQueue === 1){
             latestData.innerHTML = `There is one ${placeInQueue} person ahead of you`;
           } else {
             latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+          }
+
+          if (1 > placeInQueue) {
+            latestData.innerHTML = `Starting now...`;
           }
 
         } else if (data.message === 'fileDetails') {
