@@ -9,6 +9,9 @@ const filenamify = require('filenamify')
 l = console.log;
 
 const concurrentAmount = process.env.CONCURRENT_AMOUNT;
+const nodeEnvironment = process.env.NODE_ENV;
+
+const isProd = nodeEnvironment === 'production';
 
 const makeFileNameSafe = function(string){
   return filenamify(string, {replacement: '_' })
@@ -91,6 +94,14 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       // set the language for whisper (if undefined with auto-detect and translate off that)
       if(model){
         arguments.push('--model', model);
+      }
+
+      if(isProd){
+        if(topLevelValue === 1){
+          arguments.push('--device', 'cuda:0');
+        } else if(topLevelValue === 2){
+          arguments.push('--model', 'cuda:1');
+        }
       }
 
       // set the language for whisper (if undefined with auto-detect and translate off that)
