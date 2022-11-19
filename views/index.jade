@@ -153,6 +153,57 @@ block content
   script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js' integrity='sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==' crossorigin='anonymous' referrerpolicy='no-referrer')
 
   script.
+
+    const getVideoDuration = (file) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const media = new Audio(reader.result);
+          media.onloadedmetadata = () => resolve(media.duration);
+        };
+        reader.readAsDataURL(file);
+        reader.onerror = (error) => reject(error);
+      });
+
+    // const handleChange = async (e) => {
+    //   l('running here');
+    //   const duration = await getVideoDuration(e.target.files[0]);
+    //   l('duration got');
+    //   document.querySelector("#duration").innerText = `Duration: ${duration}`;
+    // };
+
+    // #('#file').on('change', async function(e){
+    //   const duration = await getVideoDuration(e.target.files[0]);
+    //   l('gotten duration');
+    //   l(duration);
+    // })
+
+    // $('#file').on("change", async function (e) {
+    //   // 3600 is an hour in seconds
+    //   // gotten
+    //   // duration
+    //   // 2870.450794
+    //
+    //
+    //   const duration = await getVideoDuration(e.target.files[0]);
+    //   // 3600
+    //   if(duration > 1000){
+    //     return Swal.fire({
+    //       title: 'The video is to long',
+    //       text: languages.join(' '),
+    //       icon: 'question',
+    //       confirmButtonText: 'Cool'
+    //     })
+    //   }
+    //   l('gotten duration');
+    //   l(duration);
+    //   // uploadFile();
+    // });
+
+
+    // (async function(){
+    //
+    // })()
     l = console.log;
 
     $(document).ready(function () {
@@ -222,7 +273,37 @@ block content
 
     const nodeEnvironment = `#{nodeEnv}`
 
-    function submitForm(e) {
+    // const getVideoDuration = file =>
+    //   new Promise((resolve, reject) => {
+    //     const reader = new FileReader();
+    //     reader.onload = () => {
+    //       const media = new Audio(reader.result);
+    //       media.onloadedmetadata = () => resolve(media.duration);
+    //     };
+    //     reader.readAsDataURL(file);
+    //     reader.onerror = error => reject(error);
+    //   });
+
+    const selectElement = document.querySelector('#file');
+
+    l('selecteleemnt');
+    l(selectElement);
+
+    let videoDuration;
+
+    selectElement.addEventListener('change', async function () {
+      l('getting video duration!');
+      l(new Date())
+      videoDuration = await getVideoDuration(file.files[0]);
+      l(new Date())
+      l('videoDuration');
+      l(videoDuration);
+
+      // const result = document.querySelector('.result');
+      // result.textContent = `You like ${event.target.value}`;
+    });
+
+    async function submitForm(e) {
       e.preventDefault();
 
       let language = document.getElementById("language").value;
@@ -231,6 +312,8 @@ block content
       const formData = new FormData();
 
       const passedFile = file.files[0]
+
+
 
       if(!passedFile){
         return Swal.fire({
@@ -244,7 +327,45 @@ block content
       const protocol = document.location.protocol.substring(1)
       const servedWithSSL = protocol === 'https'
 
+
+      l('passedFile');
+      l(passedFile)
+
+      // let videoDuration;
+
+      // const handleChange = async (e) => {
+      //   l('running here!!');
+      //   videoDuration = await getVideoDuration(e.target.files[0]);
+      //   l('video duration');
+      //   l(videoDuration);
+      //   // document.querySelector("#duration").innerText = `Duration: ${duration}`;
+      // };
+      //
+      // // load on change
+      // $('#file').on("change", handleChange);
+
+
       if(nodeEnvironment === 'prod' && servedWithSSL){
+
+
+      // if(1 === 1){
+
+        l('geting duration');
+        // const duration = await getVideoDuration(file.files[0]);
+        l(videoDuration);
+        l('duration');
+        l(videoDuration);
+
+        // 3600
+        if (videoDuration && videoDuration > 1600) {
+          return Swal.fire({
+            title: 'The video is too long',
+            text: 'To share time more evenly 1h+ uploads are not allowed',
+            icon: 'error',
+            confirmButtonText: 'Cool'
+          })
+        }
+
         // TODO: change this to onchange
         const oneHundredMBinBytes = 100000000;
 
@@ -257,6 +378,8 @@ block content
           })
         }
       }
+
+
 
 
 
