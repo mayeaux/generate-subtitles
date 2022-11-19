@@ -67,6 +67,13 @@ wss.on('connection', function (websocketConnection, request, client) {
   });
 });
 
+// setInterval(function(){
+//   const process = global['transcriptions'][0].spawnedProcess;
+//   l(process)
+//   if(process) process.kill('SIGINT');
+//
+// }, 1000 * 15) // 20 seconds
+
 function checkForDeath(){
   l('checking for death');
   l(global.webSocketData.length);
@@ -74,37 +81,38 @@ function checkForDeath(){
   for(let [index, websocket] of global['webSocketData'].entries() ){
     // the actual websocket
     l(websocket.websocketNumber)
+    const websocketNumber = websocket.websocketNumber
     const websocketConnection = websocket.websocket;
 
+
+    /** DEAD WEBSOCKET FUNCTIONALITY **/
     // destroy killed websockets and cancel their transcriptions
     if (websocketConnection.isAlive === false){
       l('found a dead one!');
-      //
       websocketConnection.terminate();
       global.webSocketData.splice(index, 1);
+
+
       const closerTranscription = global['transcriptions'].find(function(transcription){
         return transcription.websocketNumber === websocket.websocketNumber;
       })
-
-      l('closer transcription');
+      l('closer transcription')
+      l(websocketNumber);
       l(closerTranscription)
 
       // kill the process
-      if(closerTranscription && closerTranscription.process)
+      if(closerTranscription && closerTranscription.spawnedProcess){
+        l('found spawned process');
 
-        closerTranscription.process.kill('SIGINT');
+        closerTranscription.spawnedProcess.kill('SIGINT');
+        l(`killed process: ${websocketNumber}`);
 
         const transcriptionIndex =  global['transcriptions'].indexOf(closerTranscription);
         if (index > -1) { // only splice array when item is found
           global['transcriptions'].splice(transcriptionIndex, 1); // 2nd parameter means remove one item only
-        } else {
-          l('Didnt find huh?')
         }
-
-      continue
+      }
     }
-
-    // KILL THE PROCESS FROM THE GLOBAL THING
 
     /** TEST FOR ALIVENESS */
     // mark them as dead, but then check immediately after for redemption chance

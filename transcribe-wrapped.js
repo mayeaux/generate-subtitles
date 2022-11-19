@@ -32,13 +32,6 @@ setInterval(function(){
   l(global['transcriptions']);
 }, 7000)
 
-// setInterval(function(){
-//   const process = global['transcriptions'][0].spawnedProcess;
-//   l(process)
-//   if(process) process.kill('SIGINT');
-//
-// }, 1000 * 15) // 20 seconds
-
 // ps aux
 // /usr/bin/python3 /usr/local/bin/whisper uploads/0
 
