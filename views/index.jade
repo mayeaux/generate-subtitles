@@ -378,27 +378,27 @@ block content
       } else if (data.message === 'queue'){
         placeInQueue = data.placeInQueue;
         placeInQueue = placeInQueue + 1;
-        if (placeInQueue === 1) {
+        const amountOfPeopleInFront = placeInQueue - 1;
+        if (placeInQueue) {
           latestData.innerHTML = `You're next up`;
-        } else {
-          latestData.innerHTML = `There are ${placeInQueue - 1} people ahead of you`;
+        } else if(placeInQueue > 1){
+          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
         }
 
-        if(1 > placeInQueue){
+        if(placeInQueue === 0){
           latestData.innerHTML = `Starting now...`;
         }
 
       } else if (data === 'finishedProcessing' && uploadStarted) {
-        placeInQueue = placeInQueue - 1;
-
+        const amountOfPeopleInFront = placeInQueue - 1;
         // TODO: hate how this is duped, so annoying
         if (placeInQueue === 1) {
           latestData.innerHTML = `You're next up`;
         } else {
-          latestData.innerHTML = `There are ${placeInQueue - 1} people ahead of you`;
+          latestData.innerHTML = `There are ${amountOfPeopleInFront} people ahead of you`;
         }
 
-        if (1 > placeInQueue) {
+        if (amountOfPeopleInFront) {
           latestData.innerHTML = `Starting now...`;
         }
 
