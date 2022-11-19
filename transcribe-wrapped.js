@@ -148,8 +148,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       // log output from bash (it all comes through stderr for some reason?)
       ls.stderr.on('data', data => {
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
-        l(`STDERR: ${data}, Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language ${language}
-        `);
+        l(`STDERR: ${data}, Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language ${language}, Filename: ${filename}`);
 
         // loop through and do with websockets
         for(let [, websocket] of global['webSocketData'].entries() ) {
