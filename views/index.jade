@@ -344,7 +344,11 @@ block content
         } else if (data.message === 'queue'){
           placeInQueue = data.placeInQueue;
           placeInQueue = placeInQueue + 1;
-          latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+          if (placeInQueue === 1) {
+            latestData.innerHTML = `There is one ${placeInQueue} person ahead of you`;
+          } else {
+            latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+          }
 
         } else if (data.message === 'websocketData') {
           l('data');
