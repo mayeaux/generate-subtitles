@@ -286,7 +286,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
           for(let [index, websocket] of global['webSocketData'].entries() ) {
             // the actual websocket
-            l(websocket.websocketNumber)
+            // l(websocket.websocketNumber)
             const websocketConnection = websocket.websocket;
             if (websocketConnection.readyState === WebSocket.OPEN) {
               websocketConnection.send(JSON.stringify('finishedProcessing'));
