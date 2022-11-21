@@ -258,19 +258,19 @@ async function transcribe({
           // copy srt with the original filename
           // SOURCE, ORIGINAL
           // TODO: could probably move here instead of copy
-          await fs.move(`${containingDir}/${uploadFolderFileName}.srt`, transcribedSrtFile)
+          await fs.move(`${containingDir}/${uploadFolderFileName}.srt`, transcribedSrtFile, { overwrite: true })
 
-          await fs.move(`${containingDir}/${uploadFolderFileName}.vtt`, transcribedVttFile)
+          await fs.move(`${containingDir}/${uploadFolderFileName}.vtt`, transcribedVttFile, { overwrite: true })
 
-          await fs.move(`${containingDir}/${uploadFolderFileName}.txt`, transcribedTxtFile)
+          await fs.move(`${containingDir}/${uploadFolderFileName}.txt`, transcribedTxtFile, { overwrite: true })
 
           // convert Cyrillic to latin
           if(language === 'Serbian'){
-            var data = fs.readFileSync(transcribedSrtFile, 'utf-8');
+            var data = await fs.readFile(transcribedSrtFile, 'utf-8');
 
             var latinCharactersText = convert(data);
 
-            fs.writeFileSync(transcribedSrtFile, latinCharactersText, 'utf-8');
+            await fs.writeFile(transcribedSrtFile, latinCharactersText, 'utf-8');
           }
 
           const shouldTranslateFromLanguage = shouldTranslateFrom(language);
@@ -328,7 +328,7 @@ async function transcribe({
 
           // TODO: output as json (then can do a progress thing)
           // save data to the file
-          fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
+          await fs.appendFile(`${containingDir}/processing_data.txt`, outputText, 'utf8');
         } else {
 
           l('FAILED!');

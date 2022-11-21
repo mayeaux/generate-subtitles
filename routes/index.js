@@ -193,7 +193,7 @@ router.get("/player/:filename" , async function(req, res, next){
   l('filePathWithoutExtension')
   l(filePathWithoutExtension);
 
-  res.render('plyr', {
+  res.render('player', {
     filePath: filePathWithoutExtension,
     languages: languagesToTranscribe,
 

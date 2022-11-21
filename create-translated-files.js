@@ -35,7 +35,7 @@ async function createTranslatedSrts({
   const loopThrough = ['.srt', '.vtt', 'txt'];
 
   // TODO: translate the rest
-  const srtData = await fs.readFile(`${directoryAndFileName}.srt`, 'utf-8');
+  const srtData = await fs.readFile(`${directoryAndFileName}.vtt`, 'utf-8');
   l('srtData');
   l(srtData);
 
@@ -50,10 +50,10 @@ async function createTranslatedSrts({
       // no need to translate just copy the file
       if(languageToConvertTo === language){
         l('copying file');
-        await fs.copy(`${directoryAndFileName}.srt`, `${directoryAndFileName}_${language}.srt`)
+        await fs.copy(`${directoryAndFileName}.vtt`, `${directoryAndFileName}_${language}.vtt`)
       } else {
         // hit LibreTranslate backend
-        l(`hitting libretranslate: ${language}`);
+        l(`hitting libretranslate: ${language} -> ${languageToConvertTo}`);
         // TODO: to convert to thing
         const translatedText = await translateText({
           sourceLanguage: getCodeFromLanguageName(language), // before these were like 'EN', will full language work?
@@ -62,7 +62,7 @@ async function createTranslatedSrts({
         })
         l('translatedText');
         l(translatedText);
-        await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.srt`, translatedText, 'utf-8');
+        await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, translatedText, 'utf-8');
       }
     } catch (err){
       l(err);

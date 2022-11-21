@@ -1,38 +1,160 @@
 extends layout
 
 block content
-    link(href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet")
     style.
+        video {
+            top: 0px;
+            right: 0px;
+            bottom: 0px;
+            left: 0px;
+            max-height: 100%;
+            max-width: 100%;
+            margin: auto;
+            object-fit: contain;
+            height: 100%;
+            width: 100%;
+            background-color: black;
+        }
+
         body {
+            background-color: black;
             padding: 0px;
             margin: 0px;
+        }
+
+        h2, p, h4, h3 {
+            color: white;
+        }
+
+        .site-logo {
+            cursor: pointer;
+            position: relative;
+            right: 0px;
+            text-align: right;
+            margin: 0px;
+            margin-right: 13px;
+            color: #d8d8d8;
+            padding: 0px;
+            top: 5px;
+        }
+
+        .video-details {
+            margin-top: -13px;
+            margin-left: 15px;
+        }
+
+        .description {
+            line-height:23px;
+            font-family: serif;
+            font-size: 44px;
+            line-height: 80px;
+        }
+
+        .pulled-right {
+            max-width: 500px;
+            margin-right: 0px;
+            width: 200px;
+            position: relative;
+            float: right;
+            top: -6px;
+        }
+
+        .video-title {
+            font-size: 58px;
+            margin-top: 25px;
+        }
+
+        .hide-cursor {
+            cursor: none;
+        }
+
+        .plyr {
+            max-height: 94.6vh;
+        }
+
+        #back-button {
+            font-size: 14px;
+            margin-top: 12px;
+        }
+
+        #download-button {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .upload-details-holder {
+            /*height: 1300px;*/
+        }
+
+        .plyr__caption {
+            font-size: 15px;
+        }
+
+        .upload-details h4:not(.description) {
+            font-size: 35px;
         }
 
         .vjs-text-track-display div div {
             font-size: 40px !important;
         }
 
-        .container {
-            max-height: 0.95vh;
+        .video-js {
+            max-height: 400px;
         }
 
-        html, body {
-            width: 100%;
-            height: 100%;
+        .plyr__caption {
+            font-size: 34px;
+            line-height: 53px !important;
         }
 
-    .thing
-        .container-fluid
-            video#content_video.video-js.vjs-default-skin.vjs-16-9(data-setup='{ "fluid": true  }' controls='' preload='auto' width='640' height='360')
-                source(src=fileSource type='video/mp4')
-                track(label='English' kind='subtitles' srclang='en' src=vttPath default='')
+    div
+        div.video-containing-div
+            video#player(controls='' autoplay='true' name='media')
+                // try webm here
+                source(src=`${filePath}.mp4`)
+                // TODO: replace with loop
+                track(kind='captions' label='English' srclang='en' src=`${filePath}_English.vtt` default='')
+                track(kind='captions' label='Spanish' srclang='es' src=`${filePath}_Spanish.vtt` default='')
+                track(kind='captions' label='French' srclang='fr' src=`${filePath}_French.vtt` default='')
+                track(kind='captions' label='German' srclang='de' src=`${filePath}_German.vtt` default='')
+                track(kind='captions' label='Russian' srclang='ru' src=`${filePath}_Russian.vtt` default='')
+                track(kind='captions' label='Chinese' srclang='zh' src=`${filePath}_Chinese.vtt` default='')
+                track(kind='captions' label='Japanese' srclang='ja' src=`${filePath}_Japanese.vtt` default='')
 
-    script(src="https://vjs.zencdn.net/7.20.3/video.min.js")
 
+
+    script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
+    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')
     script.
-      var player = videojs('content_video');
+      $(document).ready(function () {
+        console.log("ready!");
+        var controls =
+          [
+            'play-large', // The large play button in the center
+            // 'restart', // Restart playback
+            // 'rewind', // Rewind by the seek time (default 10 seconds)
+            'play', // Play/pause playback
+            // 'fast-forward', // Fast forward by the seek time (default 10 seconds)
+            'volume', // Volume control
+            'progress', // The progress bar and scrubber for playback and buffering
+            'current-time', // The current time of playback
+            'duration', // The full duration of the media
+            'mute', // Toggle mute
+            'captions', // Toggle captions
+            'settings', // Settings menu
+            // 'pip', // Picture-in-picture (currently Safari only)
+            // 'airplay', // Airplay (currently Safari only)
+            // 'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
+            'fullscreen'
+          ];
 
-      player.on('ready', function () {
-        player.vhs = null;
-
+        const player = new Plyr('#player', {
+          disableContextMenu: true,
+          controls,
+          captions: { active: true, language: 'en', update: false },
+          settings: ['captions']
+        });
       });
+
+
+
