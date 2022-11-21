@@ -87,7 +87,7 @@ block content
         }
 
         .plyr__caption {
-            font-size: 15px;
+            font-size: 40px !important;
         }
 
         .upload-details h4:not(.description) {
@@ -110,17 +110,17 @@ block content
     div
         div.video-containing-div
             video#player(controls='' autoplay='true' name='media')
-                // try webm here
-                source(src=`${filePath}.mp4`)
+                // TODO: path here is broken, needs to support the real extension
+                // TODO: have to get info from json file
+                source(src=`${filePathWithoutExtension}.mp4`)
                 // TODO: replace with loop
-                track(kind='captions' label='English' srclang='en' src=`${filePath}_English.vtt` default='')
-                track(kind='captions' label='Spanish' srclang='es' src=`${filePath}_Spanish.vtt` default='')
-                track(kind='captions' label='French' srclang='fr' src=`${filePath}_French.vtt` default='')
-                track(kind='captions' label='German' srclang='de' src=`${filePath}_German.vtt` default='')
-                track(kind='captions' label='Russian' srclang='ru' src=`${filePath}_Russian.vtt` default='')
+                track(kind='captions' label='English' srclang='en' src=`${filePathWithoutExtension}_English.vtt` default='')
+                track(kind='captions' label='Spanish' srclang='es' src=`${filePathWithoutExtension}_Spanish.vtt` default='')
+                track(kind='captions' label='French' srclang='fr' src=`${filePathWithoutExtension}_French.vtt` default='')
+                track(kind='captions' label='German' srclang='de' src=`${filePathWithoutExtension}_German.vtt` default='')
+                track(kind='captions' label='Russian' srclang='ru' src=`${filePathWithoutExtension}_Russian.vtt` default='')
                 //track(kind='captions' label='Chinese' srclang='zh' src=`${filePath}_Chinese.vtt` default='')
-                track(kind='captions' label='Japanese' srclang='ja' src=`${filePath}_Japanese.vtt` default='')
-
+                track(kind='captions' label='Japanese' srclang='ja' src=`${filePathWithoutExtension}_Japanese.vtt` default='')
 
 
     script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')

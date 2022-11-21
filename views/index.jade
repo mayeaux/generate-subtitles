@@ -284,7 +284,7 @@ block content
 
       if(nodeEnvironment === 'production' && servedWithSSL){
 
-
+      // force upload testing
       // if(1 === 1){
 
         l('geting duration');
@@ -317,10 +317,6 @@ block content
           })
         }
       }
-
-
-
-
 
       function capitalize(s) {
         return s[0].toUpperCase() + s.slice(1);
@@ -451,27 +447,6 @@ block content
 
         document.getElementById('finishedData').innerHTML = data.detailsString;
 
-        // create srt download link
-        const srtDownloadLink = document.getElementById('srtDownloadLink')
-        srtDownloadLink.target = "_blank"
-        srtDownloadLink.href = data.urlSrt;
-        srtDownloadLink.style.display = 'block';
-        srtDownloadLink.innerHTML = `${data.filename}.srt`
-
-        // create vtt download link
-        const vttDownloadLink = document.getElementById('vttDownloadLink')
-        vttDownloadLink.target = "_blank"
-        vttDownloadLink.href = data.urlVtt;
-        vttDownloadLink.style.display = 'block';
-        vttDownloadLink.innerHTML = `${data.filename}.vtt`
-
-        // create txt download link
-        const txtDownloadLink = document.getElementById('txtDownloadLink')
-        txtDownloadLink.href = data.urlTxt;
-        txtDownloadLink.target = "_blank"
-        txtDownloadLink.style.display = 'block';
-        txtDownloadLink.innerHTML = `${data.filename}.txt`
-
         header.innerHTML = 'Transcription Completed';
         document.getElementById('processingData').style.display = 'none';
 
@@ -485,6 +460,10 @@ block content
         document.getElementById('startNewUpload').style.display = 'none';
 
         websocketConnection.close()
+
+        setTimeout(function(){
+          window.location.href = `/player/${data.filename}`
+        }, 5000)
 
       } else if (data.message === 'queue'){
         placeInQueue = data.placeInQueue;

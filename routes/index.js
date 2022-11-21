@@ -186,9 +186,9 @@ router.get("/transcriptions/:path/:filename" , async function(req, res, next){
 
 /** PLYR PLAYER **/
 router.get("/player/:filename" , async function(req, res, next){
-  let filename = req.params.filename
+  const fileNameWithoutExtension = req.params.filename
 
-  const filePathWithoutExtension = `../transcriptions/${filename}/${filename}`;
+  const filePathWithoutExtension = `../transcriptions/${fileNameWithoutExtension}/${fileNameWithoutExtension}`;
 
   l('filePathWithoutExtension')
   l(filePathWithoutExtension);
@@ -196,7 +196,8 @@ router.get("/player/:filename" , async function(req, res, next){
   res.render('player', {
     filePath: filePathWithoutExtension,
     languages: languagesToTranscribe,
-
+    fileNameWithoutExtension,
+    filePathWithoutExtension
     // vttPath,
     // fileSource
   })
