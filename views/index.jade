@@ -463,7 +463,7 @@ block content
 
         setTimeout(function(){
           window.location.href = `/player/${data.filename}`
-        }, 5000)
+        }, 2000)
 
       } else if (data.message === 'queue'){
         placeInQueue = data.placeInQueue;
@@ -542,6 +542,9 @@ block content
         const niceDate = new Date().toString().replace(/GMT.*/g,"");
         const niceString = `startedAt: ${niceDate}`;
         document.getElementById('finishedData').innerHTML = data.fileDetails + niceString;
+      } else if (data.message === 'languageUpdate') {
+        document.getElementById('processingData').innerHTML = data.languageUpdate;
+
       } else {
         latestData.innerHTML = data;
       }

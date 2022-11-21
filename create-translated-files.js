@@ -56,6 +56,7 @@ function cleanUpSubtitles(language, text){
 async function createTranslatedSrts({
     directoryAndFileName,
     language,
+    websocketConnection
 }){
 
   const loopThrough = ['.srt', '.vtt', 'txt'];
@@ -78,6 +79,12 @@ async function createTranslatedSrts({
         l('copying file');
         await fs.copy(`${directoryAndFileName}.vtt`, `${directoryAndFileName}_${language}.vtt`)
       } else {
+
+        websocketConnection.send(JSON.stringify({
+          languageUpdate: `Translating ${languageToConvertTo}..`,
+          message: 'languageUpdate'
+        }), function () {});
+
         // hit LibreTranslate backend
         l(`hitting libretranslate: ${language} -> ${languageToConvertTo}`);
         // TODO: to convert to thing
@@ -89,7 +96,7 @@ async function createTranslatedSrts({
         // l('translatedText');
         // l(translatedText);
         translatedText = cleanUpSubtitles(languageToConvertTo, translatedText);
-        //
+
         // l('translatedText');
         // l(translatedText);
 

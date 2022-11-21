@@ -281,14 +281,17 @@ async function transcribe({
           /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
           if(libreTranslateHostPath && shouldTranslateFromLanguage){
             // tell frontend that we're translating now
-            websocketConnection.send(JSON.stringify(`Doing translations with LibreTranslate`), function () {});
+            websocketConnection.send(JSON.stringify({
+              languageUpdate: `Doing translations with LibreTranslate`,
+              message: 'languageUpdate'
+            }), function () {});
 
             l('hitting LibreTranslate');
             // hit libretranslate
             await createTranslatedFiles({
               directoryAndFileName,
-              transcribedFileName: directorySafeFileNameWithoutExtension,
               language,
+              websocketConnection,
             })
           }
 
