@@ -34,6 +34,7 @@ app.set('port', port);
 
 
 
+// TODO: pull out into a different file
 /** BEGIN WEBSOCKETS **/
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
@@ -163,7 +164,8 @@ setInterval(checkForDeath, 1000 * 5);
 /** END WEBSOCKETS **/
 
 
-
+// create folders if they don't exist yet
+// fs.mkdirSync('uploads', { recursive: true })
 fs.mkdirSync('uploads', { recursive: true })
 fs.mkdirSync('transcriptions', { recursive: true })
 
@@ -177,6 +179,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'transcriptions')));
+
 
 const oneWeek = 1000 * 60 * 60 * 24 * 7;
 

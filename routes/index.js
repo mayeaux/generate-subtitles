@@ -69,6 +69,8 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const path = req.file.path;
 
+
+
     const utf8DecodedFileName = decode_utf8(req.file.originalname);
 
     if(!path){ res.status(500); res.send('no file')}
@@ -151,8 +153,34 @@ router.post('/file', upload.single('file'), function (req, res, next) {
   }
 });
 
+router.get("/transcriptions/:path/:filename" , async function(req, res, next){
+  console.log(req.params);
+  res.sendFile(`${process.cwd()}/transcriptions/${req.params.path}/${req.params.filename}`);
+});
+
+/** PLYR PLAYER **/
+router.get("/player/:filename" , async function(req, res, next){
+  let filename = req.params.filename
+
+  const filePath = `../transcriptions/${filename}/${filename}`
+
+  res.render('plyr', {
+    filePath,
+    // vttPath,
+    // fileSource
+  })
+});
 
 
+/** VIDEOJS PLAYER (SUCKS) **/
+// router.get("/player" , async function(req, res, next){
+//   console.log(req.params);
+//
+//   res.render('player', {
+//     vttPath,
+//     fileSource
+//   })
+// });
 
 
 
@@ -201,11 +229,6 @@ router.post('/post', async function(req, res, next){
     l(err);
   }
 })
-
-router.get("/transcriptions/:path/:filename" , async function(req, res, next){
-  console.log(req.params);
-  res.sendFile(`${process.cwd()}/transcriptions/${req.params.path}/${req.params.filename}`);
-});
 
 
 module.exports = router;

@@ -1,0 +1,38 @@
+extends layout
+
+block content
+    link(href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet")
+    style.
+        body {
+            padding: 0px;
+            margin: 0px;
+        }
+
+        .vjs-text-track-display div div {
+            font-size: 40px !important;
+        }
+
+        .container {
+            max-height: 0.95vh;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+    .thing
+        .container-fluid
+            video#content_video.video-js.vjs-default-skin.vjs-16-9(data-setup='{ "fluid": true  }' controls='' preload='auto' width='640' height='360')
+                source(src=fileSource type='video/mp4')
+                track(label='English' kind='subtitles' srclang='en' src=vttPath default='')
+
+    script(src="https://vjs.zencdn.net/7.20.3/video.min.js")
+
+    script.
+      var player = videojs('content_video');
+
+      player.on('ready', function () {
+        player.vhs = null;
+
+      });

@@ -12,16 +12,18 @@ if(global.debug === 'false'){
 async function createTranslatedSrts({
   uploadDirectoryName,
   transcribedFileName,
+  safeFileName,
   languageToConvertFrom, // ISO 638 string ('en')
-  languagesToConvertTo //array
+  languagesToConvertTo, //array
 }){
   const transcribedFilePath =
     `${uploadDirectoryName}/${transcribedFileName}`;
-  // without .srt at the end
+  // filepath without .srt at the end
 
   l('transcribedFilePath');
   l(transcribedFilePath);
 
+  // TODO: translate all 3 documents?
   const data = fs.readFileSync(`${transcribedFilePath}.srt`, 'utf-8');
   l('data');
   l(data);

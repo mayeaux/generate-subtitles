@@ -1,7 +1,10 @@
 const fetch = require('node-fetch');
 const l = console.log;
 
-const LTEndpoint = 'http://76.50.42.128:49627/translate';
+// TODO: replace this with new instance
+const LTHost = process.env.LIBRETRANSLATE;
+
+const endpoint = LTHost + '/translate';
 
 process.on('unhandledRejection', (reason, promise) => {
   l(reason);
@@ -9,7 +12,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 async function hitLTBackend({ text, sourceLanguage, targetLanguage }){
-  const res = await fetch(LTEndpoint, {
+  const res = await fetch(endpoint, {
     method: "POST",
     body: JSON.stringify({
       q: text,

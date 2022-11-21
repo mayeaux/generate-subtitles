@@ -17,27 +17,12 @@ const makeFileNameSafe = function(string){
   return filenamify(string, {replacement: '_' })
 }
 
-// const fred = safeFileName('hey this is the third???////////1/4\'');
-// l(fred);
-
 const forHumans = require('./helpers').forHumans;
 const shouldTranslate = process.env.LIBRETRANSLATE;
 const createTranslatedFiles = require('./create-translated-files');
 
-// l('create translated');
-// l(createTranslatedFiles);
-
 const whisperPath = which.sync('whisper')
 const ffprobePath = which.sync('ffprobe')
-
-
-// setInterval(function(){
-//   l('current global transcriptions');
-//   l(global['transcriptions']);
-// }, 7000)
-
-// ps aux
-// /usr/bin/python3 /usr/local/bin/whisper uploads/0
 
 global.transcriptions = [];
 
@@ -119,14 +104,6 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
       let serverNumber = topLevelValue;
 
-      // TODO: get the server here
-
-      // const process = {
-      //   websocketNumber: websocketNumber,
-      //   spawnedProcess: ls,
-      //   serverNumber,
-      // }
-
       if(serverNumber === 1){
         topLevelValue = 2
       } else if(serverNumber === 2){
@@ -142,27 +119,29 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       global['transcriptions'].push(process)
 
       let foundLanguage;
+      let displayLanguage = language;
       // log output from bash
       // TODO: this doesnt use stdout at all
       ls.stdout.on('data', data => {
         websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
-        l('data');
-        l(data.toString());
-        console.log(`STDOUT: ${data}`);
+        l(`STDOUT: ${data}`);
 
+        // TODO: pull this out into own function
+        // check if language is autodetected)
         const dataAsString = data.toString();
         if(dataAsString.includes('Detected language:')){
           l('running hereee');
           foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
           l(foundLanguage)
-          if(!language) language = foundLanguage
-          if(foundLanguage){
-            language = `${language} (Auto-Detected)`
+          if(!language && foundLanguage){
+            language = foundLanguage
+            displayLanguage = `${language} (Auto-Detected)`
           }
 
+          // send data to frontend with updated language
           const fileDetails = `
             filename: ${filename}
-            language: ${language}
+            language: ${displayLanguage}
             model: ${model}
             uploadDurationInSeconds: ${uploadDurationInSeconds}
             uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
@@ -172,21 +151,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
             message: 'fileDetails',
             fileDetails
           }), function () {});
-
-          // RESEND data files
         }
-
-        // loop through and do with websockets
-        // TODO: I'm surprised this works actually
-        // for(let [, websocket] of global['webSocketData'].entries() ) {
-        //   // the actual websocket
-        //   // l(websocket.websocketNumber)
-        //   const websocketConnection = websocket.websocket;
-        //   if (websocketConnection.readyState === WebSocket.OPEN) {
-        //     websocketConnection.send(JSON.stringify('finishedProcessing'));
-        //   }
-        // }
-
       });
 
       // log output from bash (it all comes through stderr for some reason?)
@@ -213,20 +178,6 @@ async function transcribe(filename, path, language, model, websocketConnection, 
             ownershipPerson = 'you'
           }
 
-          // TODO : find the global.
-          const foundProcess = global.transcriptions.find(function(transcriptionObject){
-            return transcriptionObject.websocketNumber === websocketNumber;
-          })
-
-          // const  {
-          //   websocketNumber: websocketNumber,
-          //   spawnedProcess,
-          //   serverNumber,
-          // } = foundProcess;
-
-          // SEND DATA TO ALL THE FRONTENDS WITH LATEST DATA
-          // TODO: we need the global process thing to see it
-
           // pass latest data to all the open sockets
           if (websocketConnection.readyState === WebSocket.OPEN) {
             /** websocketData message **/
@@ -241,7 +192,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       });
 
 
-      // save date when starting just to see how long it's taking
+      // save date when starting to see how long it's taking
       const startingDate = new Date();
       l(startingDate);
 
@@ -255,32 +206,31 @@ async function transcribe(filename, path, language, model, websocketConnection, 
         }
 
         if(code === 0){
-          // delete original upload to save space
-          const shouldDeleteOriginalUpload = false;
-          if(shouldDeleteOriginalUpload){
-            // TODO: move this to uploads directory
-            fs.unlinkSync(originalUpload);
-          }
-
-          // where the transcription was saved
-          // TODO: stop using splitFileName
-          // TODO: use that formatting thing
-
-          // safeFileName
+          // // delete original upload to save space
+          // const shouldDeleteOriginalUpload = false;
+          // if(shouldDeleteOriginalUpload){
+          //   // TODO: move this to uploads directory
+          //   fs.unlinkSync(originalUpload);
+          // }
 
           const containingDir = `./transcriptions/${safeFilename}`;
 
-          // TODO: add the other srt files here
-          // may as well add the original file too
+          await fs.move(originalUpload, `${containingDir}/${filename}`, { overwrite: true })
 
+          const fileNameWithLanguage = `${safeFilename}_${language}`;
+
+          const directoryAndFileName = `${containingDir}/${fileNameWithLanguage}`
+
+          // turn this to a loop
           /** COPY TO BETTER NAME, SRT, VTT, TXT **/
-          const transcribedSrtFile = `${containingDir}/${filename}_${language}.srt`;
+          const transcribedSrtFile = `${directoryAndFileName}.srt`;
 
-          const transcribedVttFile = `${containingDir}/${filename}_${language}.vtt`;
+          const transcribedVttFile = `${directoryAndFileName}.vtt`;
 
-          const transcribedTxtFile = `${containingDir}/${filename}_${language}.txt`;
+          const transcribedTxtFile = `${directoryAndFileName}.txt`;
 
           // copy srt with the original filename
+          // SOURCE, ORIGINAL
           await fs.copy(`${containingDir}/${splitFilename}.srt`, transcribedSrtFile)
 
           await fs.copy(`${containingDir}/${splitFilename}.vtt`, transcribedVttFile)
@@ -301,7 +251,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
             websocketConnection.send(JSON.stringify(`Doing translations with LibreTranslate`), function () {});
             await createTranslatedFiles({
               uploadDirectoryName: containingDir,
-              transcribedFileName: filename,
+              transcribedFileName: fileNameWithLanguage,
               languagesToConvertTo: ['es', 'fr'], // convert to Spanish and French
               languageToConvertFrom: 'en'
             })
@@ -311,7 +261,6 @@ async function transcribe(filename, path, language, model, websocketConnection, 
           resolve(code);
 
           // just post-processing, you can return the response
-
           const processingSeconds = Math.round((new Date() - startingDate) / 1000);
 
           const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
@@ -340,45 +289,24 @@ async function transcribe(filename, path, language, model, websocketConnection, 
             detailsString: outputText
           }), function () {});
 
-          // ONSUCCESS
-          // for(let [index, websocket] of global['webSocketData'].entries() ) {
-          //   // the actual websocket
-          //   // l(websocket.websocketNumber)
-          //   const websocketConnection = websocket.websocket;
-          //   if (websocketConnection.readyState === WebSocket.OPEN) {
-          //     websocketConnection.send(JSON.stringify('finishedProcessing'));
-          //   }
-          // }
-
           // save data to the file
           fs.appendFileSync(`${containingDir}/processing_data.txt`, outputText, 'utf8');
         } else {
 
           l('FAILED!');
           reject();
-          throw new Error('broken')
+          throw new Error('Transcription has been ended')
         }
 
-
-        console.log(`child process exited with code ${code}`);
+        l(`child process exited with code ${code}`);
       });
     } catch (err){
       l('error from transcribe')
       l(err);
 
-      // ON FAILURE
-      // for(let [index, websocket] of global['webSocketData'].entries() ) {
-      //   // the actual websocket
-      //   // l(websocket.websocketNumber)
-      //   const websocketConnection = websocket.websocket;
-      //   if (websocketConnection.readyState === WebSocket.OPEN) {
-      //     websocketConnection.send(JSON.stringify('finishedProcessing'));
-      //   }
-      // }
-
       reject(err);
 
-      throw new Error('something broke')
+      throw new Error(err)
     }
 
   });
