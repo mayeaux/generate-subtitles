@@ -1,6 +1,7 @@
 const translateText = require('./libreTranslateWrapper');
-const fs = require('fs');
-const constants = require('./constants');
+const fs = require('fs-extra');
+const projectConstants = require('./constants');
+const { languagesToTranscribe } = projectConstants;
 
 const convert = require("cyrillic-to-latin");
 
@@ -10,52 +11,36 @@ if(global.debug === 'false'){
   l = function(){}
 }
 
-function shouldTranslateTo(languageName){
-  return languagesToConvertTo.includes(languageName)
-}
-
-function shouldTranslateFrom(languageName){
-  return translateLanguages.find(function(filteredLanguage){
-    return languageName === filteredLanguage.name;
-  })
-}
-
 
 /** for translation **/
 async function createTranslatedSrts({
-  uploadDirectoryName,
-  transcribedFileName,
-  safeFileName,
-  languageToConvertFrom, // ISO 638 string ('en')
-  languagesToConvertTo, //array
+    directoryAndFileName,
+    language,
 }){
-  const transcribedFilePath =
-    `${uploadDirectoryName}/${transcribedFileName}`;
-  // filepath without .srt at the end
 
-  l('transcribedFilePath');
-  l(transcribedFilePath);
+  const loopThrough = ['.srt', '.vtt', 'txt'];
 
-  // TODO: translate all 3 documents?
-  const data = fs.readFileSync(`${transcribedFilePath}.srt`, 'utf-8');
-  l('data');
-  l(data);
+  // TODO: translate the rest
+  const srtData = fs.readFileSync(`${directoryAndFileName}.srt`, 'utf-8');
+  l(srtData);
+  l(srtData);
 
-  for(const languageToConvertTo of languagesToConvertTo){
-    l('languageToConvertTo');
-    l(languageToConvertTo);
-
-    // hit LibreTranslate backend
-    l('hitting libretranslate');
-    const translatedText = await translateText({
-      sourceLanguage: languageToConvertFrom,
-      targetLanguage: languageToConvertTo,
-      text: data,
-    })
-
-    l('translatedText');
-    l(translatedText);
-    fs.writeFileSync(`${transcribedFilePath}_${languageToConvertTo}.srt`, translatedText, 'utf-8');
+  for(const languageToConvertTo of languagesToTranscribe){
+    // no need to translate just copy the file
+    if(languageToConvertTo === language){
+      await fs.copy(`${directoryAndFileName}_${language}.srt`)
+    } else {
+      // hit LibreTranslate backend
+      l(`hitting libretranslate: ${language}`);
+      const translatedText = await translateText({
+        sourceLanguage: language, // before these were like 'EN', will full language work?
+        targetLanguage: languageToConvertTo,
+        text: srtData,
+      })
+      l('translatedText');
+      l(translatedText);
+      await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.srt`, translatedText, 'utf-8');
+    }
   }
 
   return true;

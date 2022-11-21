@@ -156,15 +156,16 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     queue.add(async function () {
       // TODO: catch the error here?
       await transcribeWrapped({
-        utf8DecodedFileName: originalFileNameWithExtension,
-        path: uploadedFilePath,
+        uploadedFilePath,
         language,
         model,
+        directorySafeFileNameWithoutExtension,
+        directorySafeFileNameWithExtension,
+
+        // websocket/queue
         websocketConnection,
         websocketNumber,
-        queue,
-        directorySafeFileNameWithoutExtension,
-        directorySafeFileNameWithExtension
+        queue
       })
     })
 

@@ -54,9 +54,18 @@ const languagesToTranscribe = [
   'Japanese',
 ]
 
+function shouldTranslateFrom(languageName){
+  return translationLanguages.find(function(filteredLanguage){
+    return languageName === filteredLanguage.name;
+  })
+}
+
+const languagesToTranscribeFrom =
+
 module.exports = {
   whisperLanguagesHumanNames,
   whisperLanguagesHumanReadableArray,
   languagesToTranscribe,
   whisperLanguagesAsSpacedString,
+  shouldTranslateFrom
 }
