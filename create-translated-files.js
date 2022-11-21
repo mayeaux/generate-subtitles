@@ -25,6 +25,32 @@ function getCodeFromLanguageName(languageName){
 
 l(getCodeFromLanguageName('English'))
 
+function cleanUpSubtitles(language, text){
+  l('clean up subtitles');
+  l(language);
+  if(language === 'Spanish'){
+    l('Spanish');
+    l(language);
+    return text.replace(/-- título/g, '-->');
+
+  } else if(language === 'French'){
+    return text.replace(/-- Cancer/g, '-->');
+
+  } else if(language === 'German'){
+    return text.replace(/WEBVAT/g, 'WEBVTT');
+
+  }  else if(language === 'Japanese'){
+    return text.replace(/ウェブサイト/g, 'WEBVTT');
+  } else {
+    // Russian works out of the box
+
+    return text
+  }
+
+  // can't get Chinese to work (seems a bit complicated)
+
+
+}
 
 /** for translation **/
 async function createTranslatedSrts({
@@ -55,13 +81,19 @@ async function createTranslatedSrts({
         // hit LibreTranslate backend
         l(`hitting libretranslate: ${language} -> ${languageToConvertTo}`);
         // TODO: to convert to thing
-        const translatedText = await translateText({
+        let translatedText = await translateText({
           sourceLanguage: getCodeFromLanguageName(language), // before these were like 'EN', will full language work?
           targetLanguage: getCodeFromLanguageName(languageToConvertTo),
           text: srtData,
         })
-        l('translatedText');
-        l(translatedText);
+        // l('translatedText');
+        // l(translatedText);
+        translatedText = cleanUpSubtitles(languageToConvertTo, translatedText);
+        //
+        // l('translatedText');
+        // l(translatedText);
+
+
         await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, translatedText, 'utf-8');
       }
     } catch (err){
