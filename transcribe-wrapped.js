@@ -32,7 +32,6 @@ global.transcriptions = [];
 
 let topLevelValue = 1;
 async function transcribe({
-  filename,
   uploadedFilePath,
   language,
   model,
@@ -40,7 +39,8 @@ async function transcribe({
   websocketNumber,
   queue,
   directorySafeFileNameWithoutExtension,
-  directorySafeFileNameWithExtension
+  directorySafeFileNameWithExtension,
+  originalFileNameWithExtension
 }){
   return new Promise(async (resolve, reject) => {
 
@@ -70,7 +70,7 @@ async function transcribe({
       const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
 
       const fileDetailsJSON = {
-        filename,
+        filename: directorySafeFileNameWithoutExtension,
         language,
         model,
         uploadDurationInSeconds,
@@ -79,7 +79,7 @@ async function transcribe({
 
       // just do JSON, then loop through properties on the frontend
       let fileDetails = `
-            filename: ${filename}
+            filename: ${directorySafeFileNameWithExtension}
             language: ${language}
             model: ${model}
             uploadDurationInSeconds: ${uploadDurationInSeconds}
@@ -169,7 +169,7 @@ async function transcribe({
           // send data to frontend with updated language
           // TODO: when it's JSON, just add the detected language here as a property
           fileDetails = `
-            filename: ${filename}
+            filename: ${directorySafeFileNameWithoutExtension}
             language: ${displayLanguage}
             model: ${model}
             uploadDurationInSeconds: ${uploadDurationInSeconds}
@@ -192,7 +192,8 @@ async function transcribe({
 
         const totalOutstanding = amountOfCurrentPending + amountinQueue;
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
-        l(`STDERR: ${data}, Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language ${language}, Filename: ${filename}, Queue: ${totalOutstanding}`);
+        l(`STDERR: ${data},
+         Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language ${language}, Filename: ${directorySafeFileNameWithoutExtension}, Queue: ${totalOutstanding}`);
 
         // loop through and do with websockets
         for(let [, websocket] of global['webSocketData'].entries() ) {
@@ -242,9 +243,9 @@ async function transcribe({
 
           await fs.move(originalUpload, `${containingDir}/${directorySafeFileNameWithExtension}`, { overwrite: true })
 
-          const fileNameWithLanguage = `${directorySafeFileNameWithoutExtension}_${language}`;
+          // const fileNameWithLanguage = `${directorySafeFileNameWithoutExtension}_${language}`;
 
-          const directoryAndFileName = `${containingDir}/${fileNameWithLanguage}`
+          const directoryAndFileName = `${containingDir}/${directorySafeFileNameWithoutExtension}`
 
           // turn this to a loop
           /** COPY TO BETTER NAME, SRT, VTT, TXT **/
@@ -272,14 +273,17 @@ async function transcribe({
             fs.writeFileSync(transcribedSrtFile, latinCharactersText, 'utf-8');
           }
 
-
           const shouldTranslateFromLanguage = shouldTranslateFrom(language);
+          l(`should translate from language: ${shouldTranslateFromLanguage}`)
+
+          l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
           /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
           if(libreTranslateHostPath && shouldTranslateFromLanguage){
             // tell frontend that we're translating now
             websocketConnection.send(JSON.stringify(`Doing translations with LibreTranslate`), function () {});
 
+            l('hitting LibreTranslate');
             // hit libretranslate
             await createTranslatedFiles({
               directoryAndFileName,
@@ -299,7 +303,7 @@ async function transcribe({
           // TODO: just have a function called "sendFileInfoToClient(fileInfoJSON)"
 
           const outputText = `
-            filename: ${filename}
+            filename: ${originalFileNameWithExtension}
             processingSeconds: ${processingSeconds}
             processingSecondsHumanReadable: ${forHumans(processingSeconds)}
             language: ${language}

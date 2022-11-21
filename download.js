@@ -1,6 +1,6 @@
 const YTDlpWrap = require('yt-dlp-wrap').default;
 const which = require('which')
-const transcribe = require('./transcribe');
+// const transcribe = require('./transcribe');
 
 l = console.log;
 
@@ -73,16 +73,16 @@ async function getTitle(videoUrl){
 
 // l(transcribe);
 
-async function main(videoUrl){
-  const filename = await getTitle(videoUrl);
-  // l(filename)
-  await download(videoUrl, filename);
-  await transcribe(filename);
-}
+// async function main(videoUrl){
+//   const filename = await getTitle(videoUrl);
+//   // l(filename)
+//   await download(videoUrl, filename);
+//   await transcribe(filename);
+// }
 
 // main();
 
-module.exports = main;
+// module.exports = main;
 
 // getTitle();
 

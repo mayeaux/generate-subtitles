@@ -5,7 +5,7 @@ var router = express.Router();
 const FormData = require('form-data');
 const fs = require('fs/promises');
 const downloadAndTranscribe = require('../download.js')
-const transcribe = require('../transcribe');
+// const transcribe = require('../transcribe');
 const transcribeWrapped = require('../transcribe-wrapped');
 const Queue = require("promise-queue");
 const constants = require('../constants');
@@ -81,16 +81,17 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const uploadedFilePath = req.file.path;
 
     // something.mp4
-    let  originalFileNameWithExtension = decode_utf8(req.file.originalname);
+    let originalFileNameWithExtension = decode_utf8(req.file.originalname);
 
     // .mp4 (includes leading period)
     const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
 
-    // something
-    const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithExtension)
-    // something.mp4
-    const directorySafeFileNameWithExtension = `${originalFileNameWithExtension}${originalFileExtension}`
+    const originalFileNameWithoutExtension = path.parse(originalFileNameWithExtension).name;
 
+    // something
+    const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithoutExtension)
+    // something.mp4
+    const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${originalFileExtension}`
 
     if(!uploadedFilePath){ res.status(500); res.send('no file')}
 
@@ -116,9 +117,6 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     l('place in queue');
     l(placeInQueue);
 
-    // l('amount of people in front')
-    // l(placeInQueue);
-
     // general queue data
     global.queue = {}
 
@@ -128,12 +126,8 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     const totalOutstanding = amountOfCurrentPending + amountinQueue;
 
-
     l('totaloutstanding');
     l(totalOutstanding);
-
-    // global.queue.currentItemNumber = amountOfCurrentPending;
-
 
     // give frontend their queue position
     if(amountOfCurrentPending > 0){
@@ -161,6 +155,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
         model,
         directorySafeFileNameWithoutExtension,
         directorySafeFileNameWithExtension,
+        originalFileNameWithExtension,
 
         // websocket/queue
         websocketConnection,

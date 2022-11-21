@@ -67,5 +67,6 @@ module.exports = {
   whisperLanguagesHumanReadableArray,
   languagesToTranscribe,
   whisperLanguagesAsSpacedString,
-  shouldTranslateFrom
+  shouldTranslateFrom,
+  translationLanguages
 }
