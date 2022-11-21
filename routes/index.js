@@ -8,14 +8,25 @@ const downloadAndTranscribe = require('../download.js')
 const transcribe = require('../transcribe');
 const transcribeWrapped = require('../transcribe-wrapped');
 const Queue = require("promise-queue");
+const constants = require('../constants');
+const {languagesToTranscribe} = require("../constants");
+const filenamify = require("filenamify");
 const forHumans = require('../helpers').forHumans;
+const path = require('path');
+
+// l('constants');
+// l(constants);
+
+const makeFileNameSafe = function(string){
+  return filenamify(string, {replacement: '_' })
+}
 
 let concurrentJobs = process.env.CONCURRENT_AMOUNT;
 if(process.NODE_ENV === 'development'){
   concurrentJobs = 1;
 }
 
-l(`CONCURRENT JOBS AMOUNT: ${concurrentJobs} `)
+l(`CONCURRENT JOBS ALLOWED AMOUNT: ${concurrentJobs} `)
 
 // todo: on dif node-env change it to 2
 var maxConcurrent = ( concurrentJobs && Number(concurrentJobs) ) || 1;
@@ -67,13 +78,21 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const language = req.body.language;
     let model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
-    const path = req.file.path;
+    const uploadedFilePath = req.file.path;
+
+    // something.mp4
+    let  originalFileNameWithExtension = decode_utf8(req.file.originalname);
+
+    // .mp4 (includes leading period)
+    const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
+
+    // something
+    const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithExtension)
+    // something.mp4
+    const directorySafeFileNameWithExtension = `${originalFileNameWithExtension}${originalFileExtension}`
 
 
-
-    const utf8DecodedFileName = decode_utf8(req.file.originalname);
-
-    if(!path){ res.status(500); res.send('no file')}
+    if(!uploadedFilePath){ res.status(500); res.send('no file')}
 
     // load websocket by passed number
     let websocketConnection;
@@ -85,7 +104,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
       if(websocket){
         websocketConnection = websocket.websocket;
       } else {
-        throw new Error('broken!');
+        throw new Error('no websocket!');
       }
 
     }
@@ -135,7 +154,18 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     }
 
     queue.add(async function () {
-      await transcribeWrapped(utf8DecodedFileName, path, language, model, websocketConnection, websocketNumber, queue)
+      // TODO: catch the error here?
+      await transcribeWrapped({
+        utf8DecodedFileName: originalFileNameWithExtension,
+        path: uploadedFilePath,
+        language,
+        model,
+        websocketConnection,
+        websocketNumber,
+        queue,
+        directorySafeFileNameWithoutExtension,
+        directorySafeFileNameWithExtension
+      })
     })
 
     const obj = JSON.parse(JSON.stringify(req.body));
@@ -162,10 +192,15 @@ router.get("/transcriptions/:path/:filename" , async function(req, res, next){
 router.get("/player/:filename" , async function(req, res, next){
   let filename = req.params.filename
 
-  const filePath = `../transcriptions/${filename}/${filename}`
+  const filePathWithoutExtension = `../transcriptions/${filename}/${filename}`;
+
+  l('filePathWithoutExtension')
+  l(filePathWithoutExtension);
 
   res.render('plyr', {
-    filePath,
+    filePath: filePathWithoutExtension,
+    languages: languagesToTranscribe,
+
     // vttPath,
     // fileSource
   })

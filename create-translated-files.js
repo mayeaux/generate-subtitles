@@ -1,5 +1,7 @@
-const translateText = require('./translate');
+const translateText = require('./libreTranslateWrapper');
 const fs = require('fs');
+const constants = require('./constants');
+
 const convert = require("cyrillic-to-latin");
 
 let l = console.log;
@@ -7,6 +9,17 @@ let l = console.log;
 if(global.debug === 'false'){
   l = function(){}
 }
+
+function shouldTranslateTo(languageName){
+  return languagesToConvertTo.includes(languageName)
+}
+
+function shouldTranslateFrom(languageName){
+  return translateLanguages.find(function(filteredLanguage){
+    return languageName === filteredLanguage.name;
+  })
+}
+
 
 /** for translation **/
 async function createTranslatedSrts({
@@ -49,23 +62,23 @@ async function createTranslatedSrts({
 
 }
 
-const uploadDirectoryName = 'ef56767d5cba0ae421a9f6f570443205';
-const transcribedFileName = 'ef56767d5cba0ae421a9f6f570443205';
+// const uploadDirectoryName = 'ef56767d5cba0ae421a9f6f570443205';
+// const transcribedFileName = 'ef56767d5cba0ae421a9f6f570443205';
+//
+// const languageToConvertFrom = 'en';
+// const languagesToConvertTo = ['es', 'fr'];
 
-const languageToConvertFrom = 'en';
-const languagesToConvertTo = ['es', 'fr'];
-
-async function main(){
-  const completed = await createTranslatedSrts({
-    uploadDirectoryName: uploadDirectoryName,
-    transcribedFileName: transcribedFileName,
-    languageToConvertFrom: languageToConvertFrom,
-    languagesToConvertTo: languagesToConvertTo
-  });
-
-  l('completed');
-  l(completed);
-}
+// async function main(){
+//   const completed = await createTranslatedSrts({
+//     uploadDirectoryName: uploadDirectoryName,
+//     transcribedFileName: transcribedFileName,
+//     languageToConvertFrom: languageToConvertFrom,
+//     languagesToConvertTo: languagesToConvertTo
+//   });
+//
+//   l('completed');
+//   l(completed);
+// }
 
 // main();
 

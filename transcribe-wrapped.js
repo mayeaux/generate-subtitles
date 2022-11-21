@@ -5,6 +5,7 @@ const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 var convert = require('cyrillic-to-latin')
 const filenamify = require('filenamify')
+const path = require('path');
 
 l = console.log;
 
@@ -20,6 +21,7 @@ const makeFileNameSafe = function(string){
 const forHumans = require('./helpers').forHumans;
 const shouldTranslate = process.env.LIBRETRANSLATE;
 const createTranslatedFiles = require('./create-translated-files');
+const {fo} = require("language-name-map/map");
 
 const whisperPath = which.sync('whisper')
 const ffprobePath = which.sync('ffprobe')
@@ -27,11 +29,24 @@ const ffprobePath = which.sync('ffprobe')
 global.transcriptions = [];
 
 let topLevelValue = 1;
-async function transcribe(filename, path, language, model, websocketConnection, websocketNumber, queue){
+async function transcribe({
+  filename,
+  path,
+  language,
+  model,
+  websocketConnection,
+  websocketNumber,
+  queue,
+  directorySafeFileNameWithoutExtension,
+  directorySafeFileNameWithExtension,
+}){
   return new Promise(async (resolve, reject) => {
+
+    // if the upload was removed from the queue, don't run it
     if(!global.queueData.includes(websocketNumber)){
       l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
       // if they're not in the queue, cut them off
+      // TODO: change to reject?
       return resolve(true);
     }
 
@@ -41,6 +56,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
 
       // get the upload file name
+      // TODO: what is this logic?
       let splitFilename = path.split("/").pop();
 
       const originalUpload = `./uploads/${splitFilename}`;
@@ -51,18 +67,24 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
       const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
 
-      const safeFilename = makeFileNameSafe(filename)
+      const fileDetailsJSON = {
+        filename,
+        language,
+        model,
+        uploadDurationInSeconds,
+        uploadDurationInSecondsHumanReadable,
+      }
 
-      // todo: just do JSON?
-      const fileDetails = `
+      // just do JSON, then loop through properties on the frontend
+      let fileDetails = `
             filename: ${filename}
             language: ${language}
             model: ${model}
             uploadDurationInSeconds: ${uploadDurationInSeconds}
             uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
-            safeFilename: ${safeFilename}
       `.replace(/^ +/gm, ''); // remove indentation
 
+      // update filedetails
       websocketConnection.send(JSON.stringify({
         message: 'fileDetails',
         fileDetails
@@ -81,6 +103,8 @@ async function transcribe(filename, path, language, model, websocketConnection, 
         arguments.push('--model', model);
       }
 
+      // alternate
+      // todo: do an 'express' branch and big branch
       if(isProd){
         if(topLevelValue === 1){
           arguments.push('--device', 'cuda:0');
@@ -93,9 +117,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       arguments.push('--verbose', 'False');
 
       // folder to save .txt, .vtt and .srt
-      if(filename){
-        arguments.push('-o', `transcriptions/${safeFilename}`);
-      }
+      arguments.push('-o', `transcriptions/${directorySafeFileNameWithoutExtension}`);
 
       l('transcribe arguments');
       l(arguments);
@@ -110,6 +132,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
         topLevelValue = 1
       }
 
+      // add process globally
       const process = {
         websocketNumber,
         spawnedProcess: ls,
@@ -130,16 +153,19 @@ async function transcribe(filename, path, language, model, websocketConnection, 
         // check if language is autodetected)
         const dataAsString = data.toString();
         if(dataAsString.includes('Detected language:')){
-          l('running hereee');
+
+          // parse out the language from the console output
           foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
-          l(foundLanguage)
+
+          l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`);
           if(!language && foundLanguage){
             language = foundLanguage
             displayLanguage = `${language} (Auto-Detected)`
           }
 
           // send data to frontend with updated language
-          const fileDetails = `
+          // TODO: when it's JSON, just add the detected language here as a property
+          fileDetails = `
             filename: ${filename}
             language: ${displayLanguage}
             model: ${model}
@@ -147,6 +173,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
             uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
           `.replace(/^ +/gm, ''); // remove indentation
 
+          // update file details
           websocketConnection.send(JSON.stringify({
             message: 'fileDetails',
             fileDetails
@@ -156,8 +183,8 @@ async function transcribe(filename, path, language, model, websocketConnection, 
 
       // log output from bash (it all comes through stderr for some reason?)
       ls.stderr.on('data', data => {
+        // figure out how many people currently transcribing
         const amountOfCurrentPending = queue.getPendingLength()
-
         const amountinQueue = queue.getQueueLength()
 
         const totalOutstanding = amountOfCurrentPending + amountinQueue;
@@ -196,7 +223,7 @@ async function transcribe(filename, path, language, model, websocketConnection, 
       const startingDate = new Date();
       l(startingDate);
 
-      /** when whisper closes connection **/
+      /** AFTER WHISPER FINISHES, DO THE FILE MANIPULATION / TRANSLATION **/
       ls.on('close', async (code) => {
         l('code');
         l(code);
@@ -205,19 +232,16 @@ async function transcribe(filename, path, language, model, websocketConnection, 
           language = foundLanguage;
         }
 
-        if(code === 0){
-          // // delete original upload to save space
-          // const shouldDeleteOriginalUpload = false;
-          // if(shouldDeleteOriginalUpload){
-          //   // TODO: move this to uploads directory
-          //   fs.unlinkSync(originalUpload);
-          // }
+        const processFinishedSuccessfully = code === 0;
 
-          const containingDir = `./transcriptions/${safeFilename}`;
+        // successful output
+        if(processFinishedSuccessfully){
+
+          const containingDir = `./transcriptions/${directorySafeFileNameWithoutExtension}`;
 
           await fs.move(originalUpload, `${containingDir}/${filename}`, { overwrite: true })
 
-          const fileNameWithLanguage = `${safeFilename}_${language}`;
+          const fileNameWithLanguage = `${directorySafeFileNameWithoutExtension}_${language}`;
 
           const directoryAndFileName = `${containingDir}/${fileNameWithLanguage}`
 
@@ -264,6 +288,8 @@ async function transcribe(filename, path, language, model, websocketConnection, 
           const processingSeconds = Math.round((new Date() - startingDate) / 1000);
 
           const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
+
+          // TODO: just have a function called "sendFileInfo"
 
           const outputText = `
             filename: ${filename}
