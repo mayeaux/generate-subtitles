@@ -329,9 +329,24 @@ async function transcribe({
             detailsString: outputText
           }), function () {});
 
+          const fileDetailsObject = {
+            filename: originalFileNameWithExtension,
+            processingSeconds,
+            processingSecondsHumanReadable: forHumans(processingSeconds),
+            language,
+            model,
+            upload: uploadFolderFileName,
+            uploadDurationInSeconds,
+            uploadDurationInSecondsHumanReadable,
+            processingRatio,
+            startedAt: startingDate.toUTCString(),
+            finishedAT: new Date().toUTCString(),
+            status: 'completed',
+          }
+
           // TODO: output as json (then can do a progress thing)
           // save data to the file
-          await fs.appendFile(`${containingDir}/processing_data.txt`, outputText, 'utf8');
+          await fs.appendFile(`${containingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');
         } else {
 
           l('FAILED!');

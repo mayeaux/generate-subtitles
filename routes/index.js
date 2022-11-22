@@ -184,23 +184,40 @@ router.get("/transcriptions/:path/:filename" , async function(req, res, next){
   res.sendFile(`${process.cwd()}/transcriptions/${req.params.path}/${req.params.filename}`);
 });
 
+l(process.cwd());
+
 /** PLYR PLAYER **/
 router.get("/player/:filename" , async function(req, res, next){
-  const fileNameWithoutExtension = req.params.filename
+  try {
+    const fileNameWithoutExtension = req.params.filename
 
-  const filePathWithoutExtension = `../transcriptions/${fileNameWithoutExtension}/${fileNameWithoutExtension}`;
+    const processDirectory = process.cwd();
+    
+    const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${fileNameWithoutExtension}`;
 
-  l('filePathWithoutExtension')
-  l(filePathWithoutExtension);
+    l('filePathWithoutExtension')
+    l(filePathWithoutExtension);
 
-  res.render('player', {
-    filePath: filePathWithoutExtension,
-    languages: languagesToTranscribe,
-    fileNameWithoutExtension,
-    filePathWithoutExtension
-    // vttPath,
-    // fileSource
-  })
+    const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+
+    const processingDataPath = `${containingFolder}/processing_data.json`;
+
+    const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
+
+    res.render('player', {
+      filePath: filePathWithoutExtension,
+      languages: languagesToTranscribe,
+      fileNameWithoutExtension,
+      filePathWithoutExtension,
+      processingData
+      // vttPath,
+      // fileSource
+    })
+  } catch (err){
+    l('err');
+    l(err);
+    res.send('err');
+  }
 });
 
 

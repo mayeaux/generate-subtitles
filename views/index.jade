@@ -466,6 +466,7 @@ block content
         }, 2000)
 
       } else if (data.message === 'queue'){
+        // TODO: pull out into func
         placeInQueue = data.placeInQueue;
         if (placeInQueue === 1) {
           latestData.innerHTML = `You're next up`;
