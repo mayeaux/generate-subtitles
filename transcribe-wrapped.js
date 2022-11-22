@@ -117,7 +117,7 @@ async function transcribe({
       arguments.push('--verbose', 'False');
 
       // folder to save .txt, .vtt and .srt
-      arguments.push('-o', `transcriptions/${directorySafeFileNameWithoutExtension}`);
+      arguments.push('-o', 'transcriptions/' + directorySafeFileNameWithoutExtension);
 
       l('transcribe arguments');
       l(arguments);
