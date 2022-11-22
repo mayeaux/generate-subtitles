@@ -13,6 +13,7 @@ const createTranslatedFiles = require('./create-translated-files');
 
 const makeFileNameSafe = function(string){
   return filenamify(string, {replacement: '_' }).replace(/ /g,"_")
+    .replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '');
 }
 
 
