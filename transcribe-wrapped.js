@@ -44,7 +44,8 @@ async function transcribe({
   directorySafeFileNameWithExtension,
   originalFileNameWithExtension,
   fileSafeNameWithDateTimestamp,
-  fileSafeNameWithDateTimestampAndExtension
+  fileSafeNameWithDateTimestampAndExtension,
+  uploadGeneratedFilename
 }){
   return new Promise(async (resolve, reject) => {
     function sendToWebsocket(data){
@@ -136,7 +137,7 @@ async function transcribe({
       arguments.push('--verbose', 'False');
 
       // folder to save .txt, .vtt and .srt
-      arguments.push('-o', "transcriptions/" + makeFileNameSafe(directorySafeFileNameWithoutExtension).replace(/ /g,"_"));
+      arguments.push('-o', "transcriptions/" + uploadGeneratedFilename);
 
       l('transcribe arguments');
       l(arguments);
@@ -257,7 +258,7 @@ async function transcribe({
           if(processFinishedSuccessfully){
             // TODO: pull out all this moving stuff into its own function
 
-            const containingDir = `./transcriptions/${directorySafeFileNameWithoutExtension}`;
+            const containingDir = `./transcriptions/${uploadGeneratedFilename}`;
 
             await fs.move(originalUpload, `${containingDir}/${directorySafeFileNameWithExtension}`, { overwrite: true })
 
@@ -367,6 +368,11 @@ async function transcribe({
 
             // save data to the file
             await fs.appendFile(`${containingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');
+
+            // TODO: rename directory here
+            const renamedDirectory = `./transcriptions/${directorySafeFileNameWithoutExtension}`;
+            await fs.rename(containingDir, renamedDirectory)
+
           } else {
             sendToWebsocket({
               message: 'error',

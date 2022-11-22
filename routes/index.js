@@ -81,6 +81,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     let model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
     const uploadedFilePath = req.file.path;
+    const uploadGeneratedFilename = req.file.filename;
 
     let logFileNames = true;
     // something.mp4
@@ -176,6 +177,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
         originalFileNameWithExtension,
         fileSafeNameWithDateTimestamp,
         fileSafeNameWithDateTimestampAndExtension,
+        uploadGeneratedFilename,
 
         // websocket/queue
         websocketConnection,
