@@ -11,6 +11,10 @@ const { shouldTranslateFrom, languagesToTranscribe } = projectConstants;
 const forHumans = require('./helpers').forHumans;
 const createTranslatedFiles = require('./create-translated-files');
 
+const makeFileNameSafe = function(string){
+  return filenamify(string, {replacement: '_' })
+}
+
 
 l = console.log;
 
@@ -117,7 +121,7 @@ async function transcribe({
       arguments.push('--verbose', 'False');
 
       // folder to save .txt, .vtt and .srt
-      arguments.push('-o', 'transcriptions/' + directorySafeFileNameWithoutExtension);
+      arguments.push('-o', 'transcriptions/' + makeFileNameSafe(directorySafeFileNameWithoutExtension));
 
       l('transcribe arguments');
       l(arguments);
