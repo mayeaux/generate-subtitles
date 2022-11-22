@@ -118,9 +118,8 @@ block content
     div
         div.video-containing-div
             video#player(controls='' autoplay='true' name='media')
-                // TODO: path here is broken, needs to support the real extension
-                // TODO: have to get info from json file
-                source(src=`${filePathWithoutExtension}.${processingData.fileExtension}`)
+                // file extension includes the .
+                source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
                 // TODO: replace with loop
                 track(kind='captions' label='English' srclang='en' src=`${filePathWithoutExtension}_English.vtt` default='')
                 track(kind='captions' label='Spanish' srclang='es' src=`${filePathWithoutExtension}_Spanish.vtt` default='')
