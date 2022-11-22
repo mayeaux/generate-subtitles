@@ -43,6 +43,17 @@ const translationLanguages = [
   {"code":"uk","name":"Ukranian"}
 ];
 
+const languagesToTranslateTo = [
+  // {"code":"ar","name":"Arabic"}, // haven't got these two to work
+  // {"code":"zh","name":"Chinese"}, // webvtt format is too broken after translate
+  {"code":"en","name":"English"},
+  {"code":"fr","name":"French"},
+  {"code":"de","name":"German"},
+  {"code":"es","name":"Spanish"},
+  {"code":"ru","name":"Russian"},
+  {"code":"ja","name":"Japanese"},
+];
+
 // if the human readable name matches thing (or the 'en' version, transcribe
 const languagesToTranscribe = [
   'English', //

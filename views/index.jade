@@ -546,6 +546,8 @@ block content
       } else if (data.message === 'languageUpdate') {
         document.getElementById('processingData').innerHTML = data.languageUpdate;
 
+      } else if (data.message === 'error') {
+        document.getElementById('processingData').innerHTML = data.text;
       } else {
         latestData.innerHTML = data;
       }

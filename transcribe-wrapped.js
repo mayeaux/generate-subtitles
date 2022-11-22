@@ -47,6 +47,9 @@ async function transcribe({
   fileSafeNameWithDateTimestampAndExtension
 }){
   return new Promise(async (resolve, reject) => {
+    function sendToWebsocket(data){
+      websocketConnection.send(JSON.stringify(data), function () {});
+    }
 
     // if the upload was removed from the queue, don't run it
     if(!global.queueData.includes(websocketNumber)){
@@ -240,86 +243,87 @@ async function transcribe({
 
       /** AFTER WHISPER FINISHES, DO THE FILE MANIPULATION / TRANSLATION **/
       whisperProcess.on('close', async (code) => {
-        l('code');
-        l(code);
+        try {
+          l('code');
+          l(code);
 
-        if(!language){
-          language = foundLanguage;
-        }
-
-        const processFinishedSuccessfully = code === 0;
-
-        // successful output
-        if(processFinishedSuccessfully){
-          // TODO: pull out all this moving stuff into its own function
-
-          const containingDir = `./transcriptions/${directorySafeFileNameWithoutExtension}`;
-
-          await fs.move(originalUpload, `${containingDir}/${directorySafeFileNameWithExtension}`, { overwrite: true })
-
-          // const fileNameWithLanguage = `${directorySafeFileNameWithoutExtension}_${language}`;
-
-          const directoryAndFileName = `${containingDir}/${directorySafeFileNameWithoutExtension}`
-
-          // turn this to a loop
-          /** COPY TO BETTER NAME, SRT, VTT, TXT **/
-          const transcribedSrtFile = `${directoryAndFileName}.srt`;
-
-          const transcribedVttFile = `${directoryAndFileName}.vtt`;
-
-          const transcribedTxtFile = `${directoryAndFileName}.txt`;
-
-          // copy srt with the original filename
-          // SOURCE, ORIGINAL
-          // TODO: could probably move here instead of copy
-          await fs.move(`${containingDir}/${uploadFolderFileName}.srt`, transcribedSrtFile, { overwrite: true })
-
-          await fs.move(`${containingDir}/${uploadFolderFileName}.vtt`, transcribedVttFile, { overwrite: true })
-
-          await fs.move(`${containingDir}/${uploadFolderFileName}.txt`, transcribedTxtFile, { overwrite: true })
-
-          // convert Cyrillic to latin
-          if(language === 'Serbian'){
-            var data = await fs.readFile(transcribedSrtFile, 'utf-8');
-
-            var latinCharactersText = convert(data);
-
-            await fs.writeFile(transcribedSrtFile, latinCharactersText, 'utf-8');
+          if(!language){
+            language = foundLanguage;
           }
 
-          // return await so queue moves on, don't need to wait for translations
-          resolve(code);
+          const processFinishedSuccessfully = code === 0;
 
-          const shouldTranslateFromLanguage = shouldTranslateFrom(language);
-          l(`should translate from language: ${shouldTranslateFromLanguage}`)
+          // successful output
+          if(processFinishedSuccessfully){
+            // TODO: pull out all this moving stuff into its own function
 
-          l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
+            const containingDir = `./transcriptions/${directorySafeFileNameWithoutExtension}`;
 
-          /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
-          if(libreTranslateHostPath && shouldTranslateFromLanguage){
-            // tell frontend that we're translating now
-            websocketConnection.send(JSON.stringify({
-              languageUpdate: `Doing translations with LibreTranslate`,
-              message: 'languageUpdate'
-            }), function () {});
+            await fs.move(originalUpload, `${containingDir}/${directorySafeFileNameWithExtension}`, { overwrite: true })
 
-            l('hitting LibreTranslate');
-            // hit libretranslate
-            await createTranslatedFiles({
-              directoryAndFileName,
-              language,
-              websocketConnection,
-            })
-          }
+            // const fileNameWithLanguage = `${directorySafeFileNameWithoutExtension}_${language}`;
 
-          // just post-processing, you can return the response
-          const processingSeconds = Math.round((new Date() - startingDate) / 1000);
+            const directoryAndFileName = `${containingDir}/${directorySafeFileNameWithoutExtension}`
 
-          const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
+            // turn this to a loop
+            /** COPY TO BETTER NAME, SRT, VTT, TXT **/
+            const transcribedSrtFile = `${directoryAndFileName}.srt`;
 
-          // TODO: just have a function called "sendFileInfoToClient(fileInfoJSON)"
+            const transcribedVttFile = `${directoryAndFileName}.vtt`;
 
-          const outputText = `
+            const transcribedTxtFile = `${directoryAndFileName}.txt`;
+
+            // copy srt with the original filename
+            // SOURCE, ORIGINAL
+            // TODO: could probably move here instead of copy
+            await fs.move(`${containingDir}/${uploadFolderFileName}.srt`, transcribedSrtFile, { overwrite: true })
+
+            await fs.move(`${containingDir}/${uploadFolderFileName}.vtt`, transcribedVttFile, { overwrite: true })
+
+            await fs.move(`${containingDir}/${uploadFolderFileName}.txt`, transcribedTxtFile, { overwrite: true })
+
+            // convert Cyrillic to latin
+            if(language === 'Serbian'){
+              var data = await fs.readFile(transcribedSrtFile, 'utf-8');
+
+              var latinCharactersText = convert(data);
+
+              await fs.writeFile(transcribedSrtFile, latinCharactersText, 'utf-8');
+            }
+
+            // return await so queue moves on, don't need to wait for translations
+            resolve(code);
+
+            const shouldTranslateFromLanguage = shouldTranslateFrom(language);
+            l(`should translate from language: ${shouldTranslateFromLanguage}`)
+
+            l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
+
+            /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
+            if(libreTranslateHostPath && shouldTranslateFromLanguage){
+              // tell frontend that we're translating now
+              websocketConnection.send(JSON.stringify({
+                languageUpdate: `Doing translations with LibreTranslate`,
+                message: 'languageUpdate'
+              }), function () {});
+
+              l('hitting LibreTranslate');
+              // hit libretranslate
+              await createTranslatedFiles({
+                directoryAndFileName,
+                language,
+                websocketConnection,
+              })
+            }
+
+            // just post-processing, you can return the response
+            const processingSeconds = Math.round((new Date() - startingDate) / 1000);
+
+            const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
+
+            // TODO: just have a function called "sendFileInfoToClient(fileInfoJSON)"
+
+            const outputText = `
             filename: ${originalFileNameWithExtension}
             processingSeconds: ${processingSeconds}
             processingSecondsHumanReadable: ${forHumans(processingSeconds)}
@@ -333,44 +337,60 @@ async function transcribe({
             finishedAT: ${new Date().toUTCString()}
           `.replace(/^ +/gm, ''); // remove indentation
 
-          // tell frontend upload is done
-          websocketConnection.send(JSON.stringify({
-            status: 'Completed',
-            urlSrt: transcribedSrtFile,
-            urlVtt: transcribedVttFile,
-            urlTxt: transcribedTxtFile,
-            filename: directorySafeFileNameWithoutExtension,
-            detailsString: outputText
-          }), function () {});
+            // tell frontend upload is done
+            websocketConnection.send(JSON.stringify({
+              status: 'Completed',
+              urlSrt: transcribedSrtFile,
+              urlVtt: transcribedVttFile,
+              urlTxt: transcribedTxtFile,
+              filename: directorySafeFileNameWithoutExtension,
+              detailsString: outputText
+            }), function () {});
 
-          const fileDetailsObject = {
-            filename: originalFileNameWithExtension,
-            processingSeconds,
-            processingSecondsHumanReadable: forHumans(processingSeconds),
-            language,
-            model,
-            upload: uploadFolderFileName,
-            uploadDurationInSeconds,
-            uploadDurationInSecondsHumanReadable,
-            processingRatio,
-            startedAt: startingDate.toUTCString(),
-            finishedAT: new Date().toUTCString(),
-            status: 'completed',
-            translatedLanguages: languagesToTranscribe,
-            fileExtension: path.parse(originalFileNameWithExtension).ext,
-            directoryFileName: directorySafeFileNameWithoutExtension
+            const fileDetailsObject = {
+              filename: originalFileNameWithExtension,
+              processingSeconds,
+              processingSecondsHumanReadable: forHumans(processingSeconds),
+              language,
+              model,
+              upload: uploadFolderFileName,
+              uploadDurationInSeconds,
+              uploadDurationInSecondsHumanReadable,
+              processingRatio,
+              startedAt: startingDate.toUTCString(),
+              finishedAT: new Date().toUTCString(),
+              status: 'completed',
+              translatedLanguages: languagesToTranscribe,
+              fileExtension: path.parse(originalFileNameWithExtension).ext,
+              directoryFileName: directorySafeFileNameWithoutExtension
+            }
+
+            // save data to the file
+            await fs.appendFile(`${containingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');
+          } else {
+            sendToWebsocket({
+              message: 'error',
+              text: 'The transcription failed, please try again or try again later'
+            })
+            websocketConnection.terminate()
+            l('FAILED!');
+            reject();
+            throw new Error('Transcription has been ended')
           }
 
-          // save data to the file
-          await fs.appendFile(`${containingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');
-        } else {
-
-          l('FAILED!');
-          reject();
-          throw new Error('Transcription has been ended')
+          l(`child process exited with code ${code}`);
+        } catch (err){
+          reject(err);
+          sendToWebsocket({
+            message: 'error',
+            text: 'The transcription failed, please try again or try again later'
+          })
+          websocketConnection.terminate()
+          l('err here');
+          l(err.stack);
+          l(err);
+          throw new Error(err);
         }
-
-        l(`child process exited with code ${code}`);
       });
     } catch (err){
       l('error from transcribe')

@@ -14,6 +14,7 @@ const filenamify = require("filenamify");
 const forHumans = require('../helpers').forHumans;
 const path = require('path');
 const moment = require('moment');
+const { languagesToTranslateTo } = constants;
 
 // l('constants');
 // l(constants);
@@ -158,7 +159,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     const timestampString = moment(new Date()).format('DD-MMMM-YYYY_HH_mm_ss');
 
-    const separator = '--'
+    const separator = '---'
 
     const fileSafeNameWithDateTimestamp = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}`;
 
@@ -179,7 +180,8 @@ router.post('/file', upload.single('file'), function (req, res, next) {
         // websocket/queue
         websocketConnection,
         websocketNumber,
-        queue
+        queue,
+        languagesToTranslateTo
       })
     })
 
