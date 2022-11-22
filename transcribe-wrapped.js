@@ -42,7 +42,9 @@ async function transcribe({
   queue,
   directorySafeFileNameWithoutExtension,
   directorySafeFileNameWithExtension,
-  originalFileNameWithExtension
+  originalFileNameWithExtension,
+  fileSafeNameWithDateTimestamp,
+  fileSafeNameWithDateTimestampAndExtension
 }){
   return new Promise(async (resolve, reject) => {
 
@@ -55,6 +57,15 @@ async function transcribe({
     }
 
     try {
+
+      // TODO: fix this
+      directorySafeFileNameWithoutExtension = fileSafeNameWithDateTimestamp
+      directorySafeFileNameWithExtension = fileSafeNameWithDateTimestampAndExtension
+
+      l('directorySafeFileNameWithoutExtension')
+      l(directorySafeFileNameWithoutExtension);
+      l('directorySafeFileNameWithExtension')
+      l(directorySafeFileNameWithExtension)
 
       // todo: refactor this a bit
       websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
@@ -127,7 +138,7 @@ async function transcribe({
       l('transcribe arguments');
       l(arguments);
 
-      const ls = spawn(whisperPath, arguments);
+      const whisperProcess = spawn(whisperPath, arguments);
 
       let serverNumber = topLevelValue;
 
@@ -137,20 +148,20 @@ async function transcribe({
         topLevelValue = 1
       }
 
-      // add process globally
+      // add process globally to kill it when user leaves
       const process = {
         websocketNumber,
-        spawnedProcess: ls,
+        spawnedProcess: whisperProcess,
         serverNumber,
       }
-
       global['transcriptions'].push(process)
 
+      /** FIND AUTO-DETECTED LANGUAGE **/
       let foundLanguage;
       let displayLanguage = language;
 
       //  console output from stdoutt
-      ls.stdout.on('data', data => {
+      whisperProcess.stdout.on('data', data => {
         websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
         l(`STDOUT: ${data}`);
 
@@ -187,7 +198,7 @@ async function transcribe({
       });
 
       // log output from bash (it all comes through stderr for some reason?)
-      ls.stderr.on('data', data => {
+      whisperProcess.stderr.on('data', data => {
         // figure out how many people currently transcribing
         const amountOfCurrentPending = queue.getPendingLength()
         const amountinQueue = queue.getQueueLength()
@@ -228,7 +239,7 @@ async function transcribe({
       l(startingDate);
 
       /** AFTER WHISPER FINISHES, DO THE FILE MANIPULATION / TRANSLATION **/
-      ls.on('close', async (code) => {
+      whisperProcess.on('close', async (code) => {
         l('code');
         l(code);
 
@@ -240,6 +251,7 @@ async function transcribe({
 
         // successful output
         if(processFinishedSuccessfully){
+          // TODO: pull out all this moving stuff into its own function
 
           const containingDir = `./transcriptions/${directorySafeFileNameWithoutExtension}`;
 
@@ -346,9 +358,9 @@ async function transcribe({
             status: 'completed',
             translatedLanguages: languagesToTranscribe,
             fileExtension: path.parse(originalFileNameWithExtension).ext,
+            directoryFileName: directorySafeFileNameWithoutExtension
           }
 
-          // TODO: output as json (then can do a progress thing)
           // save data to the file
           await fs.appendFile(`${containingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');
         } else {

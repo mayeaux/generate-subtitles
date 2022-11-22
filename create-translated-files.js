@@ -53,7 +53,7 @@ function cleanUpSubtitles(language, text){
 }
 
 /** for translation **/
-async function createTranslatedSrts({
+async function createTranslatedFiles({
     directoryAndFileName,
     language,
     websocketConnection
@@ -131,5 +131,5 @@ async function createTranslatedSrts({
 
 // main();
 
-module.exports = createTranslatedSrts;
+module.exports = createTranslatedFiles;
 

@@ -13,6 +13,7 @@ const {languagesToTranscribe} = require("../constants");
 const filenamify = require("filenamify");
 const forHumans = require('../helpers').forHumans;
 const path = require('path');
+const moment = require('moment');
 
 // l('constants');
 // l(constants);
@@ -80,6 +81,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const uploadedFilePath = req.file.path;
 
+    let logFileNames = true;
     // something.mp4
     let originalFileNameWithExtension = decode_utf8(req.file.originalname);
 
@@ -87,9 +89,16 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
 
     const originalFileNameWithoutExtension = path.parse(originalFileNameWithExtension).name;
+    l('originalFileNameWithoutExtension')
+    l(originalFileNameWithoutExtension)
 
     // something
     const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithoutExtension)
+
+    l('directorySafeFileNameWithoutExtension')
+    l(directorySafeFileNameWithoutExtension)
+
+
     // something.mp4
     const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${originalFileExtension}`
 
@@ -147,6 +156,14 @@ router.post('/file', upload.single('file'), function (req, res, next) {
       model = 'medium';
     }
 
+    const timestampString = moment(new Date()).format('DD-MMMM-YYYY_HH_mm_ss');
+
+    const separator = '--'
+
+    const fileSafeNameWithDateTimestamp = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}`;
+
+    const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}${originalFileExtension}`;
+
     queue.add(async function () {
       // TODO: catch the error here?
       await transcribeWrapped({
@@ -156,6 +173,8 @@ router.post('/file', upload.single('file'), function (req, res, next) {
         directorySafeFileNameWithoutExtension,
         directorySafeFileNameWithExtension,
         originalFileNameWithExtension,
+        fileSafeNameWithDateTimestamp,
+        fileSafeNameWithDateTimestampAndExtension,
 
         // websocket/queue
         websocketConnection,
@@ -204,6 +223,9 @@ router.get("/player/:filename" , async function(req, res, next){
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
+    l('processing data');
+    l(processingData);
+
     res.render('player', {
       filePath: filePathWithoutExtension,
       languages: languagesToTranscribe,
@@ -216,7 +238,7 @@ router.get("/player/:filename" , async function(req, res, next){
   } catch (err){
     l('err');
     l(err);
-    res.send('err');
+    res.send(err);
   }
 });
 
