@@ -8,22 +8,19 @@ const filenamify = require('filenamify')
 const path = require('path');
 const projectConstants = require('./constants');
 const { shouldTranslateFrom, languagesToTranscribe } = projectConstants;
+const forHumans = require('./helpers').forHumans;
+const createTranslatedFiles = require('./create-translated-files');
+
 
 l = console.log;
 
 const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 const nodeEnvironment = process.env.NODE_ENV;
+const libreTranslateHostPath = process.env.LIBRETRANSLATE;
+
+l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
 const isProd = nodeEnvironment === 'production';
-
-const makeFileNameSafe = function(string){
-  return filenamify(string, {replacement: '_' })
-}
-
-const forHumans = require('./helpers').forHumans;
-const libreTranslateHostPath = process.env.LIBRETRANSLATE;
-const createTranslatedFiles = require('./create-translated-files');
-const {fo} = require("language-name-map/map");
 
 const whisperPath = which.sync('whisper')
 const ffprobePath = which.sync('ffprobe')

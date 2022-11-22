@@ -179,10 +179,10 @@ router.post('/file', upload.single('file'), function (req, res, next) {
   }
 });
 
-router.get("/transcriptions/:path/:filename" , async function(req, res, next){
-  console.log(req.params);
-  res.sendFile(`${process.cwd()}/transcriptions/${req.params.path}/${req.params.filename}`);
-});
+// router.get("/transcriptions/:path/:filename" , async function(req, res, next){
+//   console.log(req.params);
+//   res.sendFile(`${process.cwd()}/transcriptions/${req.params.path}/${req.params.filename}`);
+// });
 
 l(process.cwd());
 
