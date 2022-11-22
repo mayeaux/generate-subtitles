@@ -179,7 +179,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'transcriptions')));
+app.use(express.static(__dirname));
 
 
 const oneWeek = 1000 * 60 * 60 * 24 * 7;

@@ -18,7 +18,7 @@ const path = require('path');
 // l(constants);
 
 const makeFileNameSafe = function(string){
-  return filenamify(string, {replacement: '_' })
+  return filenamify(string, {replacement: '_' }).replace(/ /g,"_")
 }
 
 let concurrentJobs = process.env.CONCURRENT_AMOUNT;
