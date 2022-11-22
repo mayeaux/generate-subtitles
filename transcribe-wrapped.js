@@ -274,6 +274,9 @@ async function transcribe({
             await fs.writeFile(transcribedSrtFile, latinCharactersText, 'utf-8');
           }
 
+          // return await so queue moves on, don't need to wait for translations
+          resolve(code);
+
           const shouldTranslateFromLanguage = shouldTranslateFrom(language);
           l(`should translate from language: ${shouldTranslateFromLanguage}`)
 
@@ -295,9 +298,6 @@ async function transcribe({
               websocketConnection,
             })
           }
-
-          // return await
-          resolve(code);
 
           // just post-processing, you can return the response
           const processingSeconds = Math.round((new Date() - startingDate) / 1000);

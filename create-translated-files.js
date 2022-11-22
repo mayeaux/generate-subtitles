@@ -81,7 +81,7 @@ async function createTranslatedSrts({
       } else {
 
         websocketConnection.send(JSON.stringify({
-          languageUpdate: `Translating ${languageToConvertTo}..`,
+          languageUpdate: `Translating into ${languageToConvertTo}..`,
           message: 'languageUpdate'
         }), function () {});
 
