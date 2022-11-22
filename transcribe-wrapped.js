@@ -7,7 +7,7 @@ var convert = require('cyrillic-to-latin')
 const filenamify = require('filenamify')
 const path = require('path');
 const projectConstants = require('./constants');
-const { shouldTranslateFrom, languagesToTranscribe } = projectConstants;
+const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
 const forHumans = require('./helpers').forHumans;
 const createTranslatedFiles = require('./create-translated-files');
 
@@ -296,6 +296,7 @@ async function transcribe({
             // return await so queue moves on, don't need to wait for translations
             resolve(code);
 
+            // TODO: pull out into own function
             const shouldTranslateFromLanguage = shouldTranslateFrom(language);
             l(`should translate from language: ${shouldTranslateFromLanguage}`)
 
@@ -356,11 +357,15 @@ async function transcribe({
             const translationStartedAndCompleted = translationStarted && translationFinished;
 
             let translatedLanguages = [];
-            // TODO: shouldTranslate
             if(translationStartedAndCompleted){
+              translatedLanguages = languagesToTranscribe
+            }
 
-            } else {
-
+            // pull out
+            function getCodeFromLanguageName(languageName){
+              return translationLanguages.find(function(filteredLanguage){
+                return languageName === filteredLanguage.name;
+              })?.code
             }
 
             const fileDetailsObject = {
@@ -368,6 +373,7 @@ async function transcribe({
               processingSeconds,
               processingSecondsHumanReadable: forHumans(processingSeconds),
               language,
+              languageCode: getLanguageCodeForAllLanguages(language),
               model,
               upload: uploadFolderFileName,
               uploadDurationInSeconds,
@@ -376,7 +382,7 @@ async function transcribe({
               startedAt: startingDate.toUTCString(),
               finishedAT: new Date().toUTCString(),
               status: 'completed',
-              translatedLanguages: languagesToTranscribe,
+              translatedLanguages,
               fileExtension: path.parse(originalFileNameWithExtension).ext,
               directoryFileName: directorySafeFileNameWithoutExtension
             }

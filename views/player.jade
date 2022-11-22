@@ -121,15 +121,16 @@ block content
                 // file extension includes the .
                 source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
                 // TODO: replace with loop
-                if processingData.translatedLanguages.length < 0
+                if processingData.translatedLanguages.length > 0
                     track(kind='captions' label='English' srclang='en' src=`${filePathWithoutExtension}_English.vtt` default='')
                     track(kind='captions' label='Spanish' srclang='es' src=`${filePathWithoutExtension}_Spanish.vtt` default='')
                     track(kind='captions' label='French' srclang='fr' src=`${filePathWithoutExtension}_French.vtt` default='')
                     track(kind='captions' label='German' srclang='de' src=`${filePathWithoutExtension}_German.vtt` default='')
                     track(kind='captions' label='Russian' srclang='ru' src=`${filePathWithoutExtension}_Russian.vtt` default='')
                     //track(kind='captions' label='Chinese' srclang='zh' src=`${filePath}_Chinese.vtt` default='')
-                    track(kind='captions' label='Japanese' srclang='ja' src=`${filePathWithoutExtension}_Japanese.vtt` default='')
+                    track(kind='captions' label='Japanese' srclang='ja' src=`${filePathWithoutExtension}_Japanese.vtt` default)
                 else
+                    // TODO: add the srclang thing here
                     track(kind='captions' label=processingData.language srclang='en' src=`${filePathWithoutExtension}.vtt` default=true)
 
 
@@ -158,6 +159,7 @@ block content
     script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')
     script.
+      let player;
       $(document).ready(function () {
         console.log("ready!");
         var controls =
@@ -180,10 +182,10 @@ block content
             'fullscreen'
           ];
 
-        const player = new Plyr('#player', {
+        player = new Plyr('#player', {
           disableContextMenu: true,
           controls,
-          captions: { active: true, language: 'en', update: false },
+          captions: { active: true, language: 'en', update: true },
           settings: ['captions']
         });
       });

@@ -161,7 +161,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     const timestampString = moment(new Date()).format('DD-MMMM-YYYY_HH_mm_ss');
 
-    const separator = '---'
+    const separator = '--'
 
     const fileSafeNameWithDateTimestamp = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}`;
 
