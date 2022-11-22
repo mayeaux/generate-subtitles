@@ -119,6 +119,17 @@ block content
 
     }
 
+    #translate {
+      position: relative;
+      top: -23px;
+      left: 6px;
+      height: 16px;
+    }
+
+    .translateHolder {
+      height: 32px;
+    }
+
   a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
     img#githubLogo(src='/images/inverted.png')
 
@@ -132,7 +143,10 @@ block content
         input#language(type='text' value=previousLanguage placeholder="Leave empty for Auto-Detect")
         label#modelLabel Model (aka medium)
         input#model(type='text' value=previousModel placeholder="Leave empty for medium")
-      button#upload-button.submit-btn(type='submit') Upload
+        div.translateHolder
+          label#translateLabel Translate to different languages
+          input#translate(type='checkbox')
+        button#upload-button.submit-btn(type='submit') Upload
 
     //DISPLAY DIFFERENT DATA
     p#progress
@@ -228,6 +242,8 @@ block content
     const refreshButton = document.getElementById('refreshButton');
     const latestData = document.getElementById('latestData');
     const file = document.getElementById("file");
+    const body = document.querySelector('body');
+
 
     form.addEventListener("submit", submitForm);
 
@@ -347,10 +363,13 @@ block content
         })
       }
 
+      const translateIsChecked = $('#translate').is(':checked');
+
       formData.append("file", passedFile);
       formData.append('language', language);
       formData.append('model', model);
       formData.append('websocketNumber', randomNumber);
+      formData.append('shouldTranslate', translateIsChecked);
 
       localStorage.setItem('model', model);
       localStorage.setItem('language', language);
@@ -553,12 +572,14 @@ block content
       }
     };
 
+
+
     /** DRAG AND DROP FILES **/
-    file.ondragover = file.ondragenter = function (evt) {
+    body.ondragover = file.ondragenter = function (evt) {
       evt.preventDefault();
     };
 
-    file.ondrop = function (evt) {
+    body.ondrop = function (evt) {
       evt.preventDefault();
 
       // only add the first file

@@ -45,7 +45,8 @@ async function transcribe({
   originalFileNameWithExtension,
   fileSafeNameWithDateTimestamp,
   fileSafeNameWithDateTimestampAndExtension,
-  uploadGeneratedFilename
+  uploadGeneratedFilename,
+  shouldTranslate
 }){
   return new Promise(async (resolve, reject) => {
     function sendToWebsocket(data){
@@ -300,21 +301,23 @@ async function transcribe({
 
             l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
+            let translationStarted, translationFinished = false;
             /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
-            if(libreTranslateHostPath && shouldTranslateFromLanguage){
+            if(libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate){
               // tell frontend that we're translating now
               websocketConnection.send(JSON.stringify({
                 languageUpdate: `Doing translations with LibreTranslate`,
                 message: 'languageUpdate'
               }), function () {});
-
               l('hitting LibreTranslate');
+              translationStarted = true;
               // hit libretranslate
               await createTranslatedFiles({
                 directoryAndFileName,
                 language,
                 websocketConnection,
               })
+              translationFinished = true;
             }
 
             // just post-processing, you can return the response
@@ -347,6 +350,16 @@ async function transcribe({
               filename: directorySafeFileNameWithoutExtension,
               detailsString: outputText
             }), function () {});
+
+            const translationStartedAndCompleted = translationStarted && translationFinished;
+
+            let translatedLanguages = [];
+            // TODO: shouldTranslate
+            if(translationStartedAndCompleted){
+
+            } else {
+
+            }
 
             const fileDetailsObject = {
               filename: originalFileNameWithExtension,

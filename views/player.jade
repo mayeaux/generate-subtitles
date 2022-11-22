@@ -121,13 +121,18 @@ block content
                 // file extension includes the .
                 source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
                 // TODO: replace with loop
-                track(kind='captions' label='English' srclang='en' src=`${filePathWithoutExtension}_English.vtt` default='')
-                track(kind='captions' label='Spanish' srclang='es' src=`${filePathWithoutExtension}_Spanish.vtt` default='')
-                track(kind='captions' label='French' srclang='fr' src=`${filePathWithoutExtension}_French.vtt` default='')
-                track(kind='captions' label='German' srclang='de' src=`${filePathWithoutExtension}_German.vtt` default='')
-                track(kind='captions' label='Russian' srclang='ru' src=`${filePathWithoutExtension}_Russian.vtt` default='')
-                //track(kind='captions' label='Chinese' srclang='zh' src=`${filePath}_Chinese.vtt` default='')
-                track(kind='captions' label='Japanese' srclang='ja' src=`${filePathWithoutExtension}_Japanese.vtt` default='')
+                if processingData.translatedLanguages.length < 0
+                    track(kind='captions' label='English' srclang='en' src=`${filePathWithoutExtension}_English.vtt` default='')
+                    track(kind='captions' label='Spanish' srclang='es' src=`${filePathWithoutExtension}_Spanish.vtt` default='')
+                    track(kind='captions' label='French' srclang='fr' src=`${filePathWithoutExtension}_French.vtt` default='')
+                    track(kind='captions' label='German' srclang='de' src=`${filePathWithoutExtension}_German.vtt` default='')
+                    track(kind='captions' label='Russian' srclang='ru' src=`${filePathWithoutExtension}_Russian.vtt` default='')
+                    //track(kind='captions' label='Chinese' srclang='zh' src=`${filePath}_Chinese.vtt` default='')
+                    track(kind='captions' label='Japanese' srclang='ja' src=`${filePathWithoutExtension}_Japanese.vtt` default='')
+                else
+                    track(kind='captions' label=processingData.language srclang='en' src=`${filePathWithoutExtension}.vtt` default=true)
+
+
 
     div.bottomSection
         div.downloadLinks
