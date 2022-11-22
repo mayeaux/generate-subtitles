@@ -301,6 +301,8 @@ async function transcribe({
 
             l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
+            l(`should translate: ${shouldTranslate}`)
+
             let translationStarted, translationFinished = false;
             /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
             if(libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate){

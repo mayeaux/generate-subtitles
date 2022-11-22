@@ -82,7 +82,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const uploadedFilePath = req.file.path;
     const uploadGeneratedFilename = req.file.filename;
-    const shouldTranslate = req.body.shouldTranslate;
+    const shouldTranslate = req.body.shouldTranslate === 'true';
 
     let logFileNames = true;
     // something.mp4
