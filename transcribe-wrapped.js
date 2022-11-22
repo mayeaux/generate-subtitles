@@ -7,7 +7,7 @@ var convert = require('cyrillic-to-latin')
 const filenamify = require('filenamify')
 const path = require('path');
 const projectConstants = require('./constants');
-const { shouldTranslateFrom } = projectConstants;
+const { shouldTranslateFrom, languagesToTranscribe } = projectConstants;
 
 l = console.log;
 
@@ -342,6 +342,8 @@ async function transcribe({
             startedAt: startingDate.toUTCString(),
             finishedAT: new Date().toUTCString(),
             status: 'completed',
+            translatedLanguages: languagesToTranscribe,
+            fileExtension: path.parse(originalFileNameWithExtension).ext,
           }
 
           // TODO: output as json (then can do a progress thing)

@@ -192,7 +192,7 @@ router.get("/player/:filename" , async function(req, res, next){
     const fileNameWithoutExtension = req.params.filename
 
     const processDirectory = process.cwd();
-    
+
     const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${fileNameWithoutExtension}`;
 
     l('filePathWithoutExtension')

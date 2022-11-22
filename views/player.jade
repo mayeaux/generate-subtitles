@@ -107,12 +107,20 @@ block content
             line-height: 53px !important;
         }
 
+        .bottomSection {
+            padding-left: 20px;
+        }
+
+        .downloadLinks a {
+            color: white;
+        }
+
     div
         div.video-containing-div
             video#player(controls='' autoplay='true' name='media')
                 // TODO: path here is broken, needs to support the real extension
                 // TODO: have to get info from json file
-                source(src=`${filePathWithoutExtension}.mp4`)
+                source(src=`${filePathWithoutExtension}.${processingData.fileExtension}`)
                 // TODO: replace with loop
                 track(kind='captions' label='English' srclang='en' src=`${filePathWithoutExtension}_English.vtt` default='')
                 track(kind='captions' label='Spanish' srclang='es' src=`${filePathWithoutExtension}_Spanish.vtt` default='')
@@ -122,8 +130,24 @@ block content
                 //track(kind='captions' label='Chinese' srclang='zh' src=`${filePath}_Chinese.vtt` default='')
                 track(kind='captions' label='Japanese' srclang='ja' src=`${filePathWithoutExtension}_Japanese.vtt` default='')
 
-        div
-            p File Extension: #{processingData.filename}
+    div.bottomSection
+        div.downloadLinks
+            a(target="_blank" href=`/`)
+                p Start Another Transcription
+            a(download href=`${filePathWithoutExtension}.srt`)
+                p Download SRT (#{processingData.language})
+            a(download href=`${filePathWithoutExtension}.txt`)
+                p Download TXT (#{processingData.language})
+            a(download href=`${filePathWithoutExtension}.srt`)
+                p Download SRT (#{processingData.language})
+            each language in processingData.translatedLanguages
+                a(download href=`${filePathWithoutExtension}_${language}.vtt`)
+                    p Download VTT (#{language})
+
+        div.fileDetails
+            each property, value in processingData
+                p #{value}: #{property}
+                //p Filename: #{processingData.filename}
 
     script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')
