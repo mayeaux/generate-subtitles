@@ -284,13 +284,21 @@ async function transcribe({
 
             await fs.move(`${containingDir}/${uploadFolderFileName}.txt`, transcribedTxtFile, { overwrite: true })
 
+            // TODO: convert to loop
             // convert Cyrillic to latin
             if(language === 'Serbian'){
-              var data = await fs.readFile(transcribedSrtFile, 'utf-8');
-
-              var latinCharactersText = convert(data);
-
+              let data = await fs.readFile(transcribedSrtFile, 'utf-8');
+              let latinCharactersText = convert(data);
               await fs.writeFile(transcribedSrtFile, latinCharactersText, 'utf-8');
+
+              data = await fs.readFile(transcribedVttFile, 'utf-8');
+              latinCharactersText = convert(data);
+              await fs.writeFile(transcribedVttFile, latinCharactersText, 'utf-8');
+
+              data = await fs.readFile(transcribedTxtFile, 'utf-8');
+              latinCharactersText = convert(data);
+              await fs.writeFile(transcribedTxtFile, latinCharactersText, 'utf-8');
+
             }
 
             // return await so queue moves on, don't need to wait for translations

@@ -142,14 +142,15 @@ block content
             a(download href=`${filePathWithoutExtension}.srt`)
                 p Download SRT (#{processingData.language})
             a(download href=`${filePathWithoutExtension}.mp4`)
-                p Download File
-            a(download href=`${filePathWithoutExtension}.txt`)
                 p Download TXT (#{processingData.language})
             a(download href=`${filePathWithoutExtension}.srt`)
                 p Download SRT (#{processingData.language})
             each language in processingData.translatedLanguages
                 a(download href=`${filePathWithoutExtension}_${language}.vtt`)
                     p Download VTT (#{language})
+            a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`)
+                p Download File
+
 
         div.fileDetails
             each property, value in processingData
@@ -185,7 +186,7 @@ block content
         player = new Plyr('#player', {
           disableContextMenu: true,
           controls,
-          captions: { active: true, language: 'en', update: true },
+          captions: { active: true, language: 'auto', update: true },
           settings: ['captions']
         });
       });

@@ -237,7 +237,8 @@ router.get("/player/:filename" , async function(req, res, next){
       languages: languagesToTranscribe,
       fileNameWithoutExtension,
       filePathWithoutExtension,
-      processingData
+      processingData,
+      title: filePathWithoutExtension
       // vttPath,
       // fileSource
     })
