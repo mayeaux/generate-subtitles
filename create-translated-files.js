@@ -97,6 +97,9 @@ async function createTranslatedFiles({
         // l(translatedText);
         translatedText = cleanUpSubtitles(languageToConvertTo, translatedText);
 
+        translatedText = 'WEBVTT' + translatedText.slice(6);
+
+
         // l('translatedText');
         // l(translatedText);
 

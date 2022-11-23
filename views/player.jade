@@ -115,6 +115,18 @@ block content
             color: white;
         }
 
+        .links div, .links p, .links a p {
+            display: inline;
+        }
+
+        .links a p {
+            margin-left: 10px;
+        }
+
+        .links {
+            margin-bottom: 10px;
+        }
+
     div
         div.video-containing-div
             video#player(controls='' autoplay='true' name='media')
@@ -137,19 +149,43 @@ block content
 
     div.bottomSection
         div.downloadLinks
-            a(target="_blank" href=`/`)
-                p Start Another Transcription
-            a(download href=`${filePathWithoutExtension}.srt`)
-                p Download SRT (#{processingData.language})
-            a(download href=`${filePathWithoutExtension}.mp4`)
-                p Download TXT (#{processingData.language})
-            a(download href=`${filePathWithoutExtension}.srt`)
-                p Download SRT (#{processingData.language})
-            each language in processingData.translatedLanguages
-                a(download href=`${filePathWithoutExtension}_${language}.vtt`)
-                    p Download VTT (#{language})
-            a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`)
-                p Download File
+            div.startAnotherTranscription
+                a(target="_blank" href=`/`)
+                    p Start Another Transcription
+            div.srtLinks.links
+                p SRT (#{processingData.language})
+                div
+                    a(download href=`${filePathWithoutExtension}.srt`)
+                        p Download
+            div.vttLinks.links
+                p VTT (#{processingData.language})
+                div
+                    a(href=`${filePathWithoutExtension}.vtt`)
+                        p View
+                div
+                    a(download href=`${filePathWithoutExtension}.vtt`)
+                        p Download
+
+            div.txtLinks.links
+                p TXT (#{processingData.language})
+                div
+                    a(download href=`${filePathWithoutExtension}.txt`)
+                        div
+                            a(href=`${filePathWithoutExtension}.txt`)
+                                p View
+                        div
+                            a(download href=`${filePathWithoutExtension}.txt`)
+                                p Download
+            div.links
+                each language in processingData.translatedLanguages
+                    p VTT (#{processingData.language})
+                    // translated VTT files
+                    div
+                        a(download href=`${filePathWithoutExtension}_${language}.vtt`)
+                            p Download VTT (#{language})
+            div
+                a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`)
+                    p Download File
 
 
         div.fileDetails

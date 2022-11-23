@@ -32,6 +32,11 @@ const ffprobePath = which.sync('ffprobe')
 
 global.transcriptions = [];
 
+function sendToWebsocket(websocketConnection, data){
+  websocketConnection.send(JSON.stringify(data), function () {});
+}
+
+
 let topLevelValue = 1;
 async function transcribe({
   uploadedFilePath,
@@ -49,9 +54,6 @@ async function transcribe({
   shouldTranslate
 }){
   return new Promise(async (resolve, reject) => {
-    function sendToWebsocket(data){
-      websocketConnection.send(JSON.stringify(data), function () {});
-    }
 
     // if the upload was removed from the queue, don't run it
     if(!global.queueData.includes(websocketNumber)){
@@ -126,7 +128,8 @@ async function transcribe({
 
       // alternate
       // todo: do an 'express' queue and a 'large files' queue
-      if(isProd){
+      const multipleGpusEnabled = false;
+      if(isProd && multipleGpusEnabled){
         if(topLevelValue === 1){
           arguments.push('--device', 'cuda:0');
         } else if(topLevelValue === 2){
@@ -403,7 +406,7 @@ async function transcribe({
             await fs.rename(containingDir, renamedDirectory)
 
           } else {
-            sendToWebsocket({
+            sendToWebsocket(websocketConnection, {
               message: 'error',
               text: 'The transcription failed, please try again or try again later'
             })
