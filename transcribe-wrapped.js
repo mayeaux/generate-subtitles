@@ -10,6 +10,9 @@ const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLan
 const forHumans = require('./helpers').forHumans;
 const createTranslatedFiles = require('./create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
+const { formatStdErr } = require('./formatStdErr')
+
+l(formatStdErr);
 
 l = console.log;
 
@@ -220,15 +223,28 @@ async function transcribe({
             ownershipPerson = 'you'
           }
 
+          const formattedProgress = formatStdErr(data.toString());
+          l('formattedProgress');
+          l(formattedProgress);
+
+          const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
+
+          const processingString = `[${percentDone}] ${timeRemaining} Remaining, Speed ${speed}f/s`
+
           // TODO: pull into function
           // pass latest data to all the open sockets
           if (websocketConnection.readyState === WebSocket.OPEN) {
+
+
             /** websocketData message **/
             websocketConnection.send(JSON.stringify({
               message: 'websocketData',
-              processingData: data.toString(),
+              processingData: processingString,
+              // processingData: data.toString(),
               ownershipPerson,
-              serverNumber // on the frontend we'll react different if it it's on server 1 or two
+              serverNumber, // on the frontend we'll react different if it it's on server 1 or two
+              formattedProgress,
+              percentDone: percentDoneAsNumber
             }));
           }
         }

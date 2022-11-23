@@ -152,6 +152,10 @@ block content
             div.startAnotherTranscription
                 a(target="_blank" href=`/`)
                     p Start Another Transcription
+
+            // ORIGINAL LANGUAGE FILES
+            if processingData.translatedLanguages.length > 1
+                p Original Language:
             div.srtLinks.links
                 p SRT (#{processingData.language})
                 div
@@ -176,14 +180,22 @@ block content
                         div
                             a(download href=`${filePathWithoutExtension}.txt`)
                                 p Download
-            div.links
-                each language in processingData.translatedLanguages
-                    p VTT (#{processingData.language})
-                    // translated VTT files
+
+            // TRANSLATED FILES //
+            p Translations:
+            // translated VTT files
+            each language in processingData.translatedLanguages
+                div.links
+                    p VTT (#{language})
                     div
                         a(download href=`${filePathWithoutExtension}_${language}.vtt`)
-                            p Download VTT (#{language})
-            div
+                            div
+                                a(href=`${filePathWithoutExtension}_${language}.vtt`)
+                                    p View
+                            div
+                                a(download href=`${filePathWithoutExtension}_${language}.vtt`)
+                                    p Download
+            div.links
                 a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`)
                     p Download File
 
@@ -196,6 +208,7 @@ block content
     script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')
     script.
+      l = console.log;
       let player;
       $(document).ready(function () {
         console.log("ready!");
@@ -225,6 +238,19 @@ block content
           captions: { active: true, language: 'auto', update: true },
           settings: ['captions']
         });
+
+        l('captions');
+
+        setTimeout(function(){
+          const captionsIsPressed = $('button[data-plyr="captions"]')?.hasClass('plyr__control--pressed')
+
+          if (!captionsIsPressed) {
+            $('button[data-plyr="captions"]').click();
+          }
+        }, 200)
+
+
+
       });
 
 

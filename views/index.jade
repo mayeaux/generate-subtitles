@@ -314,8 +314,6 @@ block content
       const protocol = document.location.protocol.slice(0, -1)
       const servedWithSSL = protocol === 'https'
 
-      $('#upload-button').html('Checking your upload length..').addClass('no-pointer-events');
-
       l('passedFile');
       l(passedFile)
 
@@ -347,6 +345,9 @@ block content
         l('duration');
         l(videoDuration);
 
+        // setTimeout(function () {
+        //   $('#upload-button').html('Checking your upload length..').addClass('no-pointer-events');
+        // }, 500)
 
         // 3600
         if (videoDuration && videoDuration > 3600) {
@@ -539,6 +540,7 @@ block content
           latestData.innerHTML = `Starting now...`;
         }
 
+      // WEBSOCKET DATA COMING FROM THE BACKEND
       } else if (data.message === 'websocketData') {
         l('data');
         l(data);
@@ -546,6 +548,7 @@ block content
         l('my upload');
         l(myUpload);
         const processNumber = data.serverNumber; // 1 || 2, really means process
+        const percentDone = data.percentDone;
 
         // by default let to 'latest processing'
         // TODO: this is misnamed
@@ -567,7 +570,11 @@ block content
         if(eitherProcess && myUpload && hitTheBackend && myUploadStarted){
           l('found my data');
           document.getElementById('processingData').style.display = 'block';
-          document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
+          if (Number(percentDone) > 0){
+            document.getElementById('processingData').innerHTML = `${textToSay}\n\n${data.processingData}`;
+          } else {
+            document.getElementById('processingData').innerHTML = `${textToSay}\n\nTranscription starting soon..`;
+          }
         }
 
         // TODO: this seems off
