@@ -10,6 +10,7 @@ const projectConstants = require('./constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
 const forHumans = require('./helpers').forHumans;
 const createTranslatedFiles = require('./create-translated-files');
+const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 
 const makeFileNameSafe = function(string){
   return filenamify(string, {replacement: '_' }).replace(/ /g,"_")
@@ -128,7 +129,6 @@ async function transcribe({
 
       // alternate
       // todo: do an 'express' queue and a 'large files' queue
-      const multipleGpusEnabled = false;
       if(isProd && multipleGpusEnabled){
         if(topLevelValue === 1){
           arguments.push('--device', 'cuda:0');
