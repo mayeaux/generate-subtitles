@@ -4,19 +4,12 @@ const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 var convert = require('cyrillic-to-latin')
-const filenamify = require('filenamify')
 const path = require('path');
 const projectConstants = require('./constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
 const forHumans = require('./helpers').forHumans;
 const createTranslatedFiles = require('./create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
-
-const makeFileNameSafe = function(string){
-  return filenamify(string, {replacement: '_' }).replace(/ /g,"_")
-    .replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '');
-}
-
 
 l = console.log;
 

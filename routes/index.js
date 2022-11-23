@@ -20,7 +20,10 @@ const { languagesToTranslateTo } = constants;
 // l(constants);
 
 const makeFileNameSafe = function(string){
-  return filenamify(string, {replacement: '_' }).replace(/ /g,"_").replace(/[&\/\\#,+()$~%.'":*?<>{}!]/g, '');
+  return filenamify(string, {replacement: '_' })
+    .replace(/[&\/\\#,+()$~%.'":*?<>{}!]/g, '')
+    .replace(/\s+/g,"_")
+    .split('：').join(':');
 }
 
 let concurrentJobs = process.env.CONCURRENT_AMOUNT;
@@ -238,7 +241,7 @@ router.get("/player/:filename" , async function(req, res, next){
       fileNameWithoutExtension,
       filePathWithoutExtension,
       processingData,
-      title: filePathWithoutExtension
+      title: processingData.filename
       // vttPath,
       // fileSource
     })
@@ -248,18 +251,6 @@ router.get("/player/:filename" , async function(req, res, next){
     res.send(err);
   }
 });
-
-
-/** VIDEOJS PLAYER (SUCKS) **/
-// router.get("/player" , async function(req, res, next){
-//   console.log(req.params);
-//
-//   res.render('player', {
-//     vttPath,
-//     fileSource
-//   })
-// });
-
 
 
 
