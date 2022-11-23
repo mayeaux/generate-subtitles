@@ -131,6 +131,10 @@ block content
       height: 32px;
     }
 
+    .no-pointer-events {
+      pointer-events: none;
+    }
+
   a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
     img#githubLogo(src='/images/inverted.png')
 
@@ -169,19 +173,35 @@ block content
     a#refreshButton(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start New Transcription
 
   script.
+    l = console.log;
 
     const getVideoDuration = (file) =>
       new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => {
+        l(file);
+        l(reader);
+        reader.onload = (e) => {
+          l('e');
+          l(e);
+          l('loading');
+          l(reader);
           const media = new Audio(reader.result);
+          l(media);
+          media.onerror = function(error){
+            l('error');
+            l(error);
+            reject(error);
+          }
           media.onloadedmetadata = () => resolve(media.duration);
         };
+        l('reading')
         reader.readAsDataURL(file);
-        reader.onerror = (error) => reject(error);
+        reader.onerror = function(error){
+          l('error');
+          l(error)
+          reject(error);
+        }
       });
-
-    l = console.log;
 
     $(document).ready(function () {
       // swal data with languages
@@ -294,6 +314,7 @@ block content
       const protocol = document.location.protocol.slice(0, -1)
       const servedWithSSL = protocol === 'https'
 
+      $('#upload-button').html('Checking your upload length..').addClass('no-pointer-events');
 
       l('passedFile');
       l(passedFile)
@@ -303,19 +324,14 @@ block content
 
       // force upload testing
       // if(1 === 1){
-
-        l('geting duration');
-        // TODO: get here
-        videoDuration = await getVideoDuration(passedFile);
-        l(videoDuration);
-        l('duration');
-        l(videoDuration);
-
         // TODO: change this to onchange
         const oneHundredMBinBytes = 100000000;
 
         // swal with the error
         if (passedFile.size > oneHundredMBinBytes) {
+          // put back upload button
+          $('#upload-button').html('Upload').removeClass('no-pointer-events');
+
           return Swal.fire({
             title: 'Please upload something smaller than 100MB, Cloudflare limit for now',
             icon: 'error',
@@ -323,8 +339,18 @@ block content
           })
         }
 
+        l('geting duration');
+        // TODO: get here
+        // TODO: catch possible errors
+        videoDuration = await getVideoDuration(passedFile);
+        l(videoDuration);
+        l('duration');
+        l(videoDuration);
+
+
         // 3600
         if (videoDuration && videoDuration > 3600) {
+          $('#upload-button').html('Upload').removeClass('no-pointer-events');
           videoDuration = 0;
           return Swal.fire({
             title: 'The video is too long',
