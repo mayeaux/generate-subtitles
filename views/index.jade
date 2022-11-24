@@ -150,7 +150,7 @@ block content
         input#model(type='text' value=previousModel placeholder="Leave empty for medium")
         div.translateHolder
           label#translateLabel Translate to different languages
-          input#translate(type='checkbox' checked)
+          input#translate(type='checkbox')
         button#upload-button.submit-btn(type='submit') Upload
 
     //DISPLAY DIFFERENT DATA
@@ -248,9 +248,16 @@ block content
 
     const previousModel = localStorage.getItem('model');
     const previousLanguage = localStorage.getItem('language');
+    const previousShouldTranslate = localStorage.getItem('shouldTranslate');
+
+    l('previous should translate');
+    l(previousShouldTranslate);
 
     document.getElementById('model').value = previousModel;
     document.getElementById("language").value = previousLanguage;
+    $('#translate').prop('checked', previousShouldTranslate === 'true');
+    // const previousLanguage = localStorage.getItem('language');
+
 
     const ipAndPort = location.host;
     const randomNumber = Math.round(Math.random() * 1000000000000);
@@ -337,17 +344,26 @@ block content
           })
         }
 
-        l('geting duration');
-        // TODO: get here
-        // TODO: catch possible errors
-        videoDuration = await getVideoDuration(passedFile);
-        l(videoDuration);
-        l('duration');
-        l(videoDuration);
+        $('#upload-button').addClass('no-pointer-events');
 
-        // setTimeout(function () {
-        //   $('#upload-button').html('Checking your upload length..').addClass('no-pointer-events');
-        // }, 500)
+        setTimeout(function () {
+          $('#upload-button').html('Checking your upload length..')
+        }, 200)
+
+        try {
+          l('geting duration');
+          // TODO: get here
+          // TODO: catch possible errors
+          videoDuration = await getVideoDuration(passedFile);
+          l(videoDuration);
+          l('duration');
+          l(videoDuration);
+        } catch (err){
+          /// just let them advance if there's an error, happens with .MOV (format error)
+          //  and uploads over 500MB (because of Chrome)
+          l('err');
+          l(err);
+        }
 
         // 3600
         if (videoDuration && videoDuration > 3600) {
@@ -401,6 +417,7 @@ block content
 
       localStorage.setItem('model', model);
       localStorage.setItem('language', language);
+      localStorage.setItem('shouldTranslate', translateIsChecked);
 
       // Display the key/value pairs
       for (const pair of formData.entries()) {
