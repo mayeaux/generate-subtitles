@@ -127,6 +127,54 @@ block content
             margin-bottom: 10px;
         }
 
+        @media (min-width: 320px) {
+            /* smartphones, portrait iPhone, portrait 480x320 phones (Android) */
+        }
+
+        @media (min-width: 480px) {
+            /* smartphones, Android phones, landscape iPhone */
+        }
+
+
+
+        @media (min-width: 600px) {
+            /*body {*/
+            /*    background-color: black;*/
+            /*    padding: 0px;*/
+            /*    margin: 0px;*/
+            /*    font-size: 40px;*/
+            /*}*/
+        }
+
+        @media (min-width: 801px) {
+            /* tablet, landscape iPad, lo-res laptops ands desktops */
+        }
+
+        @media (min-width: 1025px) {
+            /* big landscape tablets, laptops, and desktops */
+        }
+
+        @media (max-width: 1281px) {
+            body {
+                font-size: 20px;
+            }
+
+            .plyr__control svg {
+                width: 53px !important;
+                height: 53px !important;
+            }
+
+            .plyr__volume {
+                display: none !important;
+            }
+
+            .plyr__time--current {
+                font-size: 24px !important;
+            }
+            /* hi-res laptops and desktops */
+        }
+
+
     div
         div.video-containing-div
             video#player(playsinline controls='' autoplay='true' name='media')
