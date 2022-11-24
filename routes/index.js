@@ -232,8 +232,38 @@ router.get("/player/:filename" , async function(req, res, next){
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
+    const translatedLanguages = processingData.translatedLanguages;
+
+    // actual languagesToTranslate
+    const languages = [{
+      name: 'English',
+      languageCode: 'en'
+    },{
+      name: 'Spanish',
+      languageCode: 'es'
+    },{
+      name: 'French',
+      languageCode: 'fr'
+    },{
+      name: 'German',
+      languageCode: 'de'
+    },{
+      name: 'Russian',
+      languageCode: 'ru'
+    },{
+      name: 'Japanese',
+      languageCode: 'ja'
+    }]
+
+    const languagesToLoop = languages.filter(function(language){
+      return translatedLanguages.includes(language.name)
+    });
+
     l('processing data');
     l(processingData);
+
+    l('languages to loop');
+    l(languagesToLoop);
 
     res.render('player', {
       filePath: filePathWithoutExtension,
@@ -241,7 +271,8 @@ router.get("/player/:filename" , async function(req, res, next){
       fileNameWithoutExtension,
       filePathWithoutExtension,
       processingData,
-      title: processingData.filename
+      title: processingData.filename,
+      languagesToLoop
       // vttPath,
       // fileSource
     })

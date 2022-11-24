@@ -12,6 +12,7 @@ const createTranslatedFiles = require('./create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('./formatStdErr')
 
+
 l(formatStdErr);
 
 l = console.log;
@@ -378,14 +379,8 @@ async function transcribe({
 
             let translatedLanguages = [];
             if(translationStartedAndCompleted){
-              translatedLanguages = languagesToTranscribe
-            }
-
-            // pull out
-            function getCodeFromLanguageName(languageName){
-              return translationLanguages.find(function(filteredLanguage){
-                return languageName === filteredLanguage.name;
-              })?.code
+              const trimmedLanguagesToTranscribe = languagesToTranscribe.filter(e => e !== language);
+              translatedLanguages = trimmedLanguagesToTranscribe
             }
 
             const fileDetailsObject = {

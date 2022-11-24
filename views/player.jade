@@ -132,18 +132,13 @@ block content
             video#player(controls='' autoplay='true' name='media')
                 // file extension includes the .
                 source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
-                // TODO: replace with loop
-                if processingData.translatedLanguages.length > 0
-                    track(kind='captions' label='English' srclang='en' src=`${filePathWithoutExtension}_English.vtt` default='')
-                    track(kind='captions' label='Spanish' srclang='es' src=`${filePathWithoutExtension}_Spanish.vtt` default='')
-                    track(kind='captions' label='French' srclang='fr' src=`${filePathWithoutExtension}_French.vtt` default='')
-                    track(kind='captions' label='German' srclang='de' src=`${filePathWithoutExtension}_German.vtt` default='')
-                    track(kind='captions' label='Russian' srclang='ru' src=`${filePathWithoutExtension}_Russian.vtt` default='')
-                    //track(kind='captions' label='Chinese' srclang='zh' src=`${filePath}_Chinese.vtt` default='')
-                    track(kind='captions' label='Japanese' srclang='ja' src=`${filePathWithoutExtension}_Japanese.vtt` default)
-                // TODO: add the srclang thing here
-                track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
-
+                // TODO: replace with loop (has to fix on the backend)
+                if languagesToLoop.length > 0
+                    each loopLanguage in languagesToLoop
+                        track(kind='captions' label=loopLanguage.name srclang=loopLanguage.languageCode src=`${filePathWithoutExtension}_${loopLanguage.name}.vtt` default='')
+                    track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
+                else
+                    track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}.vtt` default=true)
 
 
     div.bottomSection

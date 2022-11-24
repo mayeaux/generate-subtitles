@@ -175,6 +175,8 @@ block content
   script.
     l = console.log;
 
+    let uploadFinished = false;
+
     const getVideoDuration = (file) =>
       new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -501,6 +503,8 @@ block content
     let myUploadStarted = false;
     let hitTheBackend = false;
     websocketConnection.onclose = function (event) {
+      // dont show popup if websocket closed because finished
+      if(uploadFinished) return
       return Swal.fire({
         title: 'Websocket disconnected',
         text: 'Your websocket connection was disconnected, please refresh to start a new upload',
@@ -524,6 +528,8 @@ block content
 
       /** WHEN WEBSOCKET SAYS COMPLETED **/
       if (data.status === 'Completed') {
+        uploadFinished = true;
+
         latestData.innerHTML = 'Congratulations, you\'re done!';
 
         document.getElementById('finishedData').innerHTML = data.detailsString;
