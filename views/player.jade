@@ -86,10 +86,6 @@ block content
             /*height: 1300px;*/
         }
 
-        .plyr__caption {
-            font-size: 40px !important;
-        }
-
         .upload-details h4:not(.description) {
             font-size: 35px;
         }
@@ -100,11 +96,6 @@ block content
 
         .video-js {
             max-height: 400px;
-        }
-
-        .plyr__caption {
-            font-size: 34px;
-            line-height: 53px !important;
         }
 
         .bottomSection {
@@ -137,24 +128,8 @@ block content
 
 
 
-        @media (min-width: 600px) {
-            /*body {*/
-            /*    background-color: black;*/
-            /*    padding: 0px;*/
-            /*    margin: 0px;*/
-            /*    font-size: 40px;*/
-            /*}*/
-        }
-
-        @media (min-width: 801px) {
-            /* tablet, landscape iPad, lo-res laptops ands desktops */
-        }
-
-        @media (min-width: 1025px) {
-            /* big landscape tablets, laptops, and desktops */
-        }
-
-        @media (max-width: 1281px) {
+        /** larger than this size **/
+        @media (min-width: 320px) {
             body {
                 font-size: 28px;
             }
@@ -168,12 +143,39 @@ block content
                 display: none !important;
             }
 
-            .plyr__time--current, .plyr__time--duration  {
+            .plyr__time--current, .plyr__time--duration {
                 font-size: 24px !important;
             }
 
+
             button[data-plyr="language"], button[data-plyr="settings"] {
                 font-size: 28px !important;
+            }
+
+            .plyr__caption {
+                font-size: 20px !important;
+                line-height: 13px !important;
+            }
+        }
+
+        @media (min-width: 801px) {
+
+            .plyr__caption {
+                font-size: 28px !important;
+                line-height: 41px !important;;
+            }
+            /* tablet, landscape iPad, lo-res laptops ands desktops */
+        }
+
+        @media (min-width: 1025px) {
+            /* big landscape tablets, laptops, and desktops */
+        }
+
+        /*mobile */
+        @media (min-width: 1281px) {
+            .plyr__caption {
+                font-size: 49px !important;
+                line-height: 74px !important;
             }
             /* hi-res laptops and desktops */
         }
