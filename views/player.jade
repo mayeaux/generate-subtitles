@@ -129,7 +129,7 @@ block content
 
     div
         div.video-containing-div
-            video#player(controls='' autoplay='true' name='media')
+            video#player(playsinline controls='' autoplay='true' name='media')
                 // file extension includes the .
                 source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
                 // TODO: replace with loop (has to fix on the backend)
