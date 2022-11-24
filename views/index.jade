@@ -348,7 +348,7 @@ block content
 
         setTimeout(function () {
           $('#upload-button').html('Checking your upload length..')
-        }, 200)
+        }, 500)
 
         try {
           l('geting duration');
@@ -468,7 +468,7 @@ block content
       ajax.addEventListener("load", function(res){
         l('hit the backend!');
         hitTheBackend = true;
-        document.getElementById('processingData').style.display = 'block';
+        // document.getElementById('processingData').style.display = 'block';
         document.getElementById('latestData').style.display = 'block';
         console.log(res)
         progressDiv.style.display = 'none';
@@ -500,6 +500,23 @@ block content
 
     let myUploadStarted = false;
     let hitTheBackend = false;
+    websocketConnection.onclose = function (event) {
+      return Swal.fire({
+        title: 'Websocket disconnected',
+        text: 'Your websocket connection was disconnected, please refresh to start a new upload',
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonText: 'Refresh now',
+      }).then((result) => {
+        /* Read more about isConfirmed, isDenied below */
+        if (result.isConfirmed) {
+          window.location.reload();
+        }
+      })
+
+    };
+
+
     websocketConnection.onmessage = function (event) {
       const data = JSON.parse(event.data);
 
