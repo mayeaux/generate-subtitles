@@ -23,14 +23,16 @@ function getCodeFromLanguageName(languageName){
   }).code
 }
 
-l(getCodeFromLanguageName('English'))
+// l(getCodeFromLanguageName('English'))
 
+
+// TODO: add the 'webvtt' thing and don't need these
 function cleanUpSubtitles(language, text){
-  l('clean up subtitles');
-  l(language);
+  // l('clean up subtitles');
+  // l(language);
   if(language === 'Spanish'){
-    l('Spanish');
-    l(language);
+    // l('Spanish');
+    // l(language);
     return text.replace(/-- título/g, '-->');
 
   } else if(language === 'French'){

@@ -141,9 +141,8 @@ block content
                     track(kind='captions' label='Russian' srclang='ru' src=`${filePathWithoutExtension}_Russian.vtt` default='')
                     //track(kind='captions' label='Chinese' srclang='zh' src=`${filePath}_Chinese.vtt` default='')
                     track(kind='captions' label='Japanese' srclang='ja' src=`${filePathWithoutExtension}_Japanese.vtt` default)
-                else
-                    // TODO: add the srclang thing here
-                    track(kind='captions' label=processingData.language srclang='en' src=`${filePathWithoutExtension}.vtt` default=true)
+                // TODO: add the srclang thing here
+                track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
 
 
 
