@@ -68,6 +68,9 @@ async function createTranslatedFiles({
   l('srtData');
   l(srtData);
 
+  // copy original as copied
+  await fs.copy(`${directoryAndFileName}.vtt`, `${directoryAndFileName}_${language}.vtt`)
+
   for(const languageToConvertTo of languagesToTranscribe){
     l('languageToConvertTo');
     l(languageToConvertTo);
@@ -77,11 +80,7 @@ async function createTranslatedFiles({
 
     try {
       // no need to translate just copy the file
-      if(languageToConvertTo === language){
-        l('copying file');
-        await fs.copy(`${directoryAndFileName}.vtt`, `${directoryAndFileName}_${language}.vtt`)
-      } else {
-
+      if(languageToConvertTo !== language){
         websocketConnection.send(JSON.stringify({
           languageUpdate: `Translating into ${languageToConvertTo}..`,
           message: 'languageUpdate'

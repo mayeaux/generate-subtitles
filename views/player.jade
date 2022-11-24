@@ -176,7 +176,8 @@ block content
                                 p Download
 
             // TRANSLATED FILES //
-            p Translations:
+            if processingData.translatedLanguages.length > 0
+                p Translations:
             // translated VTT files
             each language in processingData.translatedLanguages
                 div.links
