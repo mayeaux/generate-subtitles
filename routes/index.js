@@ -253,6 +253,9 @@ router.get("/player/:filename" , async function(req, res, next){
     },{
       name: 'Japanese',
       languageCode: 'ja'
+    },{
+      name: 'Korean',
+      languageCode: 'ko'
     }]
 
     const languagesToLoop = languages.filter(function(language){

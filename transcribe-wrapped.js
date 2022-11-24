@@ -225,8 +225,8 @@ async function transcribe({
           }
 
           const formattedProgress = formatStdErr(data.toString());
-          l('formattedProgress');
-          l(formattedProgress);
+          // l('formattedProgress');
+          // l(formattedProgress);
 
           const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
 

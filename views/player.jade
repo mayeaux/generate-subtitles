@@ -242,13 +242,13 @@ block content
                 div.links
                     p VTT (#{language})
                     div
-                        a(download href=`${filePathWithoutExtension}_${language}.vtt`)
-                            div
-                                a(href=`${filePathWithoutExtension}_${language}.vtt`)
-                                    p View
-                            div
-                                a(download href=`${filePathWithoutExtension}_${language}.vtt`)
-                                    p Download
+
+                        div
+                            a(href=`${filePathWithoutExtension}_${language}.vtt`)
+                                p View
+                        div
+                            a(href=`${filePathWithoutExtension}_${language}.vtt` download)
+                                p Download
             div.links
                 a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`)
                     p(style="margin-left:0px") Download File
