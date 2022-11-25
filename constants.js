@@ -83,7 +83,15 @@ function shouldTranslateFrom(languageName){
   })
 }
 
-const languagesToTranscribeFrom =
+let newLanguagesMap = [];
+Object.keys(languageNameMap).forEach(languageCode =>{
+  newLanguagesMap.push({
+    languageCode,
+    name: languageNameMap[languageCode].name
+  })
+});
+
+// const languagesToTranscribeFrom =
 
 module.exports = {
   whisperLanguagesHumanNames,
@@ -92,5 +100,6 @@ module.exports = {
   whisperLanguagesAsSpacedString,
   shouldTranslateFrom,
   translationLanguages,
-  getLanguageCodeForAllLanguages
+  getLanguageCodeForAllLanguages,
+  newLanguagesMap
 }

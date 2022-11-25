@@ -14,7 +14,12 @@ const filenamify = require("filenamify");
 const forHumans = require('../helpers').forHumans;
 const path = require('path');
 const moment = require('moment');
-const { languagesToTranslateTo } = constants;
+const { languagesToTranslateTo, newLanguagesMap } = constants;
+// const languageNameMap = require('language-name-map/map')
+l('language name map');
+l(newLanguagesMap.reverse())
+
+
 
 // l('constants');
 // l(constants);
@@ -234,31 +239,8 @@ router.get("/player/:filename" , async function(req, res, next){
 
     const translatedLanguages = processingData.translatedLanguages;
 
-    // actual languagesToTranslate
-    const languages = [{
-      name: 'English',
-      languageCode: 'en'
-    },{
-      name: 'Spanish',
-      languageCode: 'es'
-    },{
-      name: 'French',
-      languageCode: 'fr'
-    },{
-      name: 'German',
-      languageCode: 'de'
-    },{
-      name: 'Russian',
-      languageCode: 'ru'
-    },{
-      name: 'Japanese',
-      languageCode: 'ja'
-    },{
-      name: 'Korean',
-      languageCode: 'ko'
-    }]
-
-    const languagesToLoop = languages.filter(function(language){
+    // TODO: check that it doesn't include the original language? or it never will?
+    const languagesToLoop = newLanguagesMap.filter(function(language){
       return translatedLanguages.includes(language.name)
     });
 
