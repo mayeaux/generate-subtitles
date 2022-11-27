@@ -1,128 +1,42 @@
-import path from "path";
-import moment from "moment/moment";
-import transcribeWrapped from "../transcribe-wrapped";
+const path = require('path');
+const express = require('express');
+const axios = require('axios');
+const fs = require('fs-extra');
+const FormData = require('form-data');
+const multer = require("multer");
+var router = express.Router();
 
-router.post('/file', upload.single('file'), function (req, res, next) {
+const storage = multer.diskStorage({ // notice you are calling the multer.diskStorage() method here, not multer()
+  destination: function(req, file, cb) {
+    cb(null, './uploads/')
+  },
+});
+
+var upload = multer({ storage });
+
+router.post('/api', upload.single('file'), function (req, res, next) {
   // l(global.ws);
 
   try {
-    l(req.file);
-    l(req.body);
+    // l(req.file);
+    // l(req.body);
+
+    const postBodyData = Object.assign({},req.body)
+    const file = req.file;
+    const { originalname: originalFileName } = file;
+
+    l(file);
+    l(postBodyData);
+
+
+    // TODO: get audio stream
+
 
     const language = req.body.language;
     let model = req.body.model;
-    const websocketNumber = req.body.websocketNumber;
     const uploadedFilePath = req.file.path;
     const uploadGeneratedFilename = req.file.filename;
     const shouldTranslate = req.body.shouldTranslate === 'true';
-
-    let logFileNames = true;
-    // something.mp4
-    let originalFileNameWithExtension = decode_utf8(req.file.originalname);
-
-    // .mp4 (includes leading period)
-    const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
-
-    const originalFileNameWithoutExtension = path.parse(originalFileNameWithExtension).name;
-    l('originalFileNameWithoutExtension')
-    l(originalFileNameWithoutExtension)
-
-    // something
-    const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithoutExtension)
-
-    l('directorySafeFileNameWithoutExtension')
-    l(directorySafeFileNameWithoutExtension)
-
-
-    // something.mp4
-    const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${originalFileExtension}`
-
-    if(!uploadedFilePath){ res.status(500); res.send('no file')}
-
-    // load websocket by passed number
-    let websocketConnection;
-    if(global.webSocketData){
-      l(global.webSocketData);
-      const websocket = global.webSocketData.find(function(websocket){
-        return websocketNumber === websocket.websocketNumber;
-      })
-      if(websocket){
-        websocketConnection = websocket.websocket;
-      } else {
-        throw new Error('no websocket!');
-      }
-
-    }
-
-    // TODO: this is wrong, it's with adding the pending length to get amount in front
-    const placeInQueue = queue.getQueueLength();
-
-    l(queue);
-    l('place in queue');
-    l(placeInQueue);
-
-    // general queue data
-    global.queue = {}
-
-    const amountOfCurrentPending = queue.getPendingLength()
-
-    const amountinQueue = queue.getQueueLength()
-
-    const totalOutstanding = amountOfCurrentPending + amountinQueue;
-
-    l('totaloutstanding');
-    l(totalOutstanding);
-
-    // give frontend their queue position
-    if(amountOfCurrentPending > 0){
-      websocketConnection.send(JSON.stringify({
-        message: 'queue',
-        placeInQueue: totalOutstanding
-      }), function () {});
-    }
-
-    global.queueData.push(websocketNumber)
-
-    l('queue data');
-    l(global.queueData);
-
-    // make the model medium by default
-    if(!model){
-      model = 'medium';
-    }
-
-    const timestampString = moment(new Date()).format('DD-MMMM-YYYY_HH_mm_ss');
-
-    const separator = '--'
-
-    const fileSafeNameWithDateTimestamp = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}`;
-
-    const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}${originalFileExtension}`;
-
-    queue.add(async function () {
-      // TODO: catch the error here?
-      await transcribeWrapped({
-        uploadedFilePath,
-        language,
-        model,
-        directorySafeFileNameWithoutExtension,
-        directorySafeFileNameWithExtension,
-        originalFileNameWithExtension,
-        fileSafeNameWithDateTimestamp,
-        fileSafeNameWithDateTimestampAndExtension,
-        uploadGeneratedFilename,
-        shouldTranslate,
-
-        // websocket/queue
-        websocketConnection,
-        websocketNumber,
-        queue,
-        languagesToTranslateTo
-      })
-    })
-
-    const obj = JSON.parse(JSON.stringify(req.body));
-    l(obj);
 
     // l(req.files);
     // l(req.body);
@@ -135,3 +49,55 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     throw(err);
   }
 });
+
+
+
+
+
+
+
+
+/** UNFINISHED FUNCTIONALITY **/
+// post file from backend
+router.post('/post', async function(req, res, next){
+  try {
+    l(req.body);
+    l(req.params);
+
+    const endpointToHit = 'http:localhost:3000'
+
+    // Create a new form instance
+    const form = new FormData();
+
+    const file = await fs.readFile('./ljubav.srt');
+    l('file');
+    l(file);
+
+    form.append('subtitles', file, 'subtitles');
+
+    form.append('filename', 'ljubav.srt');
+
+
+    l('form headers');
+    l(form.getHeaders())
+
+    const response = await axios.post(endpointToHit, form, {
+      headers: {
+        ...form.getHeaders(),
+      },
+      data: {
+        foo: 'bar', // This is the body part
+      }
+    });
+
+    // l('response');
+    // l(response);
+
+    // res.send('ok');
+  } catch (err){
+    l('err');
+    l(err);
+  }
+})
+
+module.exports = router;

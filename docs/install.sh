@@ -1,7 +1,7 @@
 wget -qO - http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub | sudo apt-key add -
 sudo apt-get update
 sudo apt-get upgrade -y
-sudo apt install ffmpeg -y
+sudo apt install nginx ffmpeg -y
 sudo apt install software-properties-common -y
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt-get upgrade -7
@@ -37,3 +37,10 @@ sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o
 sudo chmod a+rx /usr/local/bin/yt-dlp  # Make executable
 
 
+
+
+# for libretranslate
+#sudo apt-get install python3.9-dev
+#pip3 install --upgrade distlib
+#apt-get install pkg-config libicu-dev
+#pip3 install libretranslate
