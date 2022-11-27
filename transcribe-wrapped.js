@@ -230,7 +230,7 @@ async function transcribe({
 
           const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
 
-          const processingString = `[${percentDone}] ${timeRemaining} Remaining, Speed ${speed}f/s`
+          // const processingString = `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s`
 
           // TODO: pull into function
           // pass latest data to all the open sockets
@@ -240,12 +240,14 @@ async function transcribe({
             /** websocketData message **/
             websocketConnection.send(JSON.stringify({
               message: 'websocketData',
-              processingData: processingString,
+              processingData: 'thing',
               // processingData: data.toString(),
               ownershipPerson,
               serverNumber, // on the frontend we'll react different if it it's on server 1 or two
               formattedProgress,
-              percentDone: percentDoneAsNumber
+              percentDone: percentDoneAsNumber,
+              timeRemaining,
+              speed,
             }));
           }
         }

@@ -36,17 +36,39 @@ function formatStdErr(stdErrData){
 
     const timeElapsed = firstPortion.split('<')[0]
 
-    const timeRemaining = timeLeftPortion.split('<')[1].split(',')[0]
+    const timeRemainingString = timeLeftPortion.split('<')[1].split(',')[0]
 
     const speed = timeLeftPortion.split('<')[1].split(',')[1].split('frames')[0].trim()
+
+    const splitTimeRemaining = timeRemainingString.split(':')
+
+    const secondsRemaining = Number(splitTimeRemaining.pop());
+
+    const minutesRemaining = Number(splitTimeRemaining.pop());
+
+    const hoursRemaining = Number(splitTimeRemaining.pop());
+
+    l('secondsRemaining');
+    l(secondsRemaining);
+
+    l('minutesRemaining')
+    l(minutesRemaining);
+
+    l('hoursRemaining');
+    l(hoursRemaining);
 
     return {
       progressBar,
       percentDone,
       timeElapsed,
-      timeRemaining,
       speed,
-      percentDoneAsNumber
+      percentDoneAsNumber,
+      timeRemaining: {
+        string: timeRemainingString,
+        hoursRemaining,
+        minutesRemaining,
+        secondsRemaining
+      },
     }
   } else {
     return false
