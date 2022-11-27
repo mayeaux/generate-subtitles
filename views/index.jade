@@ -683,11 +683,11 @@ block content
         // minutesRemaining = minutesRemaining - 1;
       }
 
-      if (minutesRemaining.toString().length === 1) {
+      if (minutesRemaining.toString()?.length === 1) {
         minutesRemaining = '0' + minutesRemaining;
       }
 
-      if (secondsRemaining.toString().length === 1) {
+      if (secondsRemaining.toString()?.length === 1) {
         secondsRemaining = '0' + secondsRemaining;
       }
 
@@ -710,8 +710,11 @@ block content
       console.log(event.data);
 
       /** WHEN WEBSOCKET SAYS COMPLETED **/
+      // TODO: move to bottom of conditional blocks
       if (data.status === 'Completed') {
         uploadFinished = true;
+
+        if(window.decrementInterval) clearInterval(window.decrementInterval)
 
         latestData.innerHTML = 'Congratulations, you\'re done!';
 
@@ -772,7 +775,9 @@ block content
         l(myUpload);
         const processNumber = data.serverNumber; // 1 || 2, really means process
         const percentDone = data.percentDone;
-        timeRemaining = data.timeRemaining;
+        if(myUpload){
+          timeRemaining = data.timeRemaining;
+        }
         processingData = data.processingData;
         formattedProgressData = data.formattedProgress;
 
@@ -814,22 +819,39 @@ block content
             if(!loopStarted){
               loopStarted = true;
 
+              if(!window.decrementInterval){
+                window.decrementInterval = setInterval(function () {
+                  l('time remaining');
+                  l(timeRemaining);
 
-              setInterval(function(){
-                l('time remaining');
-                l(timeRemaining);
+                  l('decrementing');
+                  decrementBySecond(timeRemaining)
 
-                l('decrementing');
-                decrementBySecond(timeRemaining)
-
-                l('time remaining');
-                l(timeRemaining);
+                  l('time remaining');
+                  l(timeRemaining);
 
 
-                const stringToUse = `[${formattedProgressData.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgressData.speed}f/s`
+                  const stringToUse = `[${formattedProgressData.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgressData.speed}f/s`
 
-                document.getElementById('processingData').innerHTML = `${textToSay}${stringToUse}`;
-              }, 1000)
+                  document.getElementById('processingData').innerHTML = `${textToSay}${stringToUse}`;
+                }, 1000)
+              }
+
+              // window.decrementInterval = setInterval(function(){
+              //   l('time remaining');
+              //   l(timeRemaining);
+              //
+              //   l('decrementing');
+              //   decrementBySecond(timeRemaining)
+              //
+              //   l('time remaining');
+              //   l(timeRemaining);
+              //
+              //
+              //   const stringToUse = `[${formattedProgressData.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgressData.speed}f/s`
+              //
+              //   document.getElementById('processingData').innerHTML = `${textToSay}${stringToUse}`;
+              // }, 1000)
             }
           } else {
             document.getElementById('processingData').innerHTML = `${textToSay}Transcription starting soon..`;
