@@ -230,17 +230,18 @@ async function transcribe({
 
           const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
 
-          // const processingString = `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s`
+          let processingString = '';
+          if(timeRemaining){
+            processingString = `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s`
+          }
 
           // TODO: pull into function
           // pass latest data to all the open sockets
           if (websocketConnection.readyState === WebSocket.OPEN) {
-
-
             /** websocketData message **/
             websocketConnection.send(JSON.stringify({
               message: 'websocketData',
-              processingData: 'thing',
+              processingData: processingString,
               // processingData: data.toString(),
               ownershipPerson,
               serverNumber, // on the frontend we'll react different if it it's on server 1 or two

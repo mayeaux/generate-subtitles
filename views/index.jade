@@ -567,6 +567,10 @@ block content
           value: Number(percentUploadDone),
         });
         if(percent === 100){
+          circleProgress.attr({
+            max: 100,
+            value: 0,
+          });
           $('.progress').hide();
         } else {
           $('.progress').show();
@@ -667,13 +671,16 @@ block content
       }
 
 
-      if (minutesRemaining === 0) {
+      if (minutesRemaining === 0 || minutesRemaining === '00') {
         if(hoursRemaining > 0){
           minutesRemaining = 59;
           hoursRemaining = hoursRemaining - 1;
         } else {
-          minutesRemaining = minutesRemaining - 1;
+          // no recharge, leave at zero
+          // minutesRemaining = minutesRemaining - 1;
         }
+      } else {
+        // minutesRemaining = minutesRemaining - 1;
       }
 
       if (minutesRemaining.toString().length === 1) {
@@ -771,13 +778,13 @@ block content
 
         // by default let to 'latest processing'
         // TODO: this is misnamed
-        let textToSay = `Latest processing data (process ${processNumber})`;
+        let textToSay = `Latest processing data (process ${processNumber})\n`;
         if(myUpload){
           /** it's your upload **/
           // data is no longer relevant
           document.getElementById('secondProcessingData').style.display = 'none';
           myUploadStarted = true; // force this to true
-          textToSay = `Your processing data`;
+          textToSay = ``;
           latestData.style.display = 'none';
         }
 
@@ -793,8 +800,21 @@ block content
           document.getElementById('processingData').style.display = 'block';
           // actual process data coming back
           if (Number(percentDone) > 0){
+            circleProgress.attr({
+              max: 100,
+              value: data.percentDone,
+            });
+            if (data.percentDone === 100) {
+              $('.progress').hide();
+            } else {
+              $('.progress').show();
+            }
+
+
             if(!loopStarted){
               loopStarted = true;
+
+
               setInterval(function(){
                 l('time remaining');
                 l(timeRemaining);
@@ -808,11 +828,11 @@ block content
 
                 const stringToUse = `[${formattedProgressData.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgressData.speed}f/s`
 
-                document.getElementById('processingData').innerHTML = `${textToSay}\n\n${stringToUse}`;
+                document.getElementById('processingData').innerHTML = `${textToSay}${stringToUse}`;
               }, 1000)
             }
           } else {
-            document.getElementById('processingData').innerHTML = `${textToSay}\n\nTranscription starting soon..`;
+            document.getElementById('processingData').innerHTML = `${textToSay}Transcription starting soon..`;
           }
         }
 
