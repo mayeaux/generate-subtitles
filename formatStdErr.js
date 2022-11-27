@@ -47,15 +47,15 @@ function formatStdErr(stdErrData){
     const minutesRemaining = Number(splitTimeRemaining.pop());
 
     const hoursRemaining = Number(splitTimeRemaining.pop());
-
-    l('secondsRemaining');
-    l(secondsRemaining);
-
-    l('minutesRemaining')
-    l(minutesRemaining);
-
-    l('hoursRemaining');
-    l(hoursRemaining);
+    //
+    // l('secondsRemaining');
+    // l(secondsRemaining);
+    //
+    // l('minutesRemaining')
+    // l(minutesRemaining);
+    //
+    // l('hoursRemaining');
+    // l(hoursRemaining);
 
     return {
       progressBar,

@@ -12,6 +12,7 @@ const _ = require('lodash');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+// var api = require('./routes/api');
 const WebSocket = require("ws");
 
 var app = express();
@@ -180,9 +181,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 // assumes nginx
-if(!isProd){
+// if(!isProd){
   app.use(express.static(__dirname));
-}
+// }
 
 
 const oneWeek = 1000 * 60 * 60 * 24 * 7;
@@ -203,6 +204,7 @@ app.use(function(req, res, next){
 })
 
 app.use('/', routes);
+// app.use('/', api);
 app.use('/users', users);
 
 // catch 404 and forward to error handler
