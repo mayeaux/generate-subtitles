@@ -1,6 +1,8 @@
 extends layout
 
 block content
+  script(src='/javascripts/circle-progress.min.js')
+
   style.
     body {
       background-color: rgb(22, 29, 29);
@@ -135,6 +137,48 @@ block content
       pointer-events: none;
     }
 
+    .circle-progress-value {
+      stroke-width: 50px;
+      stroke: hsl(160, 63%, 55%);
+    }
+
+    .circle-progress-circle {
+      stroke-width: 50px;
+      stroke: #999;
+    }
+
+    .circle-progress-text {
+      fill: white;
+    }
+
+    .progress svg {
+      height: 202px;
+      width: 202px;
+    }
+
+    .circle-progress-value {
+      stroke-width: 50px;
+      stroke: white;
+    }
+
+    .circle-progress-text {
+      fill: black;
+    }
+
+    .circle-progress-circle {
+      stroke-width: 50px;
+      stroke: #bdbdbd;
+    }
+
+    .progress {
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    #timeEstimator {
+      white-space: pre;
+    }
+
   a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
     img#githubLogo(src='/images/inverted.png')
 
@@ -155,6 +199,7 @@ block content
 
     //DISPLAY DIFFERENT DATA
     p#progress
+    .progress
     p#timeEstimator
     p#latestData
     p#processingData
@@ -171,9 +216,42 @@ block content
     a.downloadLink#txtDownloadLink(href='#')
 
     a#refreshButton(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start New Transcription
-
   script.
     l = console.log;
+
+    let circleProgress;
+
+    $(document).ready(function () {
+      circleProgress = new CircleProgress('.progress', {
+        max: 100,
+        value: 100,
+        textFormat: 'vertical',
+      });
+
+      $('.progress').hide();
+
+      l('ready now');
+      // new CircleProgress('.progress');
+      // console.log("ready!");
+
+      // percent divided by 100
+
+      // $('#circle').circleProgress({
+      //   value: 0.33,
+      //   size: 100,
+      //   // fill: {
+      //   //   gradient: ["red", "orange"]
+      //   // }
+      // });
+
+      // $('#circle').circleProgress({
+      //   max: 100,
+      //   value: 10,
+      //   textFormat: 'vertical'
+      // });
+
+
+    });
 
     let uploadFinished = false;
 
@@ -440,33 +518,87 @@ block content
       const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
 
       var ajax = new XMLHttpRequest();
-      let originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining;
+      let originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining, percentUploadDone;
 
+      let alreadyUploadedAmountInMB;
       /** TIME COUNTDOWN FUNCTIONALITY **/
       ajax.upload.addEventListener("progress", function(event){
         l(event);
         form.style.display = 'none';
         document.getElementById('startNewUpload').style.display = 'block';
 
-        var percent = Math.round((event.loaded / event.total) * 100);
+        alreadyUploadedAmountInMB = _.round(event.loaded / (1000 * 1000), 1);
+        let totalFileSizeInMB = _.round(event.total / (1000 * 1000), 1);
+
+        l('totalFileSizeInMB');
+        l(totalFileSizeInMB);
+
+        l('alreadyUploadedAmountInMB');
+        l(alreadyUploadedAmountInMB);
+
+        var percent = Math.round((alreadyUploadedAmountInMB / totalFileSizeInMB) * 100);
+
+        percentUploadDone = percent
+
         progressDiv.innerHTML = `${percent}% uploaded`;
 
         const currentTime = new Date();
+        // get time in seconds between upload start time and now
         timeElapsedInSeconds = Math.round((currentTime - originalDate) / 1000);
+
+        // estimate how many seconds remaining based on percent
         estimatedUploadTimeInSeconds = Math.round(timeElapsedInSeconds * (100/percent));
+
+        // time left is difference of estimated time and elapsed time
         estimatedSecondsRemaining = estimatedUploadTimeInSeconds - timeElapsedInSeconds;
+
+        l('estimated seconds remaining');
+        l(estimatedSecondsRemaining);
+
+
+        l('percent');
+        l(percent);
+
+        l('timeElapsedInSeconds')
+        l(timeElapsedInSeconds);
+
+        circleProgress.attr({
+          max: 100,
+          value: Number(percentUploadDone),
+        });
+        if(percent === 100){
+          $('.progress').hide();
+        } else {
+          $('.progress').show();
+        }
+
 
         // start up functionality to update estimate every second
         if(!uploadStarted){
           uploadStarted = true;
           originalDate = new Date();
           setInterval(function(){
-            // TODO: not honoring newlines
-            timeRemainingDiv.innerHTML = `[${timeElapsedInSeconds}/${estimatedUploadTimeInSeconds}s] ${forHumans(estimatedSecondsRemaining)} remaining`
+
+            const estimatedSecondsIsInfinity = estimatedSecondsRemaining === Infinity;
+            const estimatedSecondsIsNan = isNaN(estimatedSecondsRemaining);
+
+
+            Math.round(alreadyUploadedAmountInMB / timeElapsedInSeconds * 10) / 10
+
+            const uploadSpeedInMBs = _.round((alreadyUploadedAmountInMB / timeElapsedInSeconds), 1);
+
+            const valueIsValid = !estimatedSecondsIsInfinity && !estimatedSecondsIsNan;
+            if(!valueIsValid) return
+
+            timeRemainingDiv.innerHTML =
+                    `[${timeElapsedInSeconds}/${estimatedUploadTimeInSeconds}s] ${forHumans(estimatedSecondsRemaining)} remaining
+                    \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${alreadyUploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
+                    `;
           }, 1000)
         }
       }, false);
 
+      /** response from endpoint? **/
       ajax.addEventListener("load", function(res){
         l('hit the backend!');
         hitTheBackend = true;
@@ -668,6 +800,13 @@ block content
         l('no files found');
       }
     };
+
+    // circle progress bar
+    // new CircleProgress('.progress', {
+    //   max: 100,
+    //   value: 60,
+    //   textFormat: 'vertical',
+    // });
 
 
 
