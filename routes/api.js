@@ -158,14 +158,38 @@ router.get('/api/:sixDigitNumber', async function(req, res, next){
 
     const sixDigitNumber = req.params.sixDigitNumber;
 
-    // const processingData = await fs.readFile(`./transcriptions/${sixDigitNumber}/processing-data.json`, 'utf8');
+    const processingData = JSON.parse(await fs.readFile(`./transcriptions/${sixDigitNumber}/processing_data.json`, 'utf8'));
 
-    // res.send(processingData);
+    const transcriptionStatus = processingData.status;
+
+    // todo: should be a number
+    const progress = processingData.progress;
+
+    if(transcriptionStatus === 'completed'){
+      const originalVtt = await fs.readFile(`./transcriptions/${sixDigitNumber}/${sixDigitNumber}.vtt`, 'utf8');
+
+      return res.send({
+        status: 'completed',
+        sixDigitNumber,
+        vttFile: originalVtt
+      })
+    } else if(transcriptionStatus === 'processing'){
+      return res.send({
+        status: 'transcribing',
+        sixDigitNumber,
+        progress
+      })
+    } 
+
+
+
+    return res.send(processingData);
 
     // TODO: handle the case where processing data exists, progress if needed or other thing
     // const { progress, status, language, translatedLanguages } = processingData;
-    
+
     // TODO: get translations
+
 
     // get vtt
     const file = await fs.readFile(`./transcriptions/${sixDigitNumber}/${sixDigitNumber}.vtt`, 'utf8');

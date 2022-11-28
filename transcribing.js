@@ -106,21 +106,21 @@ async function translateIfNeeded({ language, shouldTranslate, processingDataPath
 }
 
 async function saveTranscriptionCompletedInformation({
-  containingDir, fileSafeNameWithDateTimestamp, uploadDurationInSeconds, startingDate
+  startingDate,
+  sixDigitNumber
 }){
-  // without extension
-  const directoryAndFileName = `${containingDir}/${fileSafeNameWithDateTimestamp}`
-  const processingDataPath = `${containingDir}/processing_data.json`;
+  function getUploadDurationInSeconds(){
+    // FPROBE: get the duration
+  }
+
+  const processingDataPath = `./transcriptions/${sixDigitNumber}/processing_data.json`;
 
   // just post-processing, you can return the response
   const processingSeconds = Math.round((new Date() - startingDate) / 1000);
 
-  const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
-
   await writeToProcessingDataFile(processingDataPath, {
     processingSeconds,
     processingSecondsHumanReadable: forHumans(processingSeconds),
-    processingRatio,
     startedAt: startingDate.toUTCString(),
     finishedAT: new Date().toUTCString(),
     status: 'completed',

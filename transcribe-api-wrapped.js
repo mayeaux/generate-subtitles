@@ -110,20 +110,20 @@ async function transcribe({
 
           // successful output
           if(processFinishedSuccessfully){
+            // move to the sixDigitNumber directory
             await moveAndRenameFilesAndFolder({
               originalUpload,
               uploadFileName,
-              fileSafeNameWithDateTimestampAndExtension,
-              fileSafeNameWithDateTimestamp,
-              originalFileNameWithExtension,
-              originalFileNameWithoutExtension,
               sixDigitNumber,
-              originalFileName
+              originalFileExtension,
             })
 
-            // await saveTranscriptionCompletedInformation({})
-
-            /** SRT, VTT, AND TXT SHOULD BE THERE **/
+            // save processing data with info
+            await saveTranscriptionCompletedInformation({
+              startingDate,
+              sixDigitNumber,
+              language,
+            })
           } else {
             // process returned with non-0 response
             l('FAILED!');
