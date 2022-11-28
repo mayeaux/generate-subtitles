@@ -15,6 +15,7 @@ const {
   buildArguments,
   moveAndRenameFilesAndFolder,
   saveTranscriptionCompletedInformation,
+  writeToProcessingDataFile,
 } = require('./transcribing');
 
 l = console.log;
@@ -79,8 +80,10 @@ async function transcribe({
       });
 
 
+      let responseSent = false;
+
       /** console output from stderr **/ // (progress comes through stderr for some reason)
-      whisperProcess.stderr.on('data', data => {
+      whisperProcess.stderr.on('data', async (data) => {
         l(`STDERR: ${data}`)
 
         // get value from the whisper output string
@@ -90,8 +93,21 @@ async function transcribe({
 
         const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
 
+        // TODO:
+        // save to processingData here
+        const processingDataPath = `./transcriptions/${uploadFileName}/processing_data.json`;
+
+        // just post-processing, you can return the response
+        const processingSeconds = Math.round((new Date() - startingDate) / 1000);
+
+        await writeToProcessingDataFile(processingDataPath, {
+          progress: percentDoneAsNumber,
+          status: 'processing'
+        })
+
         // when over 0%, mark as started successfully
-        if(percentDoneAsNumber > 0){
+        if(percentDoneAsNumber > 0 && !responseSent){
+          responseSent = true;
           resolve('started')
         }
       });

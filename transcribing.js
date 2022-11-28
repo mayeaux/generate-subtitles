@@ -72,12 +72,34 @@ function autoDetectLanguage(dataAsString){
 async function writeToProcessingDataFile(processingDataPath, dataObject){
   // save data to the file
   const processingDataExists = await fs.exists(processingDataPath)
+
+  l('processingDataExists')
+  l(processingDataExists);
   if(processingDataExists){
-    const existingProcessingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
-    let merged = {...existingProcessingData, ...dataObject};
-    await fs.appendFile(processingDataPath, JSON.stringify(merged), 'utf8');
+    const fileData = await fs.readFile(processingDataPath, 'utf8')
+    l('fileData');
+    l(fileData);
+
+
+    const existingProcessingData = JSON.parse(fileData);
+
+    l('existingProcessingData');
+    l(existingProcessingData);
+    //
+
+    l('data object');
+    l(dataObject);
+    l(typeof dataObject)
+
+
+    let merged = Object.assign({}, existingProcessingData, dataObject);
+
+    l('merged');
+    l(merged);
+
+    await fs.writeFile(processingDataPath, JSON.stringify(merged), 'utf8');
   } else {
-    await fs.appendFile(processingDataPath, JSON.stringify(dataObject), 'utf8');
+    await fs.writeFile(processingDataPath, JSON.stringify(dataObject), 'utf8');
   }
 }
 
@@ -163,5 +185,6 @@ module.exports = {
   saveTranscriptionCompletedInformation,
   translateIfNeeded,
   buildArguments,
-  autoDetectLanguage
+  autoDetectLanguage,
+  writeToProcessingDataFile
 }

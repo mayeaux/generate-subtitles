@@ -179,7 +179,7 @@ router.get('/api/:sixDigitNumber', async function(req, res, next){
         sixDigitNumber,
         progress
       })
-    } 
+    }
 
 
 
