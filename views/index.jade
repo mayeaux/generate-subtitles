@@ -714,14 +714,6 @@ block content
       if (data.status === 'Completed') {
         uploadFinished = true;
 
-        // Get a reference to the last interval + 1
-        const interval_id = window.setInterval(function () {
-        }, Number.MAX_SAFE_INTEGER);
-
-        // Clear any timeout/interval up to that id
-        for (let i = 1; i < interval_id; i++) {
-          window.clearInterval(i);
-        }
 
         if(window.decrementInterval) clearInterval(window.decrementInterval)
 
@@ -887,6 +879,14 @@ block content
         const niceString = `startedAt: ${niceDate}`;
         document.getElementById('finishedData').innerHTML = data.fileDetails + niceString;
       } else if (data.message === 'languageUpdate') {
+        // Get a reference to the last interval + 1
+        const interval_id = window.setInterval(function () {
+        }, Number.MAX_SAFE_INTEGER);
+
+        // Clear any timeout/interval up to that id
+        for (let i = 1; i < interval_id; i++) {
+          window.clearInterval(i);
+        }
         document.getElementById('processingData').innerHTML = data.languageUpdate;
 
       } else if (data.message === 'error') {
