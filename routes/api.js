@@ -105,7 +105,10 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // TODO: pull out translations here
 
     if(response === 'started'){
-      return res.send('started');
+      return res.send({
+        status: 'started',
+        sixDigitNumber
+      });
     }
 
     // await transcribeWrapped({
@@ -153,34 +156,23 @@ router.get('/api/:sixDigitNumber', async function(req, res, next){
     l(req.body);
     l(req.params);
 
-    const endpointToHit = 'http:localhost:3000'
+    const sixDigitNumber = req.params.sixDigitNumber;
 
-    // Create a new form instance
-    const form = new FormData();
+    // const processingData = await fs.readFile(`./transcriptions/${sixDigitNumber}/processing-data.json`, 'utf8');
 
-    const file = await fs.readFile('./ljubav.srt');
+    // res.send(processingData);
+
+    // TODO: handle the case where processing data exists, progress if needed or other thing
+    // const { progress, status, language, translatedLanguages } = processingData;
+    
+    // TODO: get translations
+
+    // get vtt
+    const file = await fs.readFile(`./transcriptions/${sixDigitNumber}/${sixDigitNumber}.vtt`, 'utf8');
     l('file');
     l(file);
 
-    form.append('subtitles', file, 'subtitles');
-
-    form.append('filename', 'ljubav.srt');
-
-
-    l('form headers');
-    l(form.getHeaders())
-
-    const response = await axios.post(endpointToHit, form, {
-      headers: {
-        ...form.getHeaders(),
-      },
-      data: {
-        foo: 'bar', // This is the body part
-      }
-    });
-
-    // l('response');
-    // l(response);
+    res.send(file);
 
     // res.send('ok');
   } catch (err){
