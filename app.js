@@ -12,7 +12,7 @@ const _ = require('lodash');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
-// var api = require('./routes/api');
+var api = require('./routes/api');
 const WebSocket = require("ws");
 
 var app = express();
@@ -204,7 +204,7 @@ app.use(function(req, res, next){
 })
 
 app.use('/', routes);
-// app.use('/', api);
+app.use('/', api);
 app.use('/users', users);
 
 // catch 404 and forward to error handler

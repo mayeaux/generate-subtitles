@@ -4,17 +4,18 @@ const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 var convert = require('cyrillic-to-latin')
-const filenamify = require('filenamify')
-const path = require('path');
 const projectConstants = require('./constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
 const forHumans = require('./helpers').forHumans;
 const createTranslatedFiles = require('./create-translated-files');
+const {formatStdErr} = require("./formatStdErr");
 
-const makeFileNameSafe = function(string){
-  return filenamify(string, {replacement: '_' }).replace(/ /g,"_")
-    .replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '');
-}
+const {
+  autoDetectLanguage,
+  buildArguments,
+  moveAndRenameFilesAndFolder,
+  saveTranscriptionCompletedInformation,
+} = require('./transcribing');
 
 l = console.log;
 
@@ -29,212 +30,102 @@ const isProd = nodeEnvironment === 'production';
 const whisperPath = which.sync('whisper')
 const ffprobePath = which.sync('ffprobe')
 
-let topLevelValue = 1;
-
-function buildArguments({
-   uploadedFilePath,
-   language,
-   model,
-   uploadGeneratedFilename,
-   topLevelValue
-}){
-  /** INSTANTIATE WHISPER PROCESS **/
-    // queue up arguments, path is the first one
-  let arguments = [];
-
-  arguments.push(uploadedFilePath);
-  if(language) arguments.push(language);
-  if(model) arguments.push(model);
-
-  if(isProd){
-    if(topLevelValue === 1){
-      arguments.push('--device', 'cuda:0');
-    } else if(topLevelValue === 2){
-      arguments.push('--device', 'cuda:1');
-    }
-  }
-
-  // dont show the text output but show the progress thing
-  arguments.push('--verbose', 'False');
-
-  // folder to save .txt, .vtt and .srt
-  arguments.push('-o', "transcriptions/" + uploadGeneratedFilename);
-  return arguments
-}
-
-function toggleTopLevelValue(){
-  if(topLevelValue === 1){
-    topLevelValue = 2
-  } else if(topLevelValue === 2){
-    topLevelValue = 1
-  }
-}
-
-function autoDetectLanguage(dataAsString){
-  if(dataAsString.includes('Detected language:')){
-    // parse out the language from the console output
-    return dataAsString.split(':')[1].substring(1).trimEnd();
-  }
-  return false;
-}
-
-async function writeToProcessingDataFile(processingDataPath, dataObject){
-  // save data to the file
-  const processingDataExists = await fs.exists(processingDataPath)
-  if(processingDataExists){
-    const existingProcessingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
-    let merged = {...existingProcessingData, ...dataObject};
-    await fs.appendFile(processingDataPath, JSON.stringify(merged), 'utf8');
-  } else {
-    await fs.appendFile(processingDataPath, JSON.stringify(dataObject), 'utf8');
-  }
-}
-
-async function translateIfNeeded({ language, shouldTranslate, processingDataPath, directoryAndFileName}){
-  const shouldTranslateFromLanguage = shouldTranslateFrom(language);
-  l(`should translate from language: ${shouldTranslateFromLanguage}`)
-  l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
-  l(`should translate: ${shouldTranslate}`)
-
-  let translationStarted, translationFinished = false;
-  /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
-  if(libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate){
-    l('hitting LibreTranslate');
-    translationStarted = new Date();
-    // hit libretranslate
-    await createTranslatedFiles({
-      directoryAndFileName,
-      language,
-    })
-
-    await writeToProcessingDataFile(processingDataPath, {
-      translationStartedAt: new Date(),
-      status: 'translating',
-    })
-  }
-}
+global.topLevelValue = 1;
 
 async function transcribe({
   uploadedFilePath,
   language,
   model,
   originalFileNameWithExtension,
+  originalFileNameWithoutExtension,
   fileSafeNameWithDateTimestamp,
   fileSafeNameWithDateTimestampAndExtension,
+  originalFileExtension,
   uploadGeneratedFilename,
-  shouldTranslate
+  shouldTranslate,
+  uploadFileName,
+  directorySafeFileNameWithoutExtension,
+  originalFileName,
+  sixDigitNumber // standin for claimId or something like that
 }){
   return new Promise(async (resolve, reject) => {
     try {
-      l('directorySafeFileNameWithoutExtension')
-      l(fileSafeNameWithDateTimestamp);
-      l('directorySafeFileNameWithExtension')
-      l(fileSafeNameWithDateTimestampAndExtension)
-
-      // get the upload file name
-      // the ugly generated file id made the during the upload (for moving the upload over)
-      let uploadFolderFileName = uploadedFilePath.split("/").pop();
-
-      const originalUpload = `./uploads/${uploadFolderFileName}`;
-      const ffprobeResponse = await ffprobe(originalUpload, { path: ffprobePath });
-
-      const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
-      const uploadDurationInSeconds = Math.round(audioStream.duration);
-
-      const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
+      const originalUpload = `./uploads/${uploadFileName}`;
 
       l('transcribe arguments');
       l(arguments);
-
-      const arguments = buildArguments({
-        uploadedFilePath,
-        language,
-        model,
-        uploadGeneratedFilename,
-        topLevelValue
-      })
-
-      const whisperProcess = spawn(whisperPath, arguments);
-
-      toggleTopLevelValue();
-
-      let foundLanguage;
-      //  console output from stdoutt
-      whisperProcess.stdout.on('data', data => {
-        l(`STDOUT: ${data}`)
-        const parsedLanguage = autoDetectLanguage(data);
-        if(parsedLanguage){
-          foundLanguage = parsedLanguage
-        }
-      });
-
-      // log output from bash (it all comes through stderr for some reason?)
-      whisperProcess.stderr.on('data', data => {
-        // TODO: parse out progress
-      });
-
 
       // save date when starting to see how long it's taking
       const startingDate = new Date();
       l(startingDate);
 
-      let containingDir = `./transcriptions/${uploadGeneratedFilename}`;
+      const whisperProcess = spawn(whisperPath, buildArguments({
+        uploadedFilePath: originalUpload, // file to use
+        language, //
+        model,
+        uploadGeneratedFilename: uploadFileName, // name generated by upload
+      }));
 
-      /** AFTER WHISPER FINISHES, DO THE FILE MANIPULATION / TRANSLATION **/
+      // allow you to find the language
+      let foundLanguage;
+
+      /**  console output from stdoutt **/
+      whisperProcess.stdout.on('data', data => {
+        l(`STDOUT: ${data}`)
+
+        // save auto-detected language
+        const parsedLanguage = autoDetectLanguage(data.toString());
+        if(parsedLanguage) foundLanguage = parsedLanguage;
+      });
+
+
+      /** console output from stderr **/ // (progress comes through stderr for some reason)
+      whisperProcess.stderr.on('data', data => {
+        l(`STDERR: ${data}`)
+
+        // get value from the whisper output string
+        const formattedProgress = formatStdErr(data.toString());
+        l('formattedProgress');
+        l(formattedProgress);
+
+        const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
+
+        // when over 0%, mark as started successfully
+        if(percentDoneAsNumber > 0){
+          resolve('started')
+        }
+      });
+
+      /** whisper responds with 0 or 1 process code **/
       whisperProcess.on('close', async (code) => {
         try {
+          const processFinishedSuccessfully = code === 0;
           l('code');
           l(code);
 
-          // to-do transcription time ended
-
+          // use auto-detected language
           if(!language){
             language = foundLanguage;
           }
 
-          const processFinishedSuccessfully = code === 0;
-
           // successful output
           if(processFinishedSuccessfully){
-            // move original upload
-            await fs.move(originalUpload, `${containingDir}/${fileSafeNameWithDateTimestampAndExtension}`, { overwrite: true })
-
-            const directoryAndFileName = `${containingDir}/${fileSafeNameWithDateTimestamp}`
-
-            // rename to give the files better display name
-            const outputFileExtensions = ['.srt', '.vtt', '.txt']
-            for(const fileExtension of outputFileExtensions){
-              const transcribedFilePath = `${directoryAndFileName}${fileExtension}`
-              await fs.move(`${containingDir}/${uploadFolderFileName}${fileExtension}`, transcribedFilePath, { overwrite: true })
-            }
-
-            const processingDataPath = `${containingDir}/processing_data.json`;
-
-            const response = await translateIfNeeded({ language, shouldTranslate, directoryAndFileName, processingDataPath})
-
-            // just post-processing, you can return the response
-            const processingSeconds = Math.round((new Date() - startingDate) / 1000);
-
-            const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
-
-            await writeToProcessingDataFile(processingDataPath, {
-              processingSeconds,
-              processingSecondsHumanReadable: forHumans(processingSeconds),
-              processingRatio,
-              startedAt: startingDate.toUTCString(),
-              finishedAT: new Date().toUTCString(),
-              status: 'completed',
+            await moveAndRenameFilesAndFolder({
+              originalUpload,
+              uploadFileName,
+              fileSafeNameWithDateTimestampAndExtension,
+              fileSafeNameWithDateTimestamp,
+              originalFileNameWithExtension,
+              originalFileNameWithoutExtension,
+              sixDigitNumber,
+              originalFileName
             })
 
-            // rename containing dir for easier debugging
-            const renamedDirectory = `./transcriptions/${fileSafeNameWithDateTimestamp}`;
-            await fs.rename(containingDir, renamedDirectory)
-            containingDir = `./transcriptions/${fileSafeNameWithDateTimestamp}`;
+            // await saveTranscriptionCompletedInformation({})
 
-            resolve(code);
-
+            /** SRT, VTT, AND TXT SHOULD BE THERE **/
           } else {
-            // console returned with failed response
+            // process returned with non-0 response
             l('FAILED!');
             reject();
             throw new Error('Transcription has been ended')

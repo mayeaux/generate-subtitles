@@ -16,8 +16,8 @@ const path = require('path');
 const moment = require('moment');
 const { languagesToTranslateTo, newLanguagesMap } = constants;
 // const languageNameMap = require('language-name-map/map')
-l('language name map');
-l(newLanguagesMap.reverse())
+// l('language name map');
+// l(newLanguagesMap.reverse())
 
 
 
