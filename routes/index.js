@@ -224,6 +224,10 @@ router.get("/player/:filename" , async function(req, res, next){
   try {
     const fileNameWithoutExtension = req.params.filename
 
+    if(fileNameWithoutExtension === 'World_Premiere:_Died_Suddenly--24-November-2022_16_35_24'){
+      return res.redirect('/player/World_Premiere-_Died_Suddenly--28-November-2022_03_52_50')
+    }
+
     const processDirectory = process.cwd();
 
     const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${fileNameWithoutExtension}`;
