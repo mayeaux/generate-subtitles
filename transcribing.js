@@ -16,8 +16,7 @@ function buildArguments({
   uploadedFilePath,
   language,
   model,
-  uploadGeneratedFilename,
-  topLevelValue
+  sixDigitNumber
 }){
   /** INSTANTIATE WHISPER PROCESS **/
     // queue up arguments, path is the first one
@@ -32,9 +31,9 @@ function buildArguments({
 
   // TODO: add the max GPUS thing here
   if(isProd){
-    if(topLevelValue === 1){
+    if(global.topLevelValue === 1){
       arguments.push('--device', 'cuda:0');
-    } else if(topLevelValue === 2){
+    } else if(global.topLevelValue === 2){
       arguments.push('--device', 'cuda:1');
     }
     toggleTopLevelValue();
@@ -44,7 +43,7 @@ function buildArguments({
   arguments.push('--verbose', 'False');
 
   // folder to save .txt, .vtt and .srt
-  arguments.push('-o', "transcriptions/" + uploadGeneratedFilename);
+  arguments.push('-o', `transcriptions/${sixDigitNumber}`);
 
   l('transcribe arguments');
   l(arguments);
@@ -80,22 +79,9 @@ async function writeToProcessingDataFile(processingDataPath, dataObject){
     l('fileData');
     l(fileData);
 
-
     const existingProcessingData = JSON.parse(fileData);
 
-    l('existingProcessingData');
-    l(existingProcessingData);
-    //
-
-    l('data object');
-    l(dataObject);
-    l(typeof dataObject)
-
-
     let merged = Object.assign({}, existingProcessingData, dataObject);
-
-    l('merged');
-    l(merged);
 
     await fs.writeFile(processingDataPath, JSON.stringify(merged), 'utf8');
   } else {
@@ -158,7 +144,7 @@ async function moveAndRenameFilesAndFolder({
   const originalUploadPath = originalUpload;
 
   // the directory with the output from whisper
-  let currentContainingDir = `./transcriptions/${uploadFileName}`;
+  let currentContainingDir = `./transcriptions/${sixDigitNumber}`;
 
   const newUploadPath = `${currentContainingDir}/${sixDigitNumber}${originalFileExtension}`
 
@@ -176,8 +162,8 @@ async function moveAndRenameFilesAndFolder({
   }
 
   // rename containing dir to the safe filename (from upload filename)
-  const renamedDirectory = `./transcriptions/${sixDigitNumber}`;
-  await fs.rename(currentContainingDir, renamedDirectory)
+  // const renamedDirectory = `./transcriptions/${sixDigitNumber}`;
+  // await fs.rename(currentContainingDir, renamedDirectory)
 }
 
 module.exports = {
