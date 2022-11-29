@@ -57,7 +57,6 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l(model, language);
 
     // TODO: move this stuff to transcribe function
-    let logFileNames = true;
     // something.mp4
     let originalFileNameWithExtension = originalFileName;
 
@@ -73,10 +72,6 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
     l('directorySafeFileNameWithoutExtension')
     l(directorySafeFileNameWithoutExtension)
-
-
-    // something.mp4
-    const directoryAndFileName = `./transcriptions/${sixDigitNumber}/${sixDigitNumber}`
 
     const response = await transcribe({
       language,
