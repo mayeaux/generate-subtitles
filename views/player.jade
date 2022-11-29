@@ -188,7 +188,7 @@ block content
 
     div
         div.video-containing-div
-            video#player(playsinline controls='' autoplay='true' name='media' preload="metadata")
+            video#player(playsinline controls='' autoplay='true' name='media' preload="auto")
                 // file extension includes the .
                 source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
                 // TODO: replace with loop (has to fix on the backend)
@@ -263,6 +263,54 @@ block content
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')
     script.
       l = console.log;
+
+      function findIndexNumber(language, text) {
+        const video = $('video')[0]
+        const textTracks = video.textTracks;
+
+        let foundIndex;
+        let index = 0;
+        for (const track of textTracks) {
+          const trackLanguage = track.label
+          if (language === trackLanguage) {
+            for (const cue of track.cues) {
+              if (cue.text === text) {
+                foundIndex = index
+              }
+              index++
+            }
+          }
+        }
+
+        return foundIndex || false;
+      }
+
+      function loadTextTracks(){
+        const video = $('video')[0]
+        const textTracks = video.textTracks;
+        for (const track of textTracks) {
+          track.mode = 'hidden';
+        }
+      }
+      loadTextTracks()
+
+      function findTextFromIndexNumber(language, index) {
+        const video = $('video')[0]
+        const textTracks = video.textTracks;
+
+        let text;
+        for (const track of textTracks) {
+          track.mode = 'hidden';
+          const trackLanguage = track.label
+          if (language === trackLanguage) {
+            text = track.cues[index]?.text
+            return text
+          }
+        }
+        return false;
+      }
+
+
       let player;
       $(document).ready(function () {
         console.log("ready!");
@@ -295,13 +343,56 @@ block content
 
         l('captions');
 
+        // probably better to do on plyr ready if available as event
         setTimeout(function(){
           const captionsIsPressed = $('button[data-plyr="captions"]')?.hasClass('plyr__control--pressed')
 
           if (!captionsIsPressed) {
             $('button[data-plyr="captions"]').click();
           }
-        }, 200)
+
+          // const video = $('video')[0]
+          // l('video');
+          // l(video);
+          // const textTracks = video.textTracks;
+          // let text = 'Wait, that\'s it.'
+          // // for(const cue of textTracks[0].cues){
+          // //   if cue.text === text
+          // // }
+
+          function getIndexNumberForTextAndLanguage(){
+
+          }
+
+          function getTextFromIndexNumberAndLanguage(){
+
+          }
+
+          // const cues = textTracks[5].cues
+          // let index = 0;
+          // let foundIndex;
+          // for (const cue of cues) {
+          //   l('text here');
+          //   l(cue.text);
+          //   l(text)
+          //   if(cue.text === text){
+          //     foundIndex = index
+          //   }
+          //   index++
+          // }
+
+          // l('found index');
+          // l(foundIndex);
+          //
+          // l('found cue by index');
+          // l(cues[foundIndex])
+          //
+          //
+          // l('index');
+          // l(index);
+
+
+        }, 1000)
 
 
 
