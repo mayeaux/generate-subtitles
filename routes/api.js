@@ -9,9 +9,8 @@ const transcribe = require('../transcribe-api-wrapped')
 const transcribeWrapped = require("../transcribe-wrapped");
 const constants = require("../constants");
 const filenamify = require("filenamify");
+const createTranslatedFiles = require("../translate-files-api");
 const { languagesToTranslateTo, newLanguagesMap } = constants;
-
-
 
 const makeFileNameSafe = function(string){
   return filenamify(string, {replacement: '_' })
@@ -28,25 +27,20 @@ const storage = multer.diskStorage({ // notice  you are calling the multer.diskS
 
 var upload = multer({ storage });
 
+// file
+// {
+//   fieldname: 'file',
+//   originalname: 'dutch_language.mp3',
+//   encoding: '7bit',
+//   mimetype: 'audio/mpeg',
+//   destination: './uploads/',
+//   filename: '572fa0ecb660b1d0eb489b879c2e2310',
+//   path: 'uploads/572fa0ecb660b1d0eb489b879c2e2310',
+//   size: 22904865
+// }
+
 router.post('/api', upload.single('file'), async function (req, res, next) {
-  // l(global.ws);
-
   try {
-    // l(req.file);
-    // l(req.body);
-
-    // file
-    // {
-    //   fieldname: 'file',
-    //   originalname: 'dutch_language.mp3',
-    //   encoding: '7bit',
-    //   mimetype: 'audio/mpeg',
-    //   destination: './uploads/',
-    //   filename: '572fa0ecb660b1d0eb489b879c2e2310',
-    //   path: 'uploads/572fa0ecb660b1d0eb489b879c2e2310',
-    //   size: 22904865
-    // }
-
     const postBodyData = Object.assign({},req.body)
     const file = req.file;
     const { originalname: originalFileName, filename: uploadFileName } = file;
@@ -82,64 +76,24 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
 
     // something.mp4
-    const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${originalFileExtension}`
-
-
-
+    const directoryAndFileName = `./transcriptions/${sixDigitNumber}/${sixDigitNumber}`
 
     const response = await transcribe({
       language,
       model,
+      originalFileExtension,
       uploadFileName,
       originalFileName,
-      sixDigitNumber,
-
-      directorySafeFileNameWithExtension,
-      originalFileNameWithoutExtension,
-      originalFileNameWithExtension,
-
-      languagesToTranslateTo,
-      originalFileExtension,
+      sixDigitNumber // standin for claimId or something like that
     })
 
-    // TODO: pull out translations here
-
+    // tell the clitent it's started
     if(response === 'started'){
-      return res.send({
+      res.send({
         status: 'started',
         sixDigitNumber
       });
     }
-
-    // await transcribeWrapped({
-    //   uploadedFilePath,
-    //   language,
-    //   model,
-    //   directorySafeFileNameWithoutExtension,
-    //   directorySafeFileNameWithExtension,
-    //   originalFileNameWithExtension,
-    //   fileSafeNameWithDateTimestamp,
-    //   fileSafeNameWithDateTimestampAndExtension,
-    //   uploadGeneratedFilename,
-    //
-    //   languagesToTranslateTo
-    // })
-
-
-    // TODO: get audio stream
-
-
-    // const language = req.body.language;
-    // let model = req.body.model;
-    const uploadedFilePath = req.file.path;
-    const uploadGeneratedFilename = req.file.filename;
-    const shouldTranslate = req.body.shouldTranslate === 'true';
-
-    // l(req.files);
-    // l(req.body);
-    res.send('ok');
-    // req.files is array of uploaded files
-    // req.body will contain the text fields, if there were any
   } catch (err){
     l('err')
     l(err);

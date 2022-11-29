@@ -7,8 +7,9 @@ var convert = require('cyrillic-to-latin')
 const projectConstants = require('./constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
 const forHumans = require('./helpers').forHumans;
-const createTranslatedFiles = require('./create-translated-files');
+const createTranslatedFiles = require('./translate-files-api');
 const {formatStdErr} = require("./formatStdErr");
+const LTHost = process.env.LIBRETRANSLATE;
 
 const {
   autoDetectLanguage,
@@ -20,32 +21,18 @@ const {
 
 l = console.log;
 
-const concurrentAmount = process.env.CONCURRENT_AMOUNT;
-const nodeEnvironment = process.env.NODE_ENV;
 const libreTranslateHostPath = process.env.LIBRETRANSLATE;
-
 l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
-const isProd = nodeEnvironment === 'production';
-
 const whisperPath = which.sync('whisper')
-const ffprobePath = which.sync('ffprobe')
 
 global.topLevelValue = 1;
 
 async function transcribe({
-  uploadedFilePath,
   language,
   model,
-  originalFileNameWithExtension,
-  originalFileNameWithoutExtension,
-  fileSafeNameWithDateTimestamp,
-  fileSafeNameWithDateTimestampAndExtension,
   originalFileExtension,
-  uploadGeneratedFilename,
-  shouldTranslate,
   uploadFileName,
-  directorySafeFileNameWithoutExtension,
   originalFileName,
   sixDigitNumber // standin for claimId or something like that
 }){
@@ -74,6 +61,7 @@ async function transcribe({
       let foundLanguage;
 
       /**  console output from stdoutt **/
+      // TODO: pull this function out
       whisperProcess.stdout.on('data', async (data) => {
         l(`STDOUT: ${data}`)
 
@@ -137,8 +125,18 @@ async function transcribe({
             await saveTranscriptionCompletedInformation({
               startingDate,
               sixDigitNumber,
-              language,
             })
+
+            const directoryAndFileName = `./transcriptions/${sixDigitNumber}/${sixDigitNumber}`
+
+            const shouldTranslate = true;
+            if(shouldTranslate && LTHost){
+                l('hitting LibreTranslate');
+                await createTranslatedFiles({
+                  directoryAndFileName,
+                  language,
+                })
+            }
           } else {
             // process returned with non-0 response
             l('FAILED!');

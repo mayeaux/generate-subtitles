@@ -34,29 +34,30 @@ async function hitLTBackend({ text, sourceLanguage, targetLanguage }){
 
 async function translateText({ text, sourceLanguage, targetLanguage }){
   const translatedResponse = await hitLTBackend({ text, sourceLanguage, targetLanguage });
-  const { detectedLanguage, translatedText } = translatedResponse;
-  return translatedText;
   // l(translatedResponse);
+
+  const { translatedText, detectedLanguage } = translatedResponse;
+  return translatedText;
 }
 
-/** all languages should be as abbreviation **/
-
-// translate from this language
-const sourceLanguage = 'auto';
-
-// into this language
-const targetLanguage = 'es';
-
-const text = 'This is the text I want to translate';
-
-// translate({ text, sourceLanguage, targetLanguage });
-
-async function main(){
-  const translatedText = await translateText({ text, sourceLanguage, targetLanguage });
-  l('translatedText');
-  l(translatedText);
-}
-
-// main();
+// /** all languages should be as abbreviation **/
+//
+// // translate from this language
+// const sourceLanguage = 'auto';
+//
+// // into this language
+// const targetLanguage = 'es';
+//
+// const text = 'This is the text I want to translate';
+//
+// // translate({ text, sourceLanguage, targetLanguage });
+//
+// async function main(){
+//   const translatedText = await translateText({ text, sourceLanguage, targetLanguage });
+//   l('translatedText');
+//   l(translatedText);
+// }
+//
+// // main();
 
 module.exports = translateText;
