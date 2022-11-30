@@ -3,7 +3,7 @@ const axios = require("axios");
 const multer = require("multer");
 var router = express.Router();
 const FormData = require('form-data');
-const fs = require('fs/promises');
+const fs = require('fs-extra');
 const downloadAndTranscribe = require('../download.js')
 // const transcribe = require('../transcribe');
 const transcribeWrapped = require('../transcribe-wrapped');
@@ -15,6 +15,7 @@ const forHumans = require('../helpers').forHumans;
 const path = require('path');
 const moment = require('moment');
 const { languagesToTranslateTo, newLanguagesMap } = constants;
+
 // const languageNameMap = require('language-name-map/map')
 // l('language name map');
 // l(newLanguagesMap.reverse())
@@ -265,6 +266,47 @@ router.get("/player/:filename" , async function(req, res, next){
     l('err');
     l(err);
     res.send(err);
+  }
+});
+
+
+// see files
+router.get('/files/:password', async function(req, res, next) {
+  try {
+    const password = req.params.password;
+
+    if(password !== process.env.FILES_PASSWORD){
+      res.redirect('/404')
+    } else {
+      l('rendering here');
+
+      const getSortedFiles = async (dir) => {
+        let files = await fs.promises.readdir(dir, { withFileTypes: true });
+
+        files = files.filter(file => file.isDirectory()).map(file => file.name);;
+
+        return files
+          .map(fileName => ({
+            name: fileName,
+            time: fs.statSync(`${dir}/${fileName}`).mtime.getTime(),
+          }))
+          .sort((a, b) => a.time - b.time)
+          .map(file => file.name);
+      };
+
+      const thing = await getSortedFiles('./transcriptions');
+
+      var thing2 = [].concat(thing).reverse();
+
+      return res.render('files', {
+        //
+        files: thing2,
+      })
+    }
+
+  } catch(err){
+    l('err');
+    l(err);
   }
 });
 
