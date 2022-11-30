@@ -11,6 +11,10 @@ const createTranslatedFiles = require('./translate-files-api');
 const {formatStdErr} = require("./formatStdErr");
 const LTHost = process.env.LIBRETRANSLATE;
 
+async function handleStdErr(data){
+
+}
+
 const {
   autoDetectLanguage,
   buildArguments,
@@ -58,7 +62,39 @@ async function transcribe({
       }));
 
       // allow you to find the language
-      let foundLanguage;
+      // TODO: how to pull these out?
+      let foundLanguage, responseSent;
+
+      function holder({
+        model, language, originalFileName, processingDataPath, resolve
+      }){
+        return function(data){
+          (async function(){
+            l(`STDERR: ${data}`)
+
+            // get value from the whisper output string
+            const formattedProgress = formatStdErr(data.toString());
+            l('formattedProgress');
+            l(formattedProgress);
+
+            const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
+
+            await writeToProcessingDataFile(processingDataPath, {
+              progress: percentDoneAsNumber,
+              status: 'processing',
+              model,
+              language,
+              originalFileName
+            })
+
+            // when over 0%, mark as started successfully
+            if(percentDoneAsNumber > 0 && !responseSent){
+              responseSent = true;
+              resolve('started')
+            }
+          })()
+        }
+      }
 
       /**  console output from stdoutt **/
       async function handleStdOut(data){
@@ -68,38 +104,6 @@ async function transcribe({
         const parsedLanguage = autoDetectLanguage(data.toString());
         if(parsedLanguage) foundLanguage = parsedLanguage;
       }
-
-      async function handleStdErr(data){
-        l(`STDERR: ${data}`)
-
-        // get value from the whisper output string
-        const formattedProgress = formatStdErr(data.toString());
-        l('formattedProgress');
-        l(formattedProgress);
-
-        const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
-
-        await writeToProcessingDataFile(processingDataPath, {
-          progress: percentDoneAsNumber,
-          status: 'processing',
-          model,
-          language,
-          originalFileName
-        })
-
-        // when over 0%, mark as started successfully
-        if(percentDoneAsNumber > 0 && !responseSent){
-          responseSent = true;
-          resolve('started')
-        }
-      }
-
-      whisperProcess.stdout.on('data', handleStdOut);
-
-      let responseSent = false;
-
-      /** console output from stderr **/ // (progress comes through stderr for some reason)
-      whisperProcess.stderr.on('data', handleStdErr);
 
       async function handleProcessSuccess(){
         // move to the sixDigitNumber directory
@@ -130,7 +134,7 @@ async function transcribe({
 
       async function handleProcessClose(code){
           const processFinishedSuccessfully = code === 0;
-          l(`code: ${code}`);
+          l(`child process exited with code ${code}`);
 
           // use auto-detected language
           if(!language) language = foundLanguage;
@@ -144,13 +148,15 @@ async function transcribe({
             reject();
             throw new Error('Transcription has been ended')
           }
-
-          l(`child process exited with code ${code}`);
       }
 
+      whisperProcess.stdout.on('data', handleStdOut);
+
+      /** console output from stderr **/ // (progress comes through stderr for some reason)
+      whisperProcess.stderr.on('data', holder({ model, language, originalFileName, processingDataPath, resolve}));
+      
       /** whisper responds with 0 or 1 process code **/
       whisperProcess.on('close', handleProcessClose)
-
 
 
     } catch (err){
