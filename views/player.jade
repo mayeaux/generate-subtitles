@@ -264,6 +264,9 @@ block content
     script.
       l = console.log;
 
+      let player;
+
+
       function findIndexNumber(language, text) {
         const video = $('video')[0]
         const textTracks = video.textTracks;
@@ -282,7 +285,7 @@ block content
           }
         }
 
-        return foundIndex || false;
+        return foundIndex
       }
 
       function loadTextTracks(){
@@ -300,7 +303,6 @@ block content
 
         let text;
         for (const track of textTracks) {
-          track.mode = 'hidden';
           const trackLanguage = track.label
           if (language === trackLanguage) {
             text = track.cues[index]?.text
@@ -310,8 +312,24 @@ block content
         return false;
       }
 
+      function getCurrentLanguageAndTrack() {
+        const video = $('video')[0]
+        const textTracks = video.textTracks;
+        const trackNumber = player.currentTrack;
+        const currentTrack = textTracks[trackNumber]
 
-      let player;
+        const language = currentTrack.label;
+        const text = currentTrack.activeCues?.[0]?.text;
+
+        const indexNumber = findIndexNumber(language, text);
+
+        return {
+          language,
+          text,
+          indexNumber
+        }
+      }
+
       $(document).ready(function () {
         console.log("ready!");
         var controls =
@@ -351,48 +369,37 @@ block content
             $('button[data-plyr="captions"]').click();
           }
 
-          // const video = $('video')[0]
-          // l('video');
-          // l(video);
-          // const textTracks = video.textTracks;
-          // let text = 'Wait, that\'s it.'
-          // // for(const cue of textTracks[0].cues){
-          // //   if cue.text === text
-          // // }
+          player.on('cuechange', function (event) {
+            // console.log('event!')
+            // console.log(event)
 
-          function getIndexNumberForTextAndLanguage(){
+            const text = event.detail.plyr.captions.currentTrackNode.activeCues[0].text;
 
-          }
+            const thing = getCurrentLanguageAndTrack()
+            l(thing);
 
-          function getTextFromIndexNumberAndLanguage(){
+            if(thing.language === 'Serbian'){
+              const thing2 = findTextFromIndexNumber('English', thing.indexNumber);
+              if(thing2){
+                const oldText = $('span.plyr__caption').text()
 
-          }
+                $('span.plyr__caption').text(`${oldText}\n${thing2}`)
+              }
+            }
 
-          // const cues = textTracks[5].cues
-          // let index = 0;
-          // let foundIndex;
-          // for (const cue of cues) {
-          //   l('text here');
-          //   l(cue.text);
-          //   l(text)
-          //   if(cue.text === text){
-          //     foundIndex = index
-          //   }
-          //   index++
-          // }
+            // const language = 'Russian';
+            //
+            // const thing2 = findTextFromIndexNumber(language, thing.indexNumber);
+            // l(thing2);
+            //
+            // const oldText = $('span.plyr__caption').text()
+            //
+            // $('span.plyr__caption').text(`${oldText}\n${thing2}`)
 
-          // l('found index');
-          // l(foundIndex);
-          //
-          // l('found cue by index');
-          // l(cues[foundIndex])
-          //
-          //
-          // l('index');
-          // l(index);
+            l(text);
+          })
 
-
-        }, 1000)
+        }, 200)
 
 
 
