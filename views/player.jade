@@ -185,6 +185,14 @@ block content
             /* hi-res laptops and desktops */
         }
 
+        .plyr__poster {
+            display: none;
+        }
+
+        .plyr__captions {
+            display: inline-table !important;
+        }
+
 
     div
         div.video-containing-div
@@ -363,6 +371,11 @@ block content
 
         // probably better to do on plyr ready if available as event
         setTimeout(function(){
+          $(function () {
+            $('.plyr__captions').draggable({ containment: 'plyr' });
+          });
+
+
           const captionsIsPressed = $('button[data-plyr="captions"]')?.hasClass('plyr__control--pressed')
 
           if (!captionsIsPressed) {
