@@ -1,0 +1,34 @@
+extends layout
+
+block content
+    style.
+        video {
+            top: 0px;
+        }
+
+
+    div
+        h1 Hello
+
+        each file in files
+            a(href=`/player/${file}`)
+                p= file
+
+    script.
+      l = console.log;
+
+      $(document).ready(function () {
+        console.log("ready!");
+
+        // probably better to do on plyr ready if available as event
+        setTimeout(function(){
+          // const captionsIsPressed = $('button[data-plyr="captions"]')?.hasClass('plyr__control--pressed')
+
+        }, 200)
+
+
+
+      });
+
+
+
