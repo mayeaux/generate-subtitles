@@ -91,7 +91,10 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // tell the clitent it's started
     if(response === 'started'){
       const port = req.socket.localPort;
-      const apiPath = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
+      let apiPath = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
+      if(process.env.NODE_ENV === 'production'){
+        apiPath = req.protocol + '://' + req.hostname + req.path;
+      }
 
       // return res.redirect(`/api/${sixDigitNumber}`)
       res.send({
