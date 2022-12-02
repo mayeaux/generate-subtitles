@@ -55,9 +55,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l(file);
     l(postBodyData);
 
-    const sixDigitNumber = Math.floor(100000 + Math.random() * 900000);
-
-    const { model, language } = postBodyData;
+    const { model, language, sdHash } = postBodyData;
 
     l(originalFileName);
     l(uploadFileName);
@@ -87,19 +85,19 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       originalFileExtension,
       uploadFileName,
       originalFileName,
-      sixDigitNumber // standin for claimId or something like that
+      sdHash // standin for claimId or something like that
     })
 
     // tell the clitent it's started
     if(response === 'started'){
       const port = req.socket.localPort;
-      const thing = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
+      const apiPath = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
 
       // return res.redirect(`/api/${sixDigitNumber}`)
       res.send({
         status: 'started',
-        sixDigitNumber,
-        url: `${thing}/${sixDigitNumber}`,
+        sdHash,
+        url: `${apiPath}/${sdHash}`,
       });
     }
   } catch (err){
@@ -111,33 +109,12 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
 /** UNFINISHED FUNCTIONALITY **/
 // post file from backend
-router.get('/api/:sixDigitNumber', async function(req, res, next){
+router.get('/api/:sdHash', async function(req, res, next){
   try {
-    l(req.body);
-    l(req.params);
 
-    l('original url');
-    l(req.originalUrl);
-    l(req.protocol)
-    l(req.hostname)
-    l(req.port)
+    const sdHash = req.params.sdHash;
 
-    const port = req.socket.localPort;
-    const thing = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
-
-    l('thing');
-    l(thing);
-
-    console.log(req.socket.localPort);
-    console.log(req.socket.remotePort);
-
-
-
-    // TODO:
-
-    const sixDigitNumber = req.params.sixDigitNumber;
-
-    const processingData = JSON.parse(await fs.readFile(`./transcriptions/${sixDigitNumber}/processing_data.json`, 'utf8'));
+    const processingData = JSON.parse(await fs.readFile(`./transcriptions/${sdHash}/processing_data.json`, 'utf8'));
 
     const transcriptionStatus = processingData.status;
 
@@ -147,36 +124,29 @@ router.get('/api/:sixDigitNumber', async function(req, res, next){
     const { language, languageCode, translatedLanguages } = processingData;
 
     /** transcription successfully completed **/
-    if(transcriptionStatus === 'processing'){
+    if(transcriptionStatus === 'processing' || transcriptionStatus === 'translating'){
       // send current processing data
       return res.send({
-        status: 'transcribing',
-        sixDigitNumber, // todo: replace here
+        status: transcriptionStatus,
+        sdHash,
         progress,
         processingData
       })
 
     /** transcription successfully completed, attach VTT files **/
     } else if(transcriptionStatus === 'completed'){
-      // TODO: get other files here
       let subtitles = [];
 
       // add original vtt
-      const originalVtt = await fs.readFile(`./transcriptions/${sixDigitNumber}/${sixDigitNumber}.vtt`, 'utf8');
+      const originalVtt = await fs.readFile(`./transcriptions/${sdHash}/${sdHash}.vtt`, 'utf8');
       subtitles.push({
         language,
         languageCode,
         webVtt: originalVtt
       })
 
-      l('processing data');
-      l(processingData);
-
-      l('translated language');
-      l(translatedLanguages);
-
       for(const translatedLanguage of translatedLanguages){
-        const originalVtt = await fs.readFile(`./transcriptions/${sixDigitNumber}/${sixDigitNumber}_${translatedLanguage}.vtt`, 'utf8');
+        const originalVtt = await fs.readFile(`./transcriptions/${sdHash}/${sdHash}_${translatedLanguage}.vtt`, 'utf8');
         subtitles.push({
           language: translatedLanguage,
           languageCode: getCodeFromLanguageName(translatedLanguage),
@@ -184,31 +154,21 @@ router.get('/api/:sixDigitNumber', async function(req, res, next){
         })
       }
 
-      return res.send({
+      const responseObject = {
         status: 'completed',
-        sixDigitNumber,
-        // vttFile: originalVtt,
+        sdHash,
         processingData,
         subtitles
-      })
+      }
+      // l('responseObject');
+      // l(responseObject);
+
+      return res.send(responseObject)
     }
 
 
 
     return res.send(processingData);
-
-    // TODO: handle the case where processing data exists, progress if needed or other thing
-    // const { progress, status, language, translatedLanguages } = processingData;
-
-    // TODO: get translations
-
-
-    // get vtt
-    const file = await fs.readFile(`./transcriptions/${sixDigitNumber}/${sixDigitNumber}.vtt`, 'utf8');
-    l('file');
-    l(file);
-
-    res.send(file);
 
     // res.send('ok');
   } catch (err){

@@ -41,14 +41,14 @@ async function transcribe({
   originalFileExtension,
   uploadFileName,
   originalFileName,
-  sixDigitNumber // standin for claimId or something like that
+  sdHash // standin for claimId or something like that
 }){
   return new Promise(async (resolve, reject) => {
     try {
       const originalUpload = `./uploads/${uploadFileName}`;
-      const processingDataPath = `./transcriptions/${sixDigitNumber}/processing_data.json`;
+      const processingDataPath = `./transcriptions/${sdHash}/processing_data.json`;
 
-      await fs.mkdirp(`./transcriptions/${sixDigitNumber}`);
+      await fs.mkdirp(`./transcriptions/${sdHash}`);
 
       l('transcribe arguments');
       l(arguments);
@@ -62,7 +62,7 @@ async function transcribe({
         uploadedFilePath: originalUpload, // file to use
         language, //
         model,
-        sixDigitNumber,
+        sdHash,
       }));
 
       // allow you to find the language
@@ -117,21 +117,25 @@ async function transcribe({
         await moveAndRenameFilesAndFolder({
           originalUpload,
           uploadFileName,
-          sixDigitNumber,
+          sdHash,
           originalFileExtension,
         })
 
         // save processing data with info
         await saveTranscriptionCompletedInformation({
           startingDate,
-          sixDigitNumber,
+          sdHash,
         })
 
-        const directoryAndFileName = `./transcriptions/${sixDigitNumber}/${sixDigitNumber}`
+        const directoryAndFileName = `./transcriptions/${sdHash}/${sdHash}`
 
         const shouldTranslate = true;
         if(shouldTranslate && LTHost){
           l('hitting LibreTranslate');
+          await writeToProcessingDataFile(processingDataPath, {
+            status: 'translating'
+          })
+
           await createTranslatedFiles({
             directoryAndFileName,
             language,
@@ -142,6 +146,10 @@ async function transcribe({
             translatedLanguages: languagesToTranscribe.filter(filteredLanguage => language !== filteredLanguage)
           })
         }
+
+        await writeToProcessingDataFile(processingDataPath, {
+          status: 'completed'
+        })
       }
 
       async function handleProcessClose(code){
