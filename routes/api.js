@@ -14,9 +14,9 @@ const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = consta
 
 const makeFileNameSafe = function(string){
   return filenamify(string, {replacement: '_' })
+    .split('：').join(':')
     .replace(/[&\/\\#,+()$~%.'":*?<>{}!]/g, '')
     .replace(/\s+/g,"_")
-    .split('：').join(':');
 }
 
 function getCodeFromLanguageName(languageName){
@@ -52,14 +52,33 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const file = req.file;
     const { originalname: originalFileName, filename: uploadFileName } = file;
 
+    l = function(){};
+
+    l('file');
     l(file);
+    l('postBodyData');
     l(postBodyData);
 
     const { model, language, sdHash } = postBodyData;
 
+    l('originalFileName');
     l(originalFileName);
+    l('uploadFileName');
     l(uploadFileName);
+    l('model, language');
     l(model, language);
+
+
+
+    const completedProcessingData = await fs.readFile(`./transcriptions/${sdHash}/processing_data.json`, 'utf8')
+
+    l('completedProcessingData');
+    l(completedProcessingData);
+
+    if(completedProcessingData){
+      l = console.log;
+      return res.redirect(`/api/${sdHash}`)
+    }
 
     // TODO: move this stuff to transcribe function
     // something.mp4
@@ -78,6 +97,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l('directorySafeFileNameWithoutExtension')
     l(directorySafeFileNameWithoutExtension)
 
+    l = console.log;
+
     // todo: rename to transcribeAndTranslate
     const response = await transcribe({
       language,
@@ -88,7 +109,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       sdHash // standin for claimId or something like that
     })
 
-    // tell the clitent it's started
+    // tell the client it's started
     if(response === 'started'){
       const port = req.socket.localPort;
       let apiPath = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
@@ -110,10 +131,11 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
   }
 });
 
-/** UNFINISHED FUNCTIONALITY **/
-// post file from backend
+// get info about the transcription via api
 router.get('/api/:sdHash', async function(req, res, next){
   try {
+
+    l('Getting info by SDHash');
 
     const sdHash = req.params.sdHash;
 
