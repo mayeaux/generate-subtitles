@@ -10,7 +10,7 @@ const transcribeWrapped = require("../transcribe-wrapped");
 const constants = require("../constants");
 const filenamify = require("filenamify");
 const createTranslatedFiles = require("../translate-files-api");
-const { languagesToTranslateTo, newLanguagesMap } = constants;
+const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
 
 const makeFileNameSafe = function(string){
   return filenamify(string, {replacement: '_' })
@@ -18,6 +18,13 @@ const makeFileNameSafe = function(string){
     .replace(/\s+/g,"_")
     .split('：').join(':');
 }
+
+function getCodeFromLanguageName(languageName){
+  return translationLanguages.find(function(filteredLanguage){
+    return languageName === filteredLanguage.name;
+  }).code
+}
+
 
 const storage = multer.diskStorage({ // notice  you are calling the multer.diskStorage() method here, not multer()
   destination: function(req, file, cb) {
@@ -73,6 +80,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l('directorySafeFileNameWithoutExtension')
     l(directorySafeFileNameWithoutExtension)
 
+    // todo: rename to transcribeAndTranslate
     const response = await transcribe({
       language,
       model,
@@ -84,9 +92,14 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
     // tell the clitent it's started
     if(response === 'started'){
+      const port = req.socket.localPort;
+      const thing = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
+
+      // return res.redirect(`/api/${sixDigitNumber}`)
       res.send({
         status: 'started',
-        sixDigitNumber
+        sixDigitNumber,
+        url: `${thing}/${sixDigitNumber}`,
       });
     }
   } catch (err){
@@ -96,14 +109,31 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
   }
 });
 
-
-
 /** UNFINISHED FUNCTIONALITY **/
 // post file from backend
 router.get('/api/:sixDigitNumber', async function(req, res, next){
   try {
     l(req.body);
     l(req.params);
+
+    l('original url');
+    l(req.originalUrl);
+    l(req.protocol)
+    l(req.hostname)
+    l(req.port)
+
+    const port = req.socket.localPort;
+    const thing = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
+
+    l('thing');
+    l(thing);
+
+    console.log(req.socket.localPort);
+    console.log(req.socket.remotePort);
+
+
+
+    // TODO:
 
     const sixDigitNumber = req.params.sixDigitNumber;
 
@@ -114,19 +144,52 @@ router.get('/api/:sixDigitNumber', async function(req, res, next){
     // todo: should be a number
     const progress = processingData.progress;
 
-    if(transcriptionStatus === 'completed'){
+    const { language, languageCode, translatedLanguages } = processingData;
+
+    /** transcription successfully completed **/
+    if(transcriptionStatus === 'processing'){
+      // send current processing data
+      return res.send({
+        status: 'transcribing',
+        sixDigitNumber, // todo: replace here
+        progress,
+        processingData
+      })
+
+    /** transcription successfully completed, attach VTT files **/
+    } else if(transcriptionStatus === 'completed'){
+      // TODO: get other files here
+      let subtitles = [];
+
+      // add original vtt
       const originalVtt = await fs.readFile(`./transcriptions/${sixDigitNumber}/${sixDigitNumber}.vtt`, 'utf8');
+      subtitles.push({
+        language,
+        languageCode,
+        webVtt: originalVtt
+      })
+
+      l('processing data');
+      l(processingData);
+
+      l('translated language');
+      l(translatedLanguages);
+
+      for(const translatedLanguage of translatedLanguages){
+        const originalVtt = await fs.readFile(`./transcriptions/${sixDigitNumber}/${sixDigitNumber}_${translatedLanguage}.vtt`, 'utf8');
+        subtitles.push({
+          language: translatedLanguage,
+          languageCode: getCodeFromLanguageName(translatedLanguage),
+          webVtt: originalVtt
+        })
+      }
 
       return res.send({
         status: 'completed',
         sixDigitNumber,
-        vttFile: originalVtt
-      })
-    } else if(transcriptionStatus === 'processing'){
-      return res.send({
-        status: 'transcribing',
-        sixDigitNumber,
-        progress
+        // vttFile: originalVtt,
+        processingData,
+        subtitles
       })
     }
 

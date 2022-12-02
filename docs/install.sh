@@ -11,7 +11,7 @@ alias pip=pip3
 apt-get install python3-pip -y
 sudo apt-get update
 sudo apt-get upgrade -y
-sudo apt-get install python3.9 -y
+sudo apt-get install python3.9 python3-pip -y
 sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1000
 pip3 install setuptools-rust
 curl https://sh.rustup.rs -sSf | sh

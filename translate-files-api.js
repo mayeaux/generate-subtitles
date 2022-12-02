@@ -3,7 +3,13 @@ const fs = require('fs-extra');
 const projectConstants = require('./constants');
 const { languagesToTranscribe, translationLanguages } = projectConstants;
 
+// const languagesToTranscribe = {}
+
 let l = console.log;
+
+// l('languages to transcribe');
+// l(languagesToTranscribe)
+// [ 'English', 'French', 'German', 'Spanish', 'Russian', 'Japanese' ]
 
 if(global.debug === 'false'){
   l = function(){}

@@ -68,6 +68,7 @@ function autoDetectLanguage(dataAsString){
   return false;
 }
 
+/** write output to processing_data.json **/
 async function writeToProcessingDataFile(processingDataPath, dataObject){
   // save data to the file
   const processingDataExists = await fs.exists(processingDataPath)
