@@ -16,7 +16,7 @@ function buildArguments({
   uploadedFilePath,
   language,
   model,
-  sixDigitNumber
+  sdHash
 }){
   /** INSTANTIATE WHISPER PROCESS **/
     // queue up arguments, path is the first one
@@ -43,7 +43,7 @@ function buildArguments({
   arguments.push('--verbose', 'False');
 
   // folder to save .txt, .vtt and .srt
-  arguments.push('-o', `transcriptions/${sixDigitNumber}`);
+  arguments.push('-o', `transcriptions/${sdHash}`);
 
   l('transcribe arguments');
   l(arguments);
@@ -116,13 +116,9 @@ async function translateIfNeeded({ language, shouldTranslate, processingDataPath
 
 async function saveTranscriptionCompletedInformation({
   startingDate,
-  sixDigitNumber
+  sdHash
 }){
-  function getUploadDurationInSeconds(){
-    // FPROBE: get the duration
-  }
-
-  const processingDataPath = `./transcriptions/${sixDigitNumber}/processing_data.json`;
+  const processingDataPath = `./transcriptions/${sdHash}/processing_data.json`;
 
   // just post-processing, you can return the response
   const processingSeconds = Math.round((new Date() - startingDate) / 1000);
@@ -132,22 +128,21 @@ async function saveTranscriptionCompletedInformation({
     processingSecondsHumanReadable: forHumans(processingSeconds),
     startedAt: startingDate.toUTCString(),
     finishedAT: new Date().toUTCString(),
-    status: 'completed',
   })
 }
 
 async function moveAndRenameFilesAndFolder({
   originalUpload,
   uploadFileName,
-  sixDigitNumber,
+  sdHash,
   originalFileExtension,
 }){
   const originalUploadPath = originalUpload;
 
   // the directory with the output from whisper
-  let currentContainingDir = `./transcriptions/${sixDigitNumber}`;
+  let currentContainingDir = `./transcriptions/${sdHash}`;
 
-  const newUploadPath = `${currentContainingDir}/${sixDigitNumber}${originalFileExtension}`
+  const newUploadPath = `${currentContainingDir}/${sdHash}${originalFileExtension}`
 
   // rename original upload to use the original file upload name
   await fs.move(originalUploadPath, newUploadPath)
@@ -156,7 +151,7 @@ async function moveAndRenameFilesAndFolder({
   for(const fileExtension of outputFileExtensions){
     // create the prepend thing to loop over
     const transcribedFilePath = `${currentContainingDir}/${uploadFileName}${fileExtension}`
-    const newTranscribedFilePath = `${currentContainingDir}/${sixDigitNumber}${fileExtension}`
+    const newTranscribedFilePath = `${currentContainingDir}/${sdHash}${fileExtension}`
 
     // rename
     await fs.move(transcribedFilePath, newTranscribedFilePath)
