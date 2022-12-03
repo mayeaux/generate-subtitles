@@ -269,6 +269,62 @@ router.get("/player/:filename" , async function(req, res, next){
   }
 });
 
+// it's an array of file names
+const getAllDirectories = async (dir) => {
+  let files = await fs.promises.readdir(dir, { withFileTypes: true });
+
+  files = files.filter(file => file.isDirectory()).map(file => {
+    l('file');
+    l(file);
+    return file.name
+  });
+
+  return files
+}
+
+async function sortByModifiedAtTime(dir){
+  // sort by modified date
+  return files
+    .map(async fileName => ({
+      name: fileName,
+      time: await fs.stat(`${dir}/${fileName}`).mtime.getTime(),
+    }))
+    .sort((a, b) => a.time - b.time)
+    .map(file => file.name);
+};
+
+async function getMatchingFiles({ dir, files, language, keepMedia }){
+  let matchedFiles = [];
+  for(const file of files){
+    const processingDataPath = `${dir}/${file}/processing_data.json`;
+    try {
+      const processingData = JSON.parse(await fs.promises.readFile (processingDataPath, 'utf8'));
+
+      // TODO: I'm pretty sure this is a bad implementation
+      const languageMatches =  language === processingData.language;
+      const keepMediaMatches = keepMedia === processingData.keepMedia;
+
+      const doesntMatchLanguage = language && !languageMatches;
+      const doesntMatchKeepMedia = keepMedia && !keepMediaMatches;
+
+      const preventBasedOnMissedMatch = doesntMatchLanguage || doesntMatchKeepMedia;
+
+      if(preventBasedOnMissedMatch){
+
+      } else {
+        matchedFiles.push(file);
+      }
+
+      // TODO: they should
+    } catch (err){
+      // don't do anything
+    }
+  }
+
+  return matchedFiles
+}
+
+
 
 // see files
 router.get('/files', async function(req, res, next) {
@@ -276,6 +332,8 @@ router.get('/files', async function(req, res, next) {
     // const password = req.params.password;
 
     const { password, language } = req.query;
+
+    const keepMedia = req.query.keepMedia === 'true';
 
     l('language');
     l(language);
@@ -287,59 +345,25 @@ router.get('/files', async function(req, res, next) {
 
       const dir = './transcriptions';
 
-      const getSortedFiles = async (dir) => {
-        let files = await fs.promises.readdir(dir, { withFileTypes: true });
-
-        // get all files that are directories
-        files = files.filter(file => file.isDirectory()).map(file => {
-          l('file');
-          l(file);
-          return file.name
-        } );
-
-        // sort by modified date
-        return files
-          .map(fileName => ({
-            name: fileName,
-            time: fs.statSync(`${dir}/${fileName}`).mtime.getTime(),
-          }))
-          .sort((a, b) => a.time - b.time)
-          .map(file => file.name);
-      };
-
-      async function getMatchingFiles({ files, language }){
-        let matchedFiles = [];
-        for(const file of files){
-          const processingDataPath = `${dir}/${file}/processing_data.json`;
-          try {
-            const processingData = JSON.parse(await fs.promises.readFile (processingDataPath, 'utf8'));
-            if(processingData.language === language){
-              matchedFiles.push(file);
-            }
-          } catch (err){
-            // don't do anything
-          }
-        }
-
-        return matchedFiles
-      }
-
       //
-      let files = await getSortedFiles('./transcriptions');
-
-      // log files length
-      l('files length');
-      l(files.length);
-
-      // most recently effected files first (non-destructive, functional)
-      files = [].concat(files).reverse();
+      let files = await getAllDirectories('./transcriptions');
 
       // log files length
       l('files length');
       l(files.length);
 
       // TODO: what other things to match against?
-      files = await getMatchingFiles({ files, language });
+      files = await getMatchingFiles({ dir, files, language, keepMedia });
+
+      // // log files length
+      // l('files length');
+      // l(files.length);
+      //
+      // files = await sortByModifiedAtTime('./transcriptions');
+
+
+      // most recently effected files first (non-destructive, functional)
+      // files = [].concat(files).reverse();
 
       // log files length
       l('files length');
@@ -349,7 +373,7 @@ router.get('/files', async function(req, res, next) {
       l(files);
 
       return res.render('files', {
-        // list of file naems
+        // list of file names
         files
       })
     }
