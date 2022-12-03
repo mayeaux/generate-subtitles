@@ -3,6 +3,8 @@ const fs = require('fs').promises;
 
 // get argument from command line
 const shouldDeleteFiles = process.argv[2] === 'delete';
+const logDeleteOnly = process.argv[2] === 'toDelete';
+const logKeepOnly = process.argv[2] === 'toKeep';
 l('shouldDeleteFiles');
 l(shouldDeleteFiles);
 
@@ -16,6 +18,13 @@ function logInRedColor(message) {
 
 // DISABLE LOGS
 l = function(){}
+
+if(logDeleteOnly){
+  logInRedColor = function(){}; // disable logging
+}
+if(logKeepOnly){
+  logInBlueColor = function(){}; // disable logging
+}
 
 // logInBlueColor = function(){}; // disable logging
 //
