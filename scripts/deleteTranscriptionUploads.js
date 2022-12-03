@@ -1,13 +1,26 @@
-const l = console.log;
+let l = console.log;
 const fs = require('fs').promises;
+
+// get argument from command line
+const shouldDeleteFiles = process.argv[2] === 'delete';
+l('shouldDeleteFiles');
+l(shouldDeleteFiles);
 
 function logInBlueColor(message) {
   console.log(`\x1b[34m${message}\x1b[0m`);
 }
 
-// deleteOldFiles();
+function logInRedColor(message) {
+  console.log(`\x1b[31m${message}\x1b[0m`);
+}
 
-// const processDirectory = process
+// DISABLE LOGS
+l = function(){}
+
+// logInBlueColor = function(){}; // disable logging
+//
+// logInRedColor = function(){}; // disable logging
+
 
 // delete files that are over 24h old script
 const deleteOldFiles = async function () {
@@ -30,6 +43,16 @@ const deleteOldFiles = async function () {
 
       // only loop through if it's a directory
       if (directoryStats.isDirectory()) {
+        // check if directory is empty
+        const directoryContents = await fs.readdir(directoryPath);
+
+        // if directory is empty, delete it
+        if (directoryContents.length === 0) {
+          // delete directory
+          await fs.rmdir(directoryPath);
+          continue
+        }
+
         // check if directory has a processing_data.json file
         const processingDataPath = `${directoryPath}/processing_data.json`;
         // read processing_data.json file
@@ -68,8 +91,11 @@ const deleteOldFiles = async function () {
 
           const over24Hours = hoursDifference > 24;
 
+          // TODO: I could try and find all the mp4s and get stats on them,
+          // TODO: but for now I'll just do the delete functionality
+
           // delete mp4
-          if (over24Hours && !shouldKeepMedia) {
+          if (over24Hours) {
             // log directory name
             l('deleting media file');
             l(transcriptionDirectory);
@@ -96,25 +122,36 @@ const deleteOldFiles = async function () {
             totalFileSizeToDelete = totalFileSizeToDelete + mp4SizeInMB;
             l(mp4SizeInMB);
 
-            logInBlueColor('mp4SizeInMB')
-            logInBlueColor(mp4SizeInMB);
-
 
             // log mp4 size
             l('mp4 size');
             l(mp4Size);
-            // await fs.unlink(mp4Path);
+
+            if(shouldKeepMedia){
+              logInRedColor(transcriptionDirectory);
+              logInRedColor('mp4SizeInMB');
+              logInRedColor(mp4SizeInMB);
+
+            } else {
+              logInBlueColor(transcriptionDirectory)
+              logInBlueColor('mp4SizeInMB')
+              logInBlueColor(mp4SizeInMB);
+            }
+
+            if(shouldDeleteFiles && !shouldKeepMedia){
+              await fs.unlink(mp4Path);
+            }
 
           }
         }
       }
 
-      l('totalFileSizeToDelete');
-      l(totalFileSizeToDelete);
-
       // l('transcriptionsDirectoryContents');
       // l(transcriptionsDirectoryContents);
     }
+
+    logInBlueColor('totalFileSizeToDelete');
+    logInBlueColor(totalFileSizeToDelete);
   } catch (err) {
     l('err');
     l(err);
