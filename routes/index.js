@@ -271,20 +271,33 @@ router.get("/player/:filename" , async function(req, res, next){
 
 
 // see files
-router.get('/files/:password', async function(req, res, next) {
+router.get('/files', async function(req, res, next) {
   try {
-    const password = req.params.password;
+    // const password = req.params.password;
+
+    const { password, language } = req.query;
+
+    l('language');
+    l(language);
 
     if(password !== process.env.FILES_PASSWORD){
       res.redirect('/404')
     } else {
       l('rendering here');
 
+      const dir = './transcriptions';
+
       const getSortedFiles = async (dir) => {
         let files = await fs.promises.readdir(dir, { withFileTypes: true });
 
-        files = files.filter(file => file.isDirectory()).map(file => file.name);;
+        // get all files that are directories
+        files = files.filter(file => file.isDirectory()).map(file => {
+          l('file');
+          l(file);
+          return file.name
+        } );
 
+        // sort by modified date
         return files
           .map(fileName => ({
             name: fileName,
@@ -294,13 +307,50 @@ router.get('/files/:password', async function(req, res, next) {
           .map(file => file.name);
       };
 
-      const thing = await getSortedFiles('./transcriptions');
+      async function getMatchingFiles({ files, language }){
+        let matchedFiles = [];
+        for(const file of files){
+          const processingDataPath = `${dir}/${file}/processing_data.json`;
+          try {
+            const processingData = JSON.parse(await fs.promises.readFile (processingDataPath, 'utf8'));
+            if(processingData.language === language){
+              matchedFiles.push(file);
+            }
+          } catch (err){
+            // don't do anything
+          }
+        }
 
-      var thing2 = [].concat(thing).reverse();
+        return matchedFiles
+      }
+
+      //
+      let files = await getSortedFiles('./transcriptions');
+
+      // log files length
+      l('files length');
+      l(files.length);
+
+      // most recently effected files first (non-destructive, functional)
+      files = [].concat(files).reverse();
+
+      // log files length
+      l('files length');
+      l(files.length);
+
+      // TODO: what other things to match against?
+      files = await getMatchingFiles({ files, language });
+
+      // log files length
+      l('files length');
+      l(files.length);
+
+      l('returning');
+      l(files);
 
       return res.render('files', {
-        //
-        files: thing2,
+        // list of file naems
+        files
       })
     }
 
