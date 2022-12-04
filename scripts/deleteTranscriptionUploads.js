@@ -223,7 +223,7 @@ const deleteOldFiles = async function () {
         // there is an issue because the current processing_data.json file doesn't have a startedAt property
         } else {
           l('deleting media files')
-          await deleteAllMediaFiles({ dirPath: directoryPath });
+          if(shouldDeleteFiles) await deleteAllMediaFiles({ dirPath: directoryPath });
         }
       }
 

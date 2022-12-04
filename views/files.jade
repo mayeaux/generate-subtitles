@@ -10,9 +10,22 @@ block content
     div
         h1 Files
 
-        each file in files
-            a(href=`/player/${file}`)
-                p= file
+        table
+            tbody
+                tr
+                    th Filename
+                    th Duration
+                    th Date
+
+
+                each file in files
+                    tr
+
+                        td
+                            a(href='/player/' + file)= file
+                        td Duration
+                        td Date
+
 
     script.
       l = console.log;
