@@ -131,17 +131,17 @@ block content
         /** larger than this size **/
         @media (min-width: 320px) {
 
-            .plyr__caption {
-                font-size: 20px !important;
-                line-height: 31px !important;
+            .plyr__captions  .plyr__caption {
+                font-size: 20px;
+                line-height: 31px;
             }
         }
 
         @media (min-width: 801px) {
 
-            .plyr__caption {
-                font-size: 28px !important;
-                line-height: 41px !important;;
+            .plyr__captions  .plyr__caption {
+                font-size: 28px;
+                line-height: 41px;
             }
             /* tablet, landscape iPad, lo-res laptops ands desktops */
         }
@@ -152,9 +152,9 @@ block content
 
         /* not mobile */
         @media (min-width: 1281px) {
-            .plyr__caption {
-                font-size: 49px !important;
-                line-height: 74px !important;
+            .plyr__captions .plyr__caption {
+                font-size: 49px;
+                line-height: 74px;
             }
             /* hi-res laptops and desktops */
         }
@@ -191,6 +191,11 @@ block content
 
         .plyr__captions {
             display: inline-table !important;
+            text-align: left !important;
+        }
+
+        .plyr__caption {
+            text-wrap: balance;
         }
 
 
@@ -209,6 +214,11 @@ block content
 
 
     div.bottomSection
+        #increaseSize
+            p Increase Size
+        #decreaseSize
+            p Decrease Size
+
         div.downloadLinks
             div.startAnotherTranscription(style="max-width:191px;")
                 a(target="_blank" href=`/`)
@@ -338,7 +348,41 @@ block content
         }
       }
 
+      let subtitlesFontSize, subtitlesLineHeight;
+
       $(document).ready(function () {
+
+        function adjustFontSize(direction) {
+
+          const currentLineHeight = $('.plyr__caption').css('line-height');
+          const currentLineHeight1 = currentLineHeight.replace('px', '');
+          const newLineHeight = parseInt(currentLineHeight1) + (direction === 'increase' ? 2 : -2);
+
+          const currentFontSize = $('.plyr__caption').css('font-size');
+          const currentFontSize1 = currentFontSize.replace('px', '');
+          const newFontSize = parseInt(currentFontSize1) + (direction === 'increase' ? 2 : -2);
+
+
+          subtitlesFontSize = newFontSize;
+          subtitlesLineHeight = newLineHeight;
+
+          l('subtitlesFontSize', subtitlesFontSize)
+          l('subtitlesLineHeight', subtitlesLineHeight)
+
+
+          // $('.plyr__caption').attr('style', `font-size: ${newFontSize}px !important`);
+          $('.plyr__caption').css('line-height', `${newLineHeight}px`);
+          $('.plyr__caption').css('font-size', `${newFontSize}px`);
+        }
+
+        $('#decreaseSize').click(function () {
+          adjustFontSize('decrease');
+        });
+
+        $('#increaseSize').click(function () {
+          adjustFontSize('increase');
+        });
+
         console.log("ready!");
         var controls =
           [
@@ -391,6 +435,7 @@ block content
             const thing = getCurrentLanguageAndTrack()
             l(thing);
 
+            // DISPLAY TWO AT ONCE
             if(thing.language === 'Serbian'){
               const thing2 = findTextFromIndexNumber('English', thing.indexNumber);
               if(thing2){
@@ -399,6 +444,15 @@ block content
                 $('span.plyr__caption').text(`${oldText}\n${thing2}`)
               }
             }
+
+            if(subtitlesFontSize){
+              $('.plyr__caption').css('line-height', `${subtitlesLineHeight}px`);
+              $('.plyr__caption').css('font-size', `${subtitlesFontSize}px`);
+              balanceText($('.plyr__caption'))
+            } else {
+              balanceText($('.plyr__caption'))
+            }
+
 
             // const language = 'Russian';
             //
