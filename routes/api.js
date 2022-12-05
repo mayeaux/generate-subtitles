@@ -52,32 +52,22 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const file = req.file;
     const { originalname: originalFileName, filename: uploadFileName } = file;
 
-    l = function(){};
-
-    l('file');
-    l(file);
-    l('postBodyData');
-    l(postBodyData);
-
     const { model, language, sdHash } = postBodyData;
 
-    l('originalFileName');
-    l(originalFileName);
-    l('uploadFileName');
-    l(uploadFileName);
-    l('model, language');
-    l(model, language);
+    const processingDataFile = `./transcriptions/${sdHash}/processing_data.json`
 
+    let processingFileExists = false;
+    try {
+      processingFileExists = await fs.promises.stat(processingDataFile)
+    } catch (error) {}
 
+    if (processingFileExists) {
+      const completedProcessingData = await fs.readFile(processingDataFile, 'utf8')
 
-    const completedProcessingData = await fs.readFile(`./transcriptions/${sdHash}/processing_data.json`, 'utf8')
-
-    l('completedProcessingData');
-    l(completedProcessingData);
-
-    if(completedProcessingData){
-      l = console.log;
-      return res.redirect(`/api/${sdHash}`)
+      if(completedProcessingData){
+        l = console.log;
+        return res.redirect(`/api/${sdHash}`)
+      }
     }
 
     // TODO: move this stuff to transcribe function
