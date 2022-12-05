@@ -5,7 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const { WebSocketServer } = require('ws');
-const fs = require('fs');
+const fs = require('fs-extra');
 const {createServer} = require("http");
 const sessions = require('express-session');
 const _ = require('lodash');
@@ -179,10 +179,19 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+
+
+app.use((_, res, next) => {
+  res.header('Cross-Origin-Opener-Policy', 'same-origin');
+  res.header('Cross-Origin-Embedder-Policy', 'require-corp');
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 // assumes nginx
 // if(!isProd){
-  app.use(express.static(__dirname));
+app.use(express.static(__dirname));
 // }
 
 
@@ -240,6 +249,7 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
+
 
 l(`Server listening on port ${port}`)
 

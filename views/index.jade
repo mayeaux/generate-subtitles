@@ -221,6 +221,8 @@ block content
 
     let circleProgress;
 
+    let ffmpeg;
+
     $(document).ready(function () {
       circleProgress = new CircleProgress('.progress', {
         max: 100,
@@ -283,7 +285,28 @@ block content
         }
       });
 
-    $(document).ready(function () {
+    $(document).ready(async function () {
+      const {createFFmpeg} = FFmpeg;
+      l(createFFmpeg);
+
+      ffmpeg = createFFmpeg({
+        corePath: '/javascripts/ffmpeg-core.js',
+        workerPath: '/javascripts/ffmpeg-core.worker.js',
+        wasmPath: '/javascripts/ffmpeg-core.wasm',
+        log: true
+      });
+
+      ffmpeg.onRuntimeInitialized = function () {
+        l('runtime ready');
+      };
+
+      l('ffmpeg');
+      l(ffmpeg);
+
+      // await ffmpeg.load();
+
+
+
       // swal data with languages
       $("#languageLabel").on('click', function () {
         l('models');
