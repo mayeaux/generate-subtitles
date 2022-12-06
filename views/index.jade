@@ -513,9 +513,13 @@ block content
       var ajax = new XMLHttpRequest();
       let originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining, percentUploadDone;
 
+      $('.amountsHeader').hide();
+
       window.addEventListener('beforeunload', (event) => {
-        // this doesnt do anything
-        event.returnValue = `You have an ongoing transcription and if you leave you have to start over. Are you sure you want to leave?`;
+        if(!uploadFinished){
+          // this text doesnt actually show up
+          event.returnValue = `You have an ongoing transcription and if you leave you have to start over. Are you sure you want to leave?`;
+        }
       });
 
       let alreadyUploadedAmountInMB;
