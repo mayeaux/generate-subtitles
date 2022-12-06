@@ -447,8 +447,15 @@ block content
 
         // probably better to do on plyr ready if available as event
         setTimeout(function(){
+
           $(function () {
-            $('.plyr__captions').draggable({ containment: 'plyr' });
+            $('.plyr__captions').draggable({
+              containment: 'plyr',
+              // drag: function (event, ui) {
+              //   l('running!!!!');
+              //   player.toggleControls(false)
+              // }
+            });
           });
 
 
@@ -457,6 +464,22 @@ block content
           if (!captionsIsPressed) {
             $('button[data-plyr="captions"]').click();
           }
+
+          let thingHidden = false;
+          $('.plyr__captions').mousedown(function () {
+            $('.plyr__controls').hide();
+            thingHidden = true;
+            l('mouse down');
+          });
+
+          window.addEventListener('mouseup', function (event) {
+            if(thingHidden){
+              $('.plyr__controls').show();
+              thingHidden = false;
+              l('mouse up');
+            }
+            // do logic here
+          })
 
           player.on('cuechange', function (event) {
             // console.log('event!')
