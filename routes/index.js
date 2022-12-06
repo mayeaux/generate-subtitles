@@ -353,13 +353,38 @@ router.get("/player/:filename" , async function(req, res, next){
 const getAllDirectories = async (dir) => {
   let files = await fs.promises.readdir(dir, { withFileTypes: true });
 
-  files = files.filter(file => file.isDirectory()).map(file => {
+  let newFiles = [];
+
+  for (let file of files) {
     l('file');
     l(file);
-    return file.name
-  });
+    l(file.name);
+    l(file.isDirectory());
+    if(!file.isDirectory()) continue;
 
-  return files
+    let processingData;
+    try {
+      processingData = JSON.parse(await fs.readFile(`${dir}/${file.name}/processing_data.json`, 'utf8'));
+    } catch (err){
+      // l('err');
+      // l(err);
+      processingData = null;
+    }
+
+    l('processing data');
+    l(processingData);
+
+    if(processingData && processingData.startedAt && processingData.uploadDurationInSeconds){
+      newFiles.push({
+        name: file.name,
+        processingData,
+        formattedDate: moment(processingData.startedAt).format("D MMM YYYY"),
+        timestamp: processingData.startedAt && new Date(processingData.startedAt).getTime()
+      });
+    }
+  }
+
+  return newFiles
 }
 
 async function sortByModifiedAtTime(dir){
@@ -373,16 +398,12 @@ async function sortByModifiedAtTime(dir){
     .map(file => file.name);
 };
 
-async function getMatchingFiles({ dir, files, language, keepMedia }){
+async function getMatchingFiles({ files, language, keepMedia }){
   let matchedFiles = [];
   for(const file of files){
-    const processingDataPath = `${dir}/${file}/processing_data.json`;
     try {
-      const processingData = JSON.parse(await fs.promises.readFile (processingDataPath, 'utf8'));
-
-      // TODO: I'm pretty sure this is a bad implementation
-      const languageMatches =  language === processingData.language;
-      const keepMediaMatches = keepMedia === processingData.keepMedia;
+      const languageMatches =  language === file.processingData.language;
+      const keepMediaMatches = keepMedia === file.processingData.keepMedia;
 
       const doesntMatchLanguage = language && !languageMatches;
       const doesntMatchKeepMedia = keepMedia && !keepMediaMatches;
@@ -431,6 +452,7 @@ router.get('/files', async function(req, res, next) {
       // log files length
       l('files length');
       l(files.length);
+      l(files);
 
       // TODO: what other things to match against?
       files = await getMatchingFiles({ dir, files, language, keepMedia });
@@ -454,7 +476,8 @@ router.get('/files', async function(req, res, next) {
 
       return res.render('files', {
         // list of file names
-        files
+        files,
+        title: 'Files',
       })
     }
 
