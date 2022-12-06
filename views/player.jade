@@ -194,11 +194,34 @@ block content
             text-align: left !important;
             cursor: pointer;
             max-width: 80%;
+            z-index: 9999;
         }
 
         .plyr__caption {
             text-wrap: balance;
         }
+
+        .plyr__controls {
+            flex-wrap: wrap;
+            justify-content: left !important;
+        }
+
+        .plyr__progress__container {
+            flex-basis: 100% !important;
+        }
+
+        .plyr__progress {
+            max-width: 99%;
+            text-align: center;
+            margin: 0 auto;
+            margin-bottom: 5px;
+        }
+
+        button[data-plyr=captions] {
+            margin-left: auto !important;
+        }
+
+
 
 
     div
@@ -388,13 +411,14 @@ block content
         console.log("ready!");
         var controls =
           [
+            'progress', // The progress bar and scrubber for playback and buffering
             'play-large', // The large play button in the center
             // 'restart', // Restart playback
             // 'rewind', // Rewind by the seek time (default 10 seconds)
             'play', // Play/pause playback
             // 'fast-forward', // Fast forward by the seek time (default 10 seconds)
             'volume', // Volume control
-            'progress', // The progress bar and scrubber for playback and buffering
+            'volume-slider',
             'current-time', // The current time of playback
             'duration', // The full duration of the media
             'mute', // Toggle mute
@@ -411,6 +435,10 @@ block content
           controls,
           captions: { active: true, language: 'auto', update: true },
           settings: ['captions']
+        });
+
+        player.on('ready', event => {
+          $('.plyr__volume').append($('.plyr__volume').children('').get().reverse());
         });
 
         l('captions');

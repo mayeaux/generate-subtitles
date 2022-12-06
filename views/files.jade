@@ -22,7 +22,7 @@ block content
                     tr
 
                         td(data-sort-value=file.name)
-                            a(href='/player/' + file.name) #{file.name}
+                            a(href='/player/' + file.name target="_blank") #{file.name}
                         td(data-sort-value=file.processingData.uploadDurationInSeconds data-type="number") #{file.processingData.uploadDurationInSecondsHumanReadable}
                         td(data-sort-value=file.timestamp data-type) #{file.formattedDate}
 
