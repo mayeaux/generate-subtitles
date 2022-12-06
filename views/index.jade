@@ -179,10 +179,21 @@ block content
       white-space: pre;
     }
 
+    .amountsHeader {
+        text-align: center;
+        color: white;
+    }
+
+    .amountsHeader:nth-of-type(2) {
+      margin-bottom: 35px;
+    }
+
   a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
     img#githubLogo(src='/images/inverted.png')
 
   .container
+    h3.amountsHeader #{siteStats.amountOfTranscriptions} transcriptions completed
+    h3.amountsHeader #{siteStats.humanReadableTime} transcribed
     h1#header File Upload
     form#form
       .input-group
@@ -219,6 +230,8 @@ block content
   script.
     l = console.log;
 
+    let processStarted = false;
+
     let circleProgress;
 
     $(document).ready(function () {
@@ -231,26 +244,6 @@ block content
       $('.progress').hide();
 
       l('ready now');
-      // new CircleProgress('.progress');
-      // console.log("ready!");
-
-      // percent divided by 100
-
-      // $('#circle').circleProgress({
-      //   value: 0.33,
-      //   size: 100,
-      //   // fill: {
-      //   //   gradient: ["red", "orange"]
-      //   // }
-      // });
-
-      // $('#circle').circleProgress({
-      //   max: 100,
-      //   value: 10,
-      //   textFormat: 'vertical'
-      // });
-
-
     });
 
     let uploadFinished = false;
@@ -520,6 +513,11 @@ block content
       var ajax = new XMLHttpRequest();
       let originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining, percentUploadDone;
 
+      window.addEventListener('beforeunload', (event) => {
+        // this doesnt do anything
+        event.returnValue = `You have an ongoing transcription and if you leave you have to start over. Are you sure you want to leave?`;
+      });
+
       let alreadyUploadedAmountInMB;
       /** TIME COUNTDOWN FUNCTIONALITY **/
       ajax.upload.addEventListener("progress", function(event){
@@ -712,6 +710,7 @@ block content
       /** WHEN WEBSOCKET SAYS COMPLETED **/
       // TODO: move to bottom of conditional blocks
       if (data.status === 'Completed') {
+        // the upload isn't finished but rather the process
         uploadFinished = true;
 
 
