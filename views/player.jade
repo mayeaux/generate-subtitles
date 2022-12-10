@@ -140,8 +140,8 @@ block content
         @media (min-width: 801px) {
 
             .plyr__captions  .plyr__caption {
-                font-size: 28px;
-                line-height: 41px;
+                font-size: 27px;
+                line-height: 0px;
             }
             /* tablet, landscape iPad, lo-res laptops ands desktops */
         }
@@ -153,8 +153,8 @@ block content
         /* not mobile */
         @media (min-width: 1281px) {
             .plyr__captions .plyr__caption {
-                font-size: 49px;
-                line-height: 74px;
+                font-size: 27px;
+                line-height: 0px;
             }
             /* hi-res laptops and desktops */
         }
@@ -193,7 +193,7 @@ block content
             display: inline-table !important;
             text-align: left !important;
             cursor: pointer;
-            max-width: 80%;
+            max-width: 99%;
             z-index: 9999;
             padding: 0px;
             transform: translateY(-82px) !important;
@@ -402,7 +402,7 @@ block content
 
 
           // $('.plyr__caption').attr('style', `font-size: ${newFontSize}px !important`);
-          $('.plyr__caption').css('line-height', `${newLineHeight}px`);
+          // $('.plyr__caption').css('line-height', `${newLineHeight}px`);
           $('.plyr__caption').css('font-size', `${newFontSize}px`);
         }
 
@@ -506,7 +506,7 @@ block content
 
             // balance text not working at the moment
             if(subtitlesFontSize){
-              $('.plyr__caption').css('line-height', `${subtitlesLineHeight}px`);
+              // $('.plyr__caption').css('line-height', `${subtitlesLineHeight}px`);
               $('.plyr__caption').css('font-size', `${subtitlesFontSize}px`);
               // balanceText($('.plyr__caption'))
             } else {

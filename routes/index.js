@@ -11,7 +11,7 @@ const Queue = require("promise-queue");
 const constants = require('../constants');
 const {languagesToTranscribe} = require("../constants");
 const filenamify = require("filenamify");
-const forHumans = require('../helpers').forHumans;
+const { forHumans, forHumansNoSeconds } = require('../helpers')
 const path = require('path');
 const moment = require('moment');
 const { languagesToTranslateTo, newLanguagesMap } = constants;
@@ -88,7 +88,7 @@ async function getTranscriptionData(){
   global.siteStats = {
     totalSeconds,
     amountOfTranscriptions: transcriptionsDirectoryContents.length,
-    humanReadableTime: forHumans(totalSeconds),
+    humanReadableTime: forHumansNoSeconds(totalSeconds),
   }
 
   l('siteStats');

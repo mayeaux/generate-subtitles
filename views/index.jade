@@ -232,7 +232,7 @@ block content
 
     let processStarted = false;
 
-    let circleProgress;
+    let circleProgress, fileName;
 
     $(document).ready(function () {
       circleProgress = new CircleProgress('.progress', {
@@ -496,7 +496,7 @@ block content
       for (const pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
       }
-      const fileName = document.getElementById('file').files[0].name;
+      fileName = document.getElementById('file').files[0].name;
       l(`filename: ${fileName}`)
 
       const httpProtocol = window.location.protocol;
@@ -543,6 +543,13 @@ block content
         percentUploadDone = percent
 
         progressDiv.innerHTML = `${percent}% uploaded`;
+
+        const capitalizedString = `${percent}% Uploaded - ${fileName}`;
+
+        const currentTitle = document.title;
+        if(currentTitle !== capitalizedString){
+          document.title = capitalizedString;
+        }
 
         const currentTime = new Date();
         // get time in seconds between upload start time and now
@@ -777,6 +784,10 @@ block content
         const myUpload = data.ownershipPerson === 'you';
         l('my upload');
         l(myUpload);
+
+        // disregard any data that isn't yours after your processing has started
+        if(!myUpload && myUploadStarted) return
+
         const processNumber = data.serverNumber; // 1 || 2, really means process
         const percentDone = data.percentDone;
         if(myUpload){
@@ -784,6 +795,14 @@ block content
         }
         processingData = data.processingData;
         formattedProgressData = data.formattedProgress;
+
+        const processingString = `${percentDone}% Transcribed - ${fileName}`;
+
+        const currentTitle = document.title;
+
+        if(percentDone && currentTitle !== processingString){
+          document.title = processingString;
+        }
 
         // by default let to 'latest processing'
         // TODO: this is misnamed
@@ -811,9 +830,9 @@ block content
           if (Number(percentDone) > 0){
             circleProgress.attr({
               max: 100,
-              value: data.percentDone,
+              value: percentDone,
             });
-            if (data.percentDone === 100) {
+            if (percentDone === 100) {
               $('.progress').hide();
             } else {
               $('.progress').show();

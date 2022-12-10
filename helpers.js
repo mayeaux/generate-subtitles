@@ -21,6 +21,23 @@ function forHumans ( seconds ) {
   return returntext.trim();
 }
 
+function forHumansNoSeconds ( seconds ) {
+  var levels = [
+    [Math.floor(seconds / 31536000), 'years'],
+    [Math.floor((seconds % 31536000) / 86400), 'days'],
+    [Math.floor(((seconds % 31536000) % 86400) / 3600), 'hours'],
+    [Math.floor((((seconds % 31536000) % 86400) % 3600) / 60), 'minutes'],
+  ];
+  var returntext = '';
+
+  for (var i = 0, max = levels.length; i < max; i++) {
+    if ( levels[i][0] === 0 ) continue;
+    returntext += ' ' + levels[i][0] + ' ' + (levels[i][0] === 1 ? levels[i][1].substr(0, levels[i][1].length-1): levels[i][1]);
+  };
+  return returntext.trim();
+}
+
 module.exports = {
-  forHumans
+  forHumans,
+  forHumansNoSeconds
 }
