@@ -230,9 +230,9 @@ block content
   script.
     l = console.log;
 
-    let processStarted = false;
+    let processStarted, myUploadStarted = false;
 
-    let circleProgress, fileName;
+    let circleProgress, fileName, hitTheBackend;
 
     $(document).ready(function () {
       circleProgress = new CircleProgress('.progress', {
@@ -359,10 +359,10 @@ block content
 
     let videoDuration;
 
+    // freezes everything up
     // selectElement.addEventListener('change', async function () {
     //   l('getting video duration!');
     //   // l(new Date())
-    //   // freezes everything up
     //   // videoDuration = getVideoDuration(file.files[0]).then(function(response){
     //   //   videoDuration = response;
     //   //   l(new Date())
@@ -645,8 +645,6 @@ block content
 
     const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
 
-    let myUploadStarted = false;
-    let hitTheBackend = false;
     websocketConnection.onclose = function (event) {
       // dont show popup if websocket closed because finished
       if(uploadFinished) return
@@ -940,13 +938,4 @@ block content
         l('no files found');
       }
     };
-
-    // circle progress bar
-    // new CircleProgress('.progress', {
-    //   max: 100,
-    //   value: 60,
-    //   textFormat: 'vertical',
-    // });
-
-
 
