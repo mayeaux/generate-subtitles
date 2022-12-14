@@ -97,7 +97,14 @@ async function deleteAllMediaFiles({ dirPath }) {
     const fileExtension = path.extname(file);
 
     if (mediaFileExtensions.includes(fileExtension)) {
-      await fs.promises.unlink(`${dirPath}/${file}`);
+      try {
+        await fs.promises.unlink(`${dirPath}/${file}`);
+      } catch (error) {
+        l('error');
+        l(error);
+        console.error(`Error deleting file: ${dirPath}/${file}`);
+      }
+
     }
   }
 }

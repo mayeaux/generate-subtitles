@@ -430,20 +430,13 @@ async function getMatchingFiles({ files, language, keepMedia }){
 // see files
 router.get('/files', async function(req, res, next) {
   try {
-    // const password = req.params.password;
-
     const { password, language } = req.query;
 
     const keepMedia = req.query.keepMedia === 'true';
 
-    l('language');
-    l(language);
-
     if(password !== process.env.FILES_PASSWORD){
       res.redirect('/404')
     } else {
-      l('rendering here');
-
       const dir = './transcriptions';
 
       //
@@ -452,7 +445,7 @@ router.get('/files', async function(req, res, next) {
       // log files length
       l('files length');
       l(files.length);
-      l(files);
+      // l(files);
 
       // TODO: what other things to match against?
       files = await getMatchingFiles({ dir, files, language, keepMedia });
@@ -468,11 +461,11 @@ router.get('/files', async function(req, res, next) {
       // files = [].concat(files).reverse();
 
       // log files length
-      l('files length');
-      l(files.length);
-
-      l('returning');
-      l(files);
+      // l('files length');
+      // l(files.length);
+      //
+      // l('returning');
+      // l(files);
 
       return res.render('files', {
         // list of file names
