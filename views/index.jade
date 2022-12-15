@@ -184,7 +184,12 @@ block content
         color: white;
     }
 
-    .amountsHeader:nth-of-type(2) {
+    .amountsHeader:nth-of-type(1) {
+      font-size: 22px;
+      margin-bottom: -1px;
+    }
+
+    .amountsHeader:nth-of-type(3) {
       margin-bottom: 35px;
     }
 
@@ -192,8 +197,14 @@ block content
     img#githubLogo(src='/images/inverted.png')
 
   .container
-    h3.amountsHeader #{siteStats.amountOfTranscriptions} transcriptions completed
-    h3.amountsHeader #{siteStats.humanReadableTime} transcribed
+    //if isFreeSubtitles
+    //  h3.amountsHeader #{siteStats.amountOfTranscriptions} transcriptions completed
+    //  h3.amountsHeader #{siteStats.humanReadableTime} transcribed
+    if isFreeSubtitles
+      h3.amountsHeader File Limits:
+      h3.amountsHeader Size: 200MB
+      h3.amountsHeader Duration: 1 Hour
+
     h1#header File Upload
     form#form
       .input-group
@@ -230,7 +241,7 @@ block content
   script.
     l = console.log;
 
-    let processStarted, myUploadStarted = false;
+    let processStarted, myUploadStarted, processFailed = false;
 
     let circleProgress, fileName, hitTheBackend;
 
@@ -357,7 +368,7 @@ block content
     l('selecteleemnt');
     l(selectElement);
 
-    let videoDuration;
+    let videoDurationInSeconds;
 
     // freezes everything up
     // selectElement.addEventListener('change', async function () {
@@ -397,21 +408,26 @@ block content
       l('passedFile');
       l(passedFile)
 
+      const isFreeSubtitles = #{isFreeSubtitles}
 
-      if(nodeEnvironment === 'production' && servedWithSSL){
+
+      if(nodeEnvironment === 'production' && isFreeSubtitles){
 
       // force upload testing
       // if(1 === 1){
         // TODO: change this to onchange
-        const oneHundredMBinBytes = 100000000;
+        // TODO: load this from the backend
+        const passedFileSizeInMB = Math.round(passedFile.size / 1048576);
+
+        const uploadFileSizeLimitInMB = #{uploadFileSizeLimitInMB};
 
         // swal with the error
-        if (passedFile.size > oneHundredMBinBytes) {
+        if (passedFileSizeInMB > uploadFileSizeLimitInMB) {
           // put back upload button
           $('#upload-button').html('Upload').removeClass('no-pointer-events');
 
           return Swal.fire({
-            title: 'Please upload something smaller than 100MB, Cloudflare limit for now',
+            title: `Your file size of ${passedFileSizeInMB}MB is too large. The limit is ${uploadFileSizeLimitInMB}MB`,
             icon: 'error',
             confirmButtonText: 'Cool'
           })
@@ -427,10 +443,10 @@ block content
           l('geting duration');
           // TODO: get here
           // TODO: catch possible errors
-          videoDuration = await getVideoDuration(passedFile);
-          l(videoDuration);
+          videoDurationInSeconds = await getVideoDuration(passedFile);
+          l(videoDurationInSeconds);
           l('duration');
-          l(videoDuration);
+          l(videoDurationInSeconds);
         } catch (err){
           /// just let them advance if there's an error, happens with .MOV (format error)
           //  and uploads over 500MB (because of Chrome)
@@ -439,9 +455,10 @@ block content
         }
 
         // 3600
-        if (videoDuration && videoDuration > 3600) {
+        // TODO: pass from the backend
+        if (videoDurationInSeconds && videoDurationInSeconds > 3600) {
           $('#upload-button').html('Upload').removeClass('no-pointer-events');
-          videoDuration = 0;
+          videoDurationInSeconds = 0;
           return Swal.fire({
             title: 'The video is too long',
             text: 'To share time more evenly 1h+ uploads are not allowed',
@@ -516,7 +533,7 @@ block content
       $('.amountsHeader').hide();
 
       window.addEventListener('beforeunload', (event) => {
-        if(!uploadFinished){
+        if(!uploadFinished && !processFailed){
           // this text doesnt actually show up
           event.returnValue = `You have an ongoing transcription and if you leave you have to start over. Are you sure you want to leave?`;
         }
@@ -611,6 +628,39 @@ block content
         }
       }, false);
 
+      ajax.addEventListener("error", function (error) {
+        l('err');
+        console.log(error)
+      }, false);
+
+      ajax.addEventListener('readystatechange', function (e) {
+        if (ajax.readyState === XMLHttpRequest.DONE) {
+          if (ajax.status === 200) {
+            // Request has completed successfully, do something
+          } else {
+
+            processFailed = true;
+
+            return Swal.fire({
+              title: 'Transcription failed',
+              text: ajax.responseText,
+              icon: 'error',
+              showCancelButton: true,
+              confirmButtonText: 'Try Again',
+            }).then((result) => {
+              /* Read more about isConfirmed, isDenied below */
+              if (result.isConfirmed) {
+                window.location.reload();
+              }
+            })
+
+            l('failed request');
+            l(ajax.responseText);
+            // Request has failed, do something
+          }
+        }
+      });
+
       /** response from endpoint? **/
       ajax.addEventListener("load", function(res){
         l('hit the backend!');
@@ -625,11 +675,12 @@ block content
         document.getElementById('startNewUpload').style.marginTop = '29px';
       }, false);
       // TODO: implement these
-      // ajax.addEventListener("error", errorHandler, false);
+      // ajax.addEventListener("event", eventHandler, false);
       // ajax.addEventListener("abort", abortHandler, false);
       ajax.open("POST", uploadUrl); //
       ajax.send(formData);
     }
+
 
     let placeInQueue = 0;
 
@@ -646,6 +697,8 @@ block content
     const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
 
     websocketConnection.onclose = function (event) {
+      processFailed = true;
+
       // dont show popup if websocket closed because finished
       if(uploadFinished) return
       return Swal.fire({

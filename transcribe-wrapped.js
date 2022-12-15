@@ -26,7 +26,6 @@ l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 const isProd = nodeEnvironment === 'production';
 
 const whisperPath = which.sync('whisper')
-const ffprobePath = which.sync('ffprobe')
 
 global.transcriptions = [];
 
@@ -49,7 +48,8 @@ async function transcribe({
   fileSafeNameWithDateTimestamp,
   fileSafeNameWithDateTimestampAndExtension,
   uploadGeneratedFilename,
-  shouldTranslate
+  shouldTranslate,
+  uploadDurationInSeconds,
 }){
   return new Promise(async (resolve, reject) => {
 
@@ -67,10 +67,10 @@ async function transcribe({
       directorySafeFileNameWithoutExtension = fileSafeNameWithDateTimestamp
       directorySafeFileNameWithExtension = fileSafeNameWithDateTimestampAndExtension
 
-      l('directorySafeFileNameWithoutExtension')
-      l(directorySafeFileNameWithoutExtension);
-      l('directorySafeFileNameWithExtension')
-      l(directorySafeFileNameWithExtension)
+      // l('directorySafeFileNameWithoutExtension')
+      // l(directorySafeFileNameWithoutExtension);
+      // l('directorySafeFileNameWithExtension')
+      // l(directorySafeFileNameWithExtension)
 
       // todo: refactor this a bit
       websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
@@ -80,10 +80,6 @@ async function transcribe({
       let uploadFolderFileName = uploadedFilePath.split("/").pop();
 
       const originalUpload = `./uploads/${uploadFolderFileName}`;
-      const ffprobeResponse = await ffprobe(originalUpload, { path: ffprobePath });
-
-      const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
-      const uploadDurationInSeconds = Math.round(audioStream.duration);
 
       const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
 

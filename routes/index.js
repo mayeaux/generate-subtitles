@@ -14,7 +14,11 @@ const filenamify = require("filenamify");
 const { forHumans, forHumansNoSeconds } = require('../helpers')
 const path = require('path');
 const moment = require('moment');
+const ffprobe = require("ffprobe");
+const which = require("which");
+const {fr} = require("language-name-map/map");
 const { languagesToTranslateTo, newLanguagesMap } = constants;
+const ffprobePath = which.sync('ffprobe')
 
 // const languageNameMap = require('language-name-map/map')
 // l('language name map');
@@ -145,8 +149,16 @@ const nodeEnv = process.env.NODE_ENV || 'development';
 l('nodeEnv');
 l(nodeEnv);
 
+const uploadFileSizeLimitInMB = Number(process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB) || 100;
+l('uploadFileSizeLimitInMB');
+l(uploadFileSizeLimitInMB);
+
 // home page
 router.get('/', function(req, res, next) {
+  const domainName = req.hostname;
+
+  const isFreeSubtitles = domainName === 'freesubtitles.ai';
+
   // transcribe frontend page
   res.render('index', {
     title: 'Transcribe File',
@@ -154,12 +166,14 @@ router.get('/', function(req, res, next) {
     forHumans,
     nodeEnv,
     siteStats: global.siteStats,
+    isFreeSubtitles,
+    uploadFileSizeLimitInMB,
   });
 });
 
 global.queueData = [];
 
-router.post('/file', upload.single('file'), function (req, res, next) {
+router.post('/file', upload.single('file'), async function (req, res, next) {
   // l(global.ws);
 
   try {
@@ -173,6 +187,31 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const uploadGeneratedFilename = req.file.filename;
     const shouldTranslate = req.body.shouldTranslate === 'true';
 
+    const ffprobeResponse = await ffprobe(uploadedFilePath, { path: ffprobePath });
+
+    const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
+    const uploadDurationInSeconds = Math.round(audioStream.duration);
+
+    const amountOfSecondsInHour = 60 * 60;
+    const domainName = req.hostname;
+
+    const fileSizeInMB = Math.round(req.file.size / 1048576);
+
+    const isFreeSubtitles = domainName === 'freesubtitles.ai';
+    if(isFreeSubtitles){
+      if(uploadDurationInSeconds > amountOfSecondsInHour){
+        const uploadLengthErrorMessage = `Your upload length is ${forHumansNoSeconds(uploadDurationInSeconds)}, but currently the maximum length allowed is only 1 hour`;
+        return res.status(400).send(uploadLengthErrorMessage);
+      }
+      if(fileSizeInMB > uploadFileSizeLimitInMB){
+        const uploadSizeErrorMessage = `Your upload size is ${fileSizeInMB} MB, but the maximum size currently allowed is ${uploadFileSizeLimitInMB} MB.`;
+        return res.status(400).send(uploadSizeErrorMessage);
+      }
+    }
+
+
+    // TODO: check file duration here
+
     let logFileNames = true;
     // something.mp4
     let originalFileNameWithExtension = decode_utf8(req.file.originalname);
@@ -181,14 +220,14 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
 
     const originalFileNameWithoutExtension = path.parse(originalFileNameWithExtension).name;
-    l('originalFileNameWithoutExtension')
-    l(originalFileNameWithoutExtension)
+    // l('originalFileNameWithoutExtension')
+    // l(originalFileNameWithoutExtension)
 
     // something
     const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithoutExtension)
 
-    l('directorySafeFileNameWithoutExtension')
-    l(directorySafeFileNameWithoutExtension)
+    // l('directorySafeFileNameWithoutExtension')
+    // l(directorySafeFileNameWithoutExtension)
 
 
     // something.mp4
@@ -199,7 +238,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     // load websocket by passed number
     let websocketConnection;
     if(global.webSocketData){
-      l(global.webSocketData);
+      // l(global.webSocketData);
       const websocket = global.webSocketData.find(function(websocket){
         return websocketNumber === websocket.websocketNumber;
       })
@@ -214,7 +253,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
     // TODO: this is wrong, it's with adding the pending length to get amount in front
     const placeInQueue = queue.getQueueLength();
 
-    l(queue);
+    // l(queue);
     l('place in queue');
     l(placeInQueue);
 
@@ -240,8 +279,8 @@ router.post('/file', upload.single('file'), function (req, res, next) {
 
     global.queueData.push(websocketNumber)
 
-    l('queue data');
-    l(global.queueData);
+    // l('queue data');
+    // l(global.queueData);
 
     // make the model medium by default
     if(!model){
@@ -269,6 +308,7 @@ router.post('/file', upload.single('file'), function (req, res, next) {
         fileSafeNameWithDateTimestampAndExtension,
         uploadGeneratedFilename,
         shouldTranslate,
+        uploadDurationInSeconds,
 
         // websocket/queue
         websocketConnection,
@@ -338,7 +378,7 @@ router.get("/player/:filename" , async function(req, res, next){
       filePathWithoutExtension,
       processingData,
       title: processingData.filename,
-      languagesToLoop
+      languagesToLoop,
       // vttPath,
       // fileSource
     })
