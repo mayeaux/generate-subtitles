@@ -6,6 +6,9 @@
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
+  "nodemonConfig": {
+    "ignore": ["transcriptions/*", "uploads/*"]
+  },
   "dependencies": {
     "await-spawn": "^4.0.2",
     "axios": "^1.1.3",

@@ -435,9 +435,7 @@ block content
 
         $('#upload-button').addClass('no-pointer-events');
 
-        setTimeout(function () {
-          $('#upload-button').html('Checking your upload length..')
-        }, 500)
+        $('#upload-button').html('Checking your upload length..')
 
         try {
           l('geting duration');
@@ -454,14 +452,16 @@ block content
           l(err);
         }
 
+        const oneHourInSeconds = 60 * 60;
+
         // 3600
         // TODO: pass from the backend
-        if (videoDurationInSeconds && videoDurationInSeconds > 3600) {
+        if (videoDurationInSeconds && videoDurationInSeconds > oneHourInSeconds) {
           $('#upload-button').html('Upload').removeClass('no-pointer-events');
           videoDurationInSeconds = 0;
           return Swal.fire({
             title: 'The video is too long',
-            text: 'To share time more evenly 1h+ uploads are not allowed',
+            text: 'To share time more evenly 1h+ uploads are not allowed currently',
             icon: 'error',
             confirmButtonText: 'Cool'
           })

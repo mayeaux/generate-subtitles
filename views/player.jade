@@ -132,16 +132,16 @@ block content
         @media (min-width: 320px) {
 
             .plyr__captions  .plyr__caption {
-                font-size: 20px;
-                line-height: 31px;
+                font-size: 21px;
+                line-height: 33px;
             }
         }
 
         @media (min-width: 801px) {
 
             .plyr__captions  .plyr__caption {
-                font-size: 27px;
-                line-height: 0px;
+                font-size: 21px;
+                line-height: 33px;
             }
             /* tablet, landscape iPad, lo-res laptops ands desktops */
         }
@@ -153,8 +153,8 @@ block content
         /* not mobile */
         @media (min-width: 1281px) {
             .plyr__captions .plyr__caption {
-                font-size: 27px;
-                line-height: 0px;
+                font-size: 21px;
+                line-height: 33px;
             }
             /* hi-res laptops and desktops */
         }
@@ -183,6 +183,34 @@ block content
             }
 
             /* hi-res laptops and desktops */
+        }
+
+        .buttons {
+            cursor: pointer;
+            margin-top: 9px;
+        }
+
+        .buttons div {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .buttons div p {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .buttons div {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .buttons #increaseSize p:hover, .buttons #increaseLineHeight p:hover  {
+            color: #55ed55;
+        }
+
+        .buttons #decreaseSize p:hover, .buttons #decreaseLineHeight p:hover {
+            color: #df2b2b;
         }
 
         .plyr__poster {
@@ -246,10 +274,15 @@ block content
 
 
     div.bottomSection
-        #increaseSize
-            p Increase Size
-        #decreaseSize
-            p Decrease Size
+        .buttons
+            #increaseSize
+                p Subtitle Text Size +
+            #decreaseSize
+                p Subtitle Text Size -
+            #increaseLineHeight
+                p Subtitle Spacing +
+            #decreaseLineHeight
+                p Subtitle Spacing -
 
         div.downloadLinks
             div.startAnotherTranscription(style="max-width:191px;")
@@ -403,16 +436,38 @@ block content
 
 
           // $('.plyr__caption').attr('style', `font-size: ${newFontSize}px !important`);
-          // $('.plyr__caption').css('line-height', `${newLineHeight}px`);
+          $('.plyr__caption').css('line-height', `${newLineHeight}px`);
           $('.plyr__caption').css('font-size', `${newFontSize}px`);
         }
 
-        $('#decreaseSize').click(function () {
+        function adjustLineHeight(direction) {
+          const currentLineHeight = $('.plyr__caption').css('line-height');
+          const currentLineHeight1 = currentLineHeight.replace('px', '');
+          const newLineHeight = parseInt(currentLineHeight1) + (direction === 'increase' ? 2 : -2);
+
+
+          subtitlesLineHeight = newLineHeight;
+
+          l('subtitlesLineHeight', subtitlesLineHeight)
+
+          // $('.plyr__caption').attr('style', `font-size: ${newFontSize}px !important`);
+          $('.plyr__caption').css('line-height', `${newLineHeight}px`);
+        }
+
+        $('#increaseSize').click(function (event) {
+          adjustFontSize('increase');
+        });
+
+        $('#decreaseSize').click(function (event) {
           adjustFontSize('decrease');
         });
 
-        $('#increaseSize').click(function () {
-          adjustFontSize('increase');
+        $('#increaseLineHeight').click(function (event) {
+          adjustLineHeight('increase');
+        });
+
+        $('#decreaseLineHeight').click(function (event) {
+          adjustLineHeight('decrease');
         });
 
         console.log("ready!");
