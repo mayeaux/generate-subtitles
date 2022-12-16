@@ -396,10 +396,10 @@ const getAllDirectories = async (dir) => {
   let newFiles = [];
 
   for (let file of files) {
-    l('file');
-    l(file);
-    l(file.name);
-    l(file.isDirectory());
+    // l('file');
+    // l(file);
+    // l(file.name);
+    // l(file.isDirectory());
     if(!file.isDirectory()) continue;
 
     let processingData;
@@ -410,9 +410,9 @@ const getAllDirectories = async (dir) => {
       // l(err);
       processingData = null;
     }
-
-    l('processing data');
-    l(processingData);
+    //
+    // l('processing data');
+    // l(processingData);
 
     if(processingData && processingData.startedAt && processingData.uploadDurationInSeconds){
       newFiles.push({

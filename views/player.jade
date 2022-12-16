@@ -230,6 +230,7 @@ block content
 
         .plyr__caption {
             text-wrap: balance;
+            display: block;
         }
 
         .plyr__controls {
@@ -562,11 +563,11 @@ block content
 
             // balance text not working at the moment
             if(subtitlesFontSize){
-              // $('.plyr__caption').css('line-height', `${subtitlesLineHeight}px`);
               $('.plyr__caption').css('font-size', `${subtitlesFontSize}px`);
-              // balanceText($('.plyr__caption'))
-            } else {
-              // balanceText($('.plyr__caption'))
+            }
+
+            if(subtitlesLineHeight){
+              $('.plyr__caption').css('line-height', `${subtitlesLineHeight}px`);
             }
 
 
