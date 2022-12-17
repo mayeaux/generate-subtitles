@@ -26,18 +26,6 @@ block content
             color: white;
         }
 
-        .site-logo {
-            cursor: pointer;
-            position: relative;
-            right: 0px;
-            text-align: right;
-            margin: 0px;
-            margin-right: 13px;
-            color: #d8d8d8;
-            padding: 0px;
-            top: 5px;
-        }
-
         .video-details {
             margin-top: -13px;
             margin-left: 15px;
@@ -186,13 +174,13 @@ block content
         }
 
         .buttons {
-            cursor: pointer;
             margin-top: 9px;
         }
 
         .buttons div {
             display: inline-block;
             margin-right: 10px;
+            cursor: pointer;
         }
 
         .buttons div p {
@@ -287,7 +275,7 @@ block content
 
         div.downloadLinks
             div.startAnotherTranscription(style="max-width:191px;")
-                a(target="_blank" href=`/`)
+                a(href=`/`)
                     p Start Another Transcription
 
             // ORIGINAL LANGUAGE FILES
@@ -417,6 +405,12 @@ block content
       let subtitlesFontSize, subtitlesLineHeight;
 
       $(document).ready(function () {
+
+        const anchorTags = document.querySelectorAll('a');
+
+        anchorTags.forEach((anchor) => {
+          anchor.setAttribute('target', '_blank');
+        });
 
         function adjustFontSize(direction) {
 
