@@ -440,30 +440,20 @@ async function sortByModifiedAtTime(dir){
 };
 
 async function getMatchingFiles({ files, language, keepMedia }){
-  let matchedFiles = [];
-  for(const file of files){
-    try {
-      const languageMatches =  language === file.processingData.language;
-      const keepMediaMatches = keepMedia === file.processingData.keepMedia;
-
-      const doesntMatchLanguage = language && !languageMatches;
-      const doesntMatchKeepMedia = keepMedia && !keepMediaMatches;
-
-      const preventBasedOnMissedMatch = doesntMatchLanguage || doesntMatchKeepMedia;
-
-      if(preventBasedOnMissedMatch){
-
-      } else {
-        matchedFiles.push(file);
-      }
-
-      // TODO: they should
-    } catch (err){
-      // don't do anything
-    }
+  // TODO: ugly design but can't think of a better approach atm
+  let keepMediaMatch;
+  if(keepMedia === false){
+    keepMediaMatch = undefined;
+  } else {
+    keepMediaMatch = keepMedia;
   }
 
-  return matchedFiles
+  files = files.filter((file) => {
+    return language === file.processingData.language &&
+    keepMediaMatch === file.processingData.keepMedia
+  })
+
+  return files
 }
 
 

@@ -108,9 +108,11 @@ block content
       margin-bottom: 10px;
     }
 
-    #githubLogo {
+    #githubLogo, #discordLogo, #telegramLogo {
       width: 100px;
       float: right;
+      clear: both;
+      margin-bottom: 10px;
     }
 
     #languageLabel, #modelLabel {
@@ -195,6 +197,10 @@ block content
 
   a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
     img#githubLogo(src='/images/inverted.png')
+  a(href='https://discord.gg/vfXg7GHMpR' target='_blank')
+    img#discordLogo(src='/images/discordLogo.png')
+  a(href='https://t.me/freesubtitles_ai' target='_blank')
+    img#telegramLogo(src='/images/telegramLogo.webp')
 
   .container
     //if isFreeSubtitles
