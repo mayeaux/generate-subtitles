@@ -25,34 +25,53 @@ block content
     form {
       background-color: white;
       padding: 30px;
+      border-radius: 4px;
+      font-size: 1rem;
     }
 
     form .input-group {
-      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
     }
 
-    form label {
-      display: block;
-      margin-bottom: 5px;
-      margin-top: 12px;
-    }
-
-    form input {
+    form :where(input:not([type='checkbox']), select) {
       padding: 12px 20px;
       width: 100%;
       border: 1px solid #ccc;
+      font-size: 1rem;
     }
 
-    .submit-btn {
+    input[type='checkbox'] {
+      width: 1.2rem;
+      height: 1.2rem;
+      opacity: 0.8;
+      accent-color: rgb(60, 57, 57);
+    }
+
+    form .translateHolder {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    form .submit-btn {
       width: 100%;
       border: none;
       background: rgb(60, 57, 57);
-      font-size: 18px;
+      font-size: 1.2rem;
+      font-weight: 700;
       color: white;
-      border-radius: 3px;
-      padding: 20px;
+      border-radius: 4px;
+      padding: 16px;
       text-align: center;
       cursor: pointer;
+      transition: all 250ms ease-in-out;
+    }
+
+    form .submit-btn:hover {
+      background-color: rgb(74, 71, 71);
+      transform: scale(1.02);
     }
 
     #latestData, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload, #processingData, #secondProcessingData {
@@ -129,14 +148,6 @@ block content
 
     #upload-button {
 
-    }
-
-    #translate {
-      position: relative;
-      top: -23px;
-      left: 6px;
-      height: 16px;
-      opacity: 0.8;
     }
 
     .translateHolder {
@@ -226,12 +237,21 @@ block content
       .input-group
         label(for='file') Select (or drop) file
         input#file(type='file')
-        label#languageLabel Language (aka English)
-        input#language(type='text' value=previousLanguage placeholder="Leave empty for Auto-Detect")
-        label#modelLabel Model (aka medium)
-        input#model(type='text' value=previousModel placeholder="Leave empty for medium")
+        //- label#languageLabel Language (aka English)
+        //- input#language(type='text' value=previousLanguage placeholder="Leave empty for Auto-Detect")
+        select#language(name='language' dir='auto')
+          option(value='') Language (aka English)
+          each lang in languages
+            option(value= lang)= lang
+
+        //- label#modelLabel Model (aka medium)
+        //- input#model(type='text' value=previousModel placeholder="Leave empty for medium")
+        select#model(name='model' dir='auto')
+          option(value='') Model (aka medium)
+          each model in modelsArray
+            option(value= model.value)= model.name
         div.translateHolder
-          label#translateLabel Translate to different languages
+          label#translateLabel(for='translate') Translate to different languages
           input#translate(type='checkbox')
         button#upload-button.submit-btn(type='submit') Upload
 

@@ -1,12 +1,13 @@
 const YTDlpWrap = require('yt-dlp-wrap').default;
-const which = require('which')
+const which = require('which');
 // const transcribe = require('./transcribe');
 
 l = console.log;
 
+const ytDlpFilename = process.platform === 'win32' ? 'YoutubeDL' : 'yt-dlp';
 // async usage
 // rejects if not found
-const ytDlpBinaryPath = which.sync('yt-dlp');
+const ytDlpBinaryPath = which.sync(ytDlpFilename);
 
 const ytDlpWrap = new YTDlpWrap(ytDlpBinaryPath);
 
@@ -41,24 +42,28 @@ const testUrl = 'https://www.youtube.com/watch?v=P7ny6-lKoe4';
 //   // console.log(ytDlpEventEmitter.ytDlpProcess.pid);
 // }
 
-async function download(videoUrl, filename){
+async function download(videoUrl, filename) {
   let stdout = await ytDlpWrap.execPromise([
     videoUrl,
     '-f',
     'bestaudio / b',
     '-o',
-    filename
+    filename,
   ]);
 
   l(stdout);
 
-  return true
+  return true;
 
   // console.log(ytDlpEventEmitter.ytDlpProcess.pid);
 }
 
-async function getTitle(videoUrl){
-  let metadata = await ytDlpWrap.getVideoInfo(videoUrl, '--format', 'bestaudio / b');
+async function getTitle(videoUrl) {
+  let metadata = await ytDlpWrap.getVideoInfo(
+    videoUrl,
+    '--format',
+    'bestaudio / b'
+  );
 
   // l(metadata);
   // l(metadata.title);
