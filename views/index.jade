@@ -226,10 +226,17 @@ block content
       .input-group
         label(for='file') Select (or drop) file
         input#file(type='file')
-        label#languageLabel Language (aka English)
-        input#language(type='text' value=previousLanguage placeholder="Leave empty for Auto-Detect")
-        label#modelLabel Model (aka medium)
-        input#model(type='text' value=previousModel placeholder="Leave empty for medium")
+        label#languageLabel Language (#{languages.length + 1} Options)
+        select#language(name='language' dir='auto')
+          option(value="auto-detect") Auto-Detect
+          each language in languages
+            option(value=language)= language
+        //input#language(type='text' value=previousLanguage placeholder="Leave empty for Auto-Detect")
+        label#modelLabel Model (#{modelsArray.length} Options)
+        select#model(name='model')
+          each model in modelsArray
+            option(value= model.value default=placeholder===model.name)= model.name
+        //input#model(type='text' value=previousModel placeholder="Leave empty for medium")
         div.translateHolder
           label#translateLabel Translate to different languages
           input#translate(type='checkbox')
@@ -352,9 +359,16 @@ block content
 
     l('previous should translate');
     l(previousShouldTranslate);
-
-    document.getElementById('model').value = previousModel;
-    document.getElementById("language").value = previousLanguage;
+    if(previousModel){
+      $('#model').val(previousModel);
+    } else {
+      $('#model').val('medium');
+    }
+    if(previousLanguage){
+      $('#language').val(previousLanguage);
+    } else {
+      $('#language').val('auto-detect');
+    }
     $('#translate').prop('checked', previousShouldTranslate === 'true');
     // const previousLanguage = localStorage.getItem('language');
 

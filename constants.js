@@ -23,6 +23,18 @@ function getLanguageCodeForAllLanguages(languageName){
   return foundLanguageCode
 }
 
+const modelsArray = [
+  {name: 'Tiny (English-only)', value: 'tiny.en'},
+  {name: 'Tiny', value: 'tiny'},
+  {name: 'Base (English-only)', value: 'base.en'},
+  {name: 'Base', value: 'base'},
+  {name: 'Small (English-only)', value: 'small.en'},
+  {name: 'Small', value: 'small'},
+  {name: 'Medium (English-only)', value: 'medium.en'},
+  {name: 'Medium', value: 'medium'},
+  {name: 'Large', value: 'large'},
+];
+
 // available models in Libretranslate
 const translationLanguages = [
   {"code":"ar","name":"Arabic"},
@@ -101,5 +113,6 @@ module.exports = {
   shouldTranslateFrom,
   translationLanguages,
   getLanguageCodeForAllLanguages,
-  newLanguagesMap
+  newLanguagesMap,
+  modelsArray
 }

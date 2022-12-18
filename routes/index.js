@@ -8,7 +8,6 @@ const downloadAndTranscribe = require('../download.js')
 // const transcribe = require('../transcribe');
 const transcribeWrapped = require('../transcribe-wrapped');
 const Queue = require("promise-queue");
-const constants = require('../constants');
 const {languagesToTranscribe} = require("../constants");
 const filenamify = require("filenamify");
 const { forHumans, forHumansNoSeconds } = require('../helpers')
@@ -17,7 +16,7 @@ const moment = require('moment');
 const ffprobe = require("ffprobe");
 const which = require("which");
 const {fr} = require("language-name-map/map");
-const { languagesToTranslateTo, newLanguagesMap } = constants;
+const { languagesToTranslateTo, newLanguagesMap, modelsArray, whisperLanguagesHumanReadableArray } = require('../constants');
 const ffprobePath = which.sync('ffprobe')
 const _ = require('lodash');
 
@@ -174,6 +173,8 @@ router.get('/', function(req, res, next) {
     siteStats: global.siteStats,
     isFreeSubtitles,
     uploadFileSizeLimitInMB,
+    modelsArray,
+    languages: whisperLanguagesHumanReadableArray
   });
 });
 
