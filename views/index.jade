@@ -225,7 +225,7 @@ block content
     form#form
       .input-group
         label(for='file') Select (or drop) file
-        input#file(type='file')
+        input#file(type='file', accept='audio/*, video/*')
         label#languageLabel Language (aka English)
         input#language(type='text' value=previousLanguage placeholder="Leave empty for Auto-Detect")
         label#modelLabel Model (aka medium)
@@ -398,24 +398,39 @@ block content
     //   //
     //   // });
     // });
+    function popUpMessageError(text, iconType){
+      return Swal.fire({
+          title: text,
+          icon: iconType,
+          confirmButtonText: 'Cool'
+      });
+    }
 
     async function submitForm(e) {
       e.preventDefault();
 
       let language = document.getElementById("language").value;
       const model = document.getElementById("model").value;
-
       const formData = new FormData();
-
       const passedFile = file.files[0]
 
       if(!passedFile){
-        return Swal.fire({
-          title: 'You didn\'t pass a file',
-          icon: 'error',
-          confirmButtonText: 'Cool'
-        })
+        return popUpMessageError('You didn\'t pass a file', 'error');
       }
+
+      // Check if it's file
+      let isFile = passedFile.type != null && passedFile.type != undefined; 
+      if(isFile) {
+        // Check if it's correct format
+        isFile = passedFile.type.match('video/*') || passedFile.type.match('audio/*'); 
+      }
+      if (!isFile){
+        // If it's not in correct format pop up error message
+        return popUpMessageError(
+          'You didn\'t pass a file in correct format. Please pass audio or video file.',
+          'error'
+        );
+      }      
 
       // http or https
       const protocol = document.location.protocol.slice(0, -1)
