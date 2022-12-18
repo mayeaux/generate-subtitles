@@ -1,6 +1,6 @@
 const translateText = require('./libreTranslateWrapper');
 const fs = require('fs-extra');
-const projectConstants = require('./constants');
+const projectConstants = require('../constants/constants');
 const { languagesToTranscribe, translationLanguages } = projectConstants;
 
 // const languagesToTranscribe = {}

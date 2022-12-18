@@ -1,6 +1,6 @@
 const fs = require("fs-extra");
-const createTranslatedFiles = require("./create-translated-files");
-const {forHumans} = require("./helpers");
+const createTranslatedFiles = require("../translate/create-translated-files");
+const {forHumans} = require("../helpers/helpers");
 
 // TODO: move to another directory
 const outputFileExtensions = ['.srt', '.vtt', '.txt']

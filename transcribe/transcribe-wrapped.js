@@ -5,13 +5,12 @@ const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 var convert = require('cyrillic-to-latin')
 const path = require('path');
-const projectConstants = require('./constants');
+const projectConstants = require('../constants/constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
-const forHumans = require('./helpers').forHumans;
-const createTranslatedFiles = require('./create-translated-files');
+const forHumans = require('../helpers/helpers').forHumans;
+const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
-const { formatStdErr } = require('./formatStdErr')
-
+const { formatStdErr } = require('../helpers/formatStdErr')
 
 l(formatStdErr);
 
