@@ -37,6 +37,8 @@ async function getTranscriptionData(){
 
   const processDirectory = process.cwd();
   const transcriptionsDirectory = `${processDirectory}/transcriptions`;
+  await fs.mkdirp(transcriptionsDirectory);
+
   const transcriptionsDirectoryContents = await fs.readdir(transcriptionsDirectory);
 
   // loop through all transcription directories
