@@ -203,6 +203,10 @@ block content
       margin-bottom: 35px;
     }
 
+    #translateLabel, #translate {
+      cursor: pointer;
+    }
+
   a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
     img#githubLogo(src='/images/inverted.png')
   a(href='https://discord.gg/vfXg7GHMpR' target='_blank')
@@ -309,33 +313,6 @@ block content
           reject(error);
         }
       });
-
-    $(document).ready(function () {
-      // swal data with languages
-      $("#languageLabel").on('click', function () {
-        l('models');
-        l(models);
-        return Swal.fire({
-          title: 'The following languages are valid',
-          text: languages.join(' '),
-          icon: 'question',
-          confirmButtonText: 'Cool'
-        })
-      });
-
-      // swal data with languages
-      $("#modelLabel").on('click', function () {
-        l('models');
-        l(models);
-        return Swal.fire({
-          title: 'The following models are valid',
-          text: models.join(' '),
-          icon: 'question',
-          confirmButtonText: 'Cool'
-        })
-      });
-
-    });
 
     function unescapeHTML(escapedHTML) {
       return escapedHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');

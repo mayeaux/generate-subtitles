@@ -24,13 +24,13 @@ function getLanguageCodeForAllLanguages(languageName){
 }
 
 const modelsArray = [
-  {name: 'Tiny (English-only)', value: 'tiny.en'},
+  {name: 'Tiny (English Only)', value: 'tiny.en'},
   {name: 'Tiny', value: 'tiny'},
-  {name: 'Base (English-only)', value: 'base.en'},
+  {name: 'Base (English Only)', value: 'base.en'},
   {name: 'Base', value: 'base'},
-  {name: 'Small (English-only)', value: 'small.en'},
+  {name: 'Small (English Only)', value: 'small.en'},
   {name: 'Small', value: 'small'},
-  {name: 'Medium (English-only)', value: 'medium.en'},
+  {name: 'Medium (English Only)', value: 'medium.en'},
   {name: 'Medium', value: 'medium'},
   {name: 'Large', value: 'large'},
 ];
