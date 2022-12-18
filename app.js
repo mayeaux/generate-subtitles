@@ -10,6 +10,15 @@ const {createServer} = require("http");
 const sessions = require('express-session');
 const _ = require('lodash');
 
+// Check if the .env file exists
+if (!fs.existsSync('.env')) {
+  // If the .env file does not exist, copy the .env.sample file to .env
+  fs.copyFileSync('.env.sample', '.env');
+}
+
+// Load the .env file
+require('dotenv').config();
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var api = require('./routes/api');
@@ -32,8 +41,6 @@ l = console.log;
 // }
 var port = process.env.PORT || '3000';
 app.set('port', port);
-
-
 
 // TODO: pull out into a different file
 /** BEGIN WEBSOCKETS **/

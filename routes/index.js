@@ -152,7 +152,10 @@ const nodeEnv = process.env.NODE_ENV || 'development';
 l('nodeEnv');
 l(nodeEnv);
 
-const uploadFileSizeLimitInMB = Number(process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB) || 100;
+let uploadFileSizeLimitInMB = 3000;
+if(nodeEnv === 'production'){
+  uploadFileSizeLimitInMB = process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB;
+}
 l('uploadFileSizeLimitInMB');
 l(uploadFileSizeLimitInMB);
 
