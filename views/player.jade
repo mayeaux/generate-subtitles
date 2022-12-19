@@ -510,6 +510,37 @@ block content
 
           $(function () {
 
+            $('.plyr__menu__container > div > div > div > button')[1].removeAttribute('hidden')
+
+            $('.plyr__menu__container > div > div > div > button').eq(1).html('<span>Second Captions<span class="plyr__menu__value">Disabled</span></span>')
+
+            const menuText = '<button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="-1"><span>Disabled</span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="0"><span>German<span class="plyr__menu__value"><span class="plyr__badge">DE</span></span></span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="1"><span>Spanish<span class="plyr__menu__value"><span class="plyr__badge">ES</span></span></span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="2"><span>French<span class="plyr__menu__value"><span class="plyr__badge">FR</span></span></span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="3"><span>Japanese<span class="plyr__menu__value"><span class="plyr__badge">JA</span></span></span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="4"><span>Russian<span class="plyr__menu__value"><span class="plyr__badge">RU</span></span></span></button><button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="5"><span>English<span class="plyr__menu__value"><span class="plyr__badge">EN</span></span></span></button>'
+
+
+            $("div[id*='secondCaptions'] div").html(menuText)
+
+            $("div[id*='secondCaptions'] button span").eq(0).text('Disabled')
+
+            $("div[id*='secondCaptions'] div").html(menuText)
+
+            $("div[id*='secondCaptions'] div button").click(function () {
+              $("div[id*='secondCaptions'] div button").attr("aria-checked", "false");
+              let languageValue = $(this).children().text();
+
+              if (/[A-Z]{2}$/.test(languageValue)) {
+                languageValue = languageValue.slice(0, -2);
+              }
+              console.log(languageValue);
+              $(this).attr("aria-checked", "true");
+              $("div[id*='secondCaptions'] button span").eq(0).text(languageValue)
+              $("div[id*='secondCaptions'] button span").eq(0).click()
+
+              $('.plyr__menu__container > div > div > div > button').eq(1)
+                .find('span.plyr__menu__value')
+                .text(languageValue)
+            })
+
+
             $('.plyr__captions').draggable({
               containment: 'plyr',
               // drag: function (event, ui) {
