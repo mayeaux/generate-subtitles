@@ -179,13 +179,23 @@ router.get('/', function(req, res, next) {
 
 global.queueData = [];
 
+function checkFileFormat(file, format){
+  return file.mimetype.match(`${format}`);
+}
+
 router.post('/file', upload.single('file'), async function (req, res, next) {
   // l(global.ws);
 
   try {
     l(req.file);
     l(req.body);
-
+    
+    if (!checkFileFormat(req.file, 'audio/*') && !checkFileFormat(req.file, 'video/*')){
+      return res.status(400).send(`Uploaded file was in wrong format.
+        Format was ${req.file.mimetype}.
+        Required format should be audio or video.`
+      );
+    }
     const language = req.body.language;
     let model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
