@@ -25,19 +25,11 @@ block content
     form {
       background-color: white;
       padding: 30px;
+      font-size: 1rem;
     }
 
-    form .input-group {
-      margin-bottom: 15px;
-    }
 
-    form label {
-      display: block;
-      margin-bottom: 5px;
-      margin-top: 12px;
-    }
-
-    form input {
+    form input:not([type='checkbox']) {
       padding: 12px 20px;
       width: 100%;
       border: 1px solid #ccc;
@@ -54,6 +46,141 @@ block content
       text-align: center;
       cursor: pointer;
     }
+
+    /**
+      NEW FORM STYLES
+    */
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+      }
+
+      form .group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+      }
+
+      form .group .wrapper {
+        position: relative;
+        width: 100%;
+      }
+
+      .select-btn, li{
+        width: 100%;
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .select-btn {
+        background: transparent;
+        justify-content: space-between;
+        border: 1px solid #aaaaaa70;
+        font-size: inherit;
+      }
+
+      .select-btn i {
+        font-size: 1.5rem;
+        transition: transform 250ms ease-in-out;
+      }
+
+      .wrapper.active .select-btn i {
+        transform: rotate(-180deg);
+      }
+
+      .content {
+        position: absolute;
+        top: 3.5rem;
+        z-index: 1;
+        width: 100%;
+        display: none;
+        flex-direction: column;
+        visibility: hidden;
+        opacity: 0;
+        max-height: 0;
+        padding: 16px;
+        padding-bottom: 0;
+        background: #fff;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        transition: max-height 250ms ease-in-out;
+      }
+
+      .wrapper.active .content{
+        display: flex;
+        visibility: visible;
+        opacity: 1;
+        max-height: 350px;
+      }
+
+      .content .search {
+        position: relative;
+        display: flex;
+        align-items: center;
+        height: 2.5rem;
+        gap: 0.5em;
+      }
+
+      .search i {
+        color: #999;
+        font-size: 1.25rem;
+        pointer-events: none;
+      }
+
+      .search input {
+        flex-grow: 1;
+        outline: none;
+        font-size: 1rem;
+        padding: 0.5em 0.75em;
+        border: 1px solid #B3B3B3;
+      }
+
+      .search input:focus{
+        border: 2px solid #4285f4;
+      }
+
+      .search input::placeholder{
+        color: #bfbfbf;
+      }
+
+      .content .options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        margin-top: 10px;
+        overflow-y: auto;
+        padding-inline: 0.5em;
+        background-color: #fff;
+      }
+
+      .options::-webkit-scrollbar{
+        width: 7px;
+      }
+      .options::-webkit-scrollbar-track{
+        background: #f1f1f1;
+        border-radius: 1rem;
+      }
+
+      .options::-webkit-scrollbar-thumb{
+        background: #ccc;
+        border-radius: 1rem;
+      }
+      .options::-webkit-scrollbar-thumb:hover {
+        background: #b3b3b3;
+      }
+
+      .options li {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .options li:hover, li.selected{
+        border-radius: 5px;
+        background: hsl(0deg 0% 90%);
+      }
 
     #latestData, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload, #processingData, #secondProcessingData {
       color: white;
@@ -123,7 +250,7 @@ block content
       margin-top: -14px;
     }
 
-    #languageLabel, #modelLabel {
+    #languageLabel, #modelLabel, #translateLabel, #translate {
       cursor: pointer;
     }
 
@@ -133,14 +260,15 @@ block content
 
     #translate {
       position: relative;
-      top: -23px;
-      left: 6px;
-      height: 16px;
+      height: 1.5rem;
+      width: 1.5rem;
       opacity: 0.8;
     }
 
-    .translateHolder {
-      height: 32px;
+    .group.translateHolder {
+      flex-direction: row;
+      gap: 0.5em;
+      align-items: center;
     }
 
     .no-pointer-events {
@@ -203,9 +331,6 @@ block content
       margin-bottom: 35px;
     }
 
-    #translateLabel, #translate {
-      cursor: pointer;
-    }
 
   a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
     img#githubLogo(src='/images/inverted.png')
@@ -226,25 +351,41 @@ block content
       h3.amountsHeader Duration: 1 Hour
 
     h1#header File Upload
-    form#form
-      .input-group
+    form.form#form
+      .group
         label(for='file') Select (or drop) file
         input#file(type='file')
-        label#languageLabel Language (#{languages.length + 1} Options)
-        select#language(name='language' dir='auto')
-          option(value="auto-detect") Auto-Detect
-          each language in languages
-            option(value=language)= language
-        //input#language(type='text' value=previousLanguage placeholder="Leave empty for Auto-Detect")
-        label#modelLabel Model (#{modelsArray.length} Options)
-        select#model(name='model')
-          each model in modelsArray
-            option(value= model.value default=placeholder===model.name)= model.name
-        //input#model(type='text' value=previousModel placeholder="Leave empty for medium")
-        div.translateHolder
-          label#translateLabel Translate to different languages
-          input#translate(type='checkbox')
-        button#upload-button.submit-btn(type='submit') Upload
+      .group
+        label(for='languageSelect')#languageLabel Language (#{languages.length + 1} Options)
+        div.wrapper
+          button#languageSelect.select-btn(type='button')
+            span#language.select-value(data-value='auto-detect') Auto-Detect
+            i.fa-solid.fa-angle-down
+          div.content
+            div.search
+              i.fa-solid.fa-magnifying-glass
+              input(spellcheck='false' type='text' placeholder='Search...')
+            ul.options
+              li.option(data-value='auto-detect') Auto-Detect
+              each language in languages
+                li.option(data-value=language)= language
+      .group
+        label(for='modelSelect')#modelLabel Model (#{modelsArray.length} Options)
+        div.wrapper
+          button#modelSelect.select-btn(type='button')
+            span#model.select-value= modelsArray[0].name
+            i.fa-solid.fa-angle-down
+          div.content
+            div.search
+              i.fa-solid.fa-magnifying-glass
+              input(spellcheck='false' type='text' placeholder='Search...')
+            ul.options
+              each model in modelsArray
+                li.option(data-value= model.value)= model.name
+      .group.translateHolder
+        label#translateLabel(for='translate') Translate to different languages
+        input#translate(type='checkbox')
+      button#upload-button.submit-btn(type='submit') Upload
 
     //DISPLAY DIFFERENT DATA
     p#progress
@@ -326,32 +467,57 @@ block content
     // TODO: pass from frontend
     const languagesString = 'Afrikaans,Albanian,Amharic,Arabic,Armenian,Assamese,Azerbaijani,Bashkir,Basque,Belarusian,Bengali,Bosnian,Breton,Bulgarian,Burmese,Castilian,Catalan,Chinese,Croatian,Czech,Danish,Dutch,English,Estonian,Faroese,Finnish,Flemish,French,Galician,Georgian,German,Greek,Gujarati,Haitian,Haitian Creole,Hausa,Hawaiian,Hebrew,Hindi,Hungarian,Icelandic,Indonesian,Italian,Japanese,Javanese,Kannada,Kazakh,Khmer,Korean,Lao,Latin,Latvian,Letzeburgesch,Lingala,Lithuanian,Luxembourgish,Macedonian,Malagasy,Malay,Malayalam,Maltese,Maori,Marathi,Moldavian,Moldovan,Mongolian,Myanmar,Nepali,Norwegian,Nynorsk,Occitan,Panjabi,Pashto,Persian,Polish,Portuguese,Punjabi,Pushto,Romanian,Russian,Sanskrit,Serbian,Shona,Sindhi,Sinhala,Sinhalese,Slovak,Slovenian,Somali,Spanish,Sundanese,Swahili,Swedish,Tagalog,Tajik,Tamil,Tatar,Telugu,Thai,Tibetan,Turkish,Turkmen,Ukrainian,Urdu,Uzbek,Valencian,Vietnamese,Welsh,Yiddish,Yoruba';
     const languages = languagesString.split(',');
+    // for consistent array formatting
+    const languagesArray = languages.map(lang => ({value: lang, name: lang}));
     const modelsString = 'tiny.en,tiny,base.en,base,small.en,small,medium.en,medium,large';
     const models = modelsString.split(',');
 
+    const modelsArray = [
+      {name: 'Tiny (English Only)', value: 'tiny.en'},
+      {name: 'Tiny', value: 'tiny'},
+      {name: 'Base (English Only)', value: 'base.en'},
+      {name: 'Base', value: 'base'},
+      {name: 'Small (English Only)', value: 'small.en'},
+      {name: 'Small', value: 'small'},
+      {name: 'Medium (English Only)', value: 'medium.en'},
+      {name: 'Medium', value: 'medium'},
+      {name: 'Large', value: 'large'},
+    ];
 
     const previousModel = localStorage.getItem('model');
+    // differentiate between model value and name
+    const previousModelName = localStorage.getItem('modelName');
     const previousLanguage = localStorage.getItem('language');
     const previousShouldTranslate = localStorage.getItem('shouldTranslate');
 
     l('previous should translate');
     l(previousShouldTranslate);
+
     if(previousModel){
-      $('#model').val(previousModel);
+      document.querySelector('#model').dataset.value = previousModel;
     } else {
-      $('#model').val('medium');
+      document.querySelector('#model').dataset.value = 'medium';
     }
+    if (previousModelName) {
+      document.querySelector('#model').textContent = previousModelName;
+    } else {
+      document.querySelector('#model').textContent = 'Medium';
+    }
+
     if(previousLanguage){
-      $('#language').val(previousLanguage);
+      document.querySelector('#language').dataset.value = previousLanguage;
+      document.querySelector('#language').textContent = previousLanguage;
     } else {
-      $('#language').val('auto-detect');
+      document.querySelector('#language').dataset.value = 'auto-detect';
+      document.querySelector('#language').textContent = 'auto-detect';
     }
+
     $('#translate').prop('checked', previousShouldTranslate === 'true');
     // const previousLanguage = localStorage.getItem('language');
 
 
     const ipAndPort = location.host;
-    const randomNumber = Math.round(Math.random() * 1000000000000);
+    const randomNumber = Math.round(Math.random() * 1_000_000_000_000);
 
     // grab elements
     const form = document.getElementById("form");
@@ -362,6 +528,72 @@ block content
     const latestData = document.getElementById('latestData');
     const file = document.getElementById("file");
     const body = document.querySelector('body');
+
+    // helper functions
+    const updateSelection = option => {
+      const selectedValueEl = option.closest('.wrapper').querySelector('.select-value');
+      selectedValueEl.textContent = option.textContent;
+      selectedValueEl.dataset.value = option.dataset.value;
+    }
+
+    const filterOptions = (options, q) => {
+      const regex = new RegExp(`^${q}`, 'i');
+      return options.filter(opt => !!opt.name.match(regex))
+    };
+
+    // Handle clicks with event delegation
+    document.body.addEventListener('click', evt => {
+      const clicked = evt.target;
+      const selectWrappers = document.querySelectorAll('#form .wrapper');
+
+      // On selection button click
+      const selectionBtn = clicked.closest('.select-btn');
+      if (selectionBtn) {
+        const selectWrapper = selectionBtn.closest('.wrapper');
+        selectWrapper.classList.toggle('active');
+      }
+
+      // On option click
+      const option = clicked.closest('.option');
+      if (option) {
+        console.log('before update');
+        updateSelection(option);
+        selectWrappers.forEach(wrapper => wrapper.classList.remove('active'));
+      }
+
+      // On outside form click
+      const inputGroup = clicked.closest('.form');
+      if (!inputGroup) {
+        selectWrappers.forEach(wrapper => wrapper.classList.remove('active'));
+      }
+    });
+
+    // handle input with event delegation
+    document.body.addEventListener('input', evt => {
+      // Elements
+      const pressed = evt.target;
+      const input = pressed.closest('input');
+      const wrapper = input.closest('.wrapper');
+      const selectBtn = wrapper.querySelector('.select-btn');
+      const optionsEl = wrapper.querySelector('.options');
+      const selectedValue = wrapper.querySelector('.select-value').textContent;
+
+      // assign options dynamically
+      const optionsArray = selectBtn.id === 'languageSelect' ? languagesArray : selectBtn.id === 'modelSelect' ? modelsArray : [];
+
+      // filter options
+      const filteredOptions = filterOptions(optionsArray, pressed.value);
+      
+      // render filtered options
+      optionsEl.innerHTML = `
+        ${selectBtn.id === 'languageSelect' ? `<li class='option ${selectedValue === 'Auto-Detect' ? 'selected' : ''}' data-value='auto-detect'>Auto-Detect</li>` : ''}
+
+        ${filteredOptions.map(opt => `
+          <li class='option ${selectedValue === opt.name ? 'selected' : ''}' data-value=${opt.value}>${opt.name}</li>
+        `).join('')}
+      `;
+      
+    })
 
 
     form.addEventListener("submit", submitForm);
@@ -393,8 +625,11 @@ block content
     async function submitForm(e) {
       e.preventDefault();
 
-      let language = document.getElementById("language").value;
-      const model = document.getElementById("model").value;
+      let language = document.querySelector('#language').dataset.value;
+      const modelEl = document.querySelector('#model');
+
+      const model = modelEl.dataset.value;
+      const modelName = modelEl.textContent;
 
       const formData = new FormData();
 
@@ -513,6 +748,7 @@ block content
       formData.append('shouldTranslate', translateIsChecked);
 
       localStorage.setItem('model', model);
+      localStorage.setItem('modelName', modelName);
       localStorage.setItem('language', language);
       localStorage.setItem('shouldTranslate', translateIsChecked);
 
