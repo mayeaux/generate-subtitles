@@ -525,17 +525,14 @@ block content
           }
 
           player.on('cuechange', function (event) {
-            // console.log('event!')
-            // console.log(event)
-
             const text = event.detail.plyr.captions.currentTrackNode.activeCues[0].text;
 
             const thing = getCurrentLanguageAndTrack()
             l(thing);
 
             // DISPLAY TWO AT ONCE
-            if(thing.language === 'Serbian'){
-              const thing2 = findTextFromIndexNumber('English', thing.indexNumber);
+            if(thing.language === 'English'){
+              const thing2 = findTextFromIndexNumber('Spanish', thing.indexNumber);
               if(thing2){
                 const oldText = $('span.plyr__caption').text()
 
@@ -551,17 +548,6 @@ block content
             if(subtitlesLineHeight){
               $('.plyr__caption').css('line-height', `${subtitlesLineHeight}px`);
             }
-
-
-
-            // const language = 'Russian';
-            //
-            // const thing2 = findTextFromIndexNumber(language, thing.indexNumber);
-            // l(thing2);
-            //
-            // const oldText = $('span.plyr__caption').text()
-            //
-            // $('span.plyr__caption').text(`${oldText}\n${thing2}`)
 
             l(text);
           })
