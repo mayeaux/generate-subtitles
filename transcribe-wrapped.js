@@ -111,7 +111,7 @@ async function transcribe({
       let arguments = [uploadedFilePath];
 
       // set the language for whisper (if undefined with auto-detect and translate off that)
-      if(language){
+      if (language && !/auto-detect/i.test(language)) {
         arguments.push('--language', language);
       }
 

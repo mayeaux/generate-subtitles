@@ -260,9 +260,10 @@ block content
 
     #translate {
       position: relative;
-      height: 1.5rem;
-      width: 1.5rem;
+      height: 1.1rem;
+      width: 1.1rem;
       opacity: 0.8;
+      margin-left: 2px;
     }
 
     .group.translateHolder {
@@ -600,13 +601,9 @@ block content
       const filteredOptions = filterOptions(optionsArray, pressed.value);
       
       // render filtered options
-      optionsEl.innerHTML = `
-        ${selectBtn.id === 'languageSelect' ? `<li class='option ${selectedValue === 'Auto-Detect' ? 'selected' : ''}' data-value='auto-detect'>Auto-Detect</li>` : ''}
-
-        ${filteredOptions.map(opt => `
-          <li class='option ${selectedValue === opt.name ? 'selected' : ''}' data-value=${opt.value}>${opt.name}</li>
-        `).join('')}
-      `;
+      optionsEl.innerHTML = selectBtn.id === 'languageSelect' ? `<li class='option ${selectedValue === 'Auto-Detect' ? 'selected' : ''}' data-value='auto-detect' tabindex='0'>Auto-Detect</li>` : '';
+      
+      optionsEl.innerHTML += filteredOptions.map(opt => `<li class='option ${selectedValue === opt.name ? 'selected' : ''}' data-value=${opt.value} tabindex='0'>${opt.name}</li>`).join('');
     });
 
     // handle key press with event delegation
@@ -619,6 +616,7 @@ block content
       const focusedOption = document.activeElement.closest('.option');
 
       if (key === 'ArrowDown') {
+        console.log(focusedOption?.nextSibling);
         // if there is a current focused option, focus the next one, else focus the first one
         // optional chaining is used to prevent error on going past the last element
         focusedOption ? focusedOption.nextSibling?.focus()
@@ -744,35 +742,6 @@ block content
             confirmButtonText: 'Cool'
           })
         }
-      }
-
-      function capitalize(s) {
-        return s[0].toUpperCase() + s.slice(1);
-      }
-
-      // capitalize for people who can't follow specs
-      language = language && capitalize(language);
-
-      const existsAndNotValidLanguage = language && !languages.includes(language)
-
-      if(existsAndNotValidLanguage){
-        return Swal.fire({
-          title: 'Can only use one of the following languages',
-          text: languages,
-          icon: 'error',
-          confirmButtonText: 'Cool'
-        })
-      }
-
-      const modelExistsAndNotValid = model && !models.includes(model);
-
-      if (modelExistsAndNotValid) {
-        return Swal.fire({
-          title: 'Can only use one of the following models',
-          text: models,
-          icon: 'error',
-          confirmButtonText: 'Cool'
-        })
       }
 
       const translateIsChecked = $('#translate').is(':checked');
