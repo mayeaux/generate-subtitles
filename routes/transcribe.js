@@ -1,21 +1,21 @@
-const express = require("express");
-const ffprobe = require("ffprobe");
-const which = require("which");
-const path = require("path");
-const Queue = require("promise-queue");
-const moment = require("moment");
-const ffprobePath = which.sync("ffprobe");
-const transcribeWrapped = require("../transcribe/transcribe-wrapped");
-const constants = require("../constants/constants");
+const express = require('express');
+const ffprobe = require('ffprobe');
+const which = require('which');
+const path = require('path');
+const Queue = require('promise-queue');
+const moment = require('moment');
+const ffprobePath = which.sync('ffprobe');
+const transcribeWrapped = require('../transcribe/transcribe-wrapped');
+const constants = require('../constants/constants');
 
 const { languagesToTranslateTo } = constants;
 
 
 const router = express.Router();
-const { makeFileNameSafe, decode_utf8, upload } = require("../lib/files");
+const { makeFileNameSafe, decode_utf8, upload } = require('../lib/files');
 
 let concurrentJobs = process.env.CONCURRENT_AMOUNT;
-if (process.NODE_ENV === "development") {
+if (process.NODE_ENV === 'development') {
   concurrentJobs = 1;
 }
 
@@ -28,7 +28,7 @@ l(queue);
 
 l(`CONCURRENT JOBS ALLOWED AMOUNT: ${concurrentJobs} `);
 
-router.post("/file", upload.single("file"), async function (req, res, next) {
+router.post('/file', upload.single('file'), async function (req, res, next) {
   // l(global.ws);
 
   try {
@@ -40,14 +40,14 @@ router.post("/file", upload.single("file"), async function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const uploadedFilePath = req.file.path;
     const uploadGeneratedFilename = req.file.filename;
-    const shouldTranslate = req.body.shouldTranslate === "true";
+    const shouldTranslate = req.body.shouldTranslate === 'true';
 
     const ffprobeResponse = await ffprobe(uploadedFilePath, {
       path: ffprobePath,
     });
 
     const audioStream = ffprobeResponse.streams.filter(
-      (stream) => stream.codec_type === "audio"
+      (stream) => stream.codec_type === 'audio'
     )[0];
     const uploadDurationInSeconds = Math.round(audioStream.duration);
 
@@ -56,7 +56,7 @@ router.post("/file", upload.single("file"), async function (req, res, next) {
 
     const fileSizeInMB = Math.round(req.file.size / 1048576);
 
-    const isFreeSubtitles = domainName === "freesubtitles.ai";
+    const isFreeSubtitles = domainName === 'freesubtitles.ai';
     if (isFreeSubtitles) {
       if (uploadDurationInSeconds > amountOfSecondsInHour) {
         const uploadLengthErrorMessage = `Your upload length is ${forHumansNoSeconds(
@@ -98,7 +98,7 @@ router.post("/file", upload.single("file"), async function (req, res, next) {
 
     if (!uploadedFilePath) {
       res.status(500);
-      res.send("no file");
+      res.send('no file');
     }
 
     // load websocket by passed number
@@ -111,7 +111,7 @@ router.post("/file", upload.single("file"), async function (req, res, next) {
       if (websocket) {
         websocketConnection = websocket.websocket;
       } else {
-        throw new Error("no websocket!");
+        throw new Error('no websocket!');
       }
     }
 
@@ -119,7 +119,7 @@ router.post("/file", upload.single("file"), async function (req, res, next) {
     const placeInQueue = queue.getQueueLength();
 
     // l(queue);
-    l("place in queue");
+    l('place in queue');
     l(placeInQueue);
 
     // general queue data
@@ -131,14 +131,14 @@ router.post("/file", upload.single("file"), async function (req, res, next) {
 
     const totalOutstanding = amountOfCurrentPending + amountinQueue;
 
-    l("totaloutstanding");
+    l('totaloutstanding');
     l(totalOutstanding);
 
     // give frontend their queue position
     if (amountOfCurrentPending > 0) {
       websocketConnection.send(
         JSON.stringify({
-          message: "queue",
+          message: 'queue',
           placeInQueue: totalOutstanding,
         }),
         function () {}
@@ -152,12 +152,12 @@ router.post("/file", upload.single("file"), async function (req, res, next) {
 
     // make the model medium by default
     if (!model) {
-      model = "medium";
+      model = 'medium';
     }
 
-    const timestampString = moment(new Date()).format("DD-MMMM-YYYY_HH_mm_ss");
+    const timestampString = moment(new Date()).format('DD-MMMM-YYYY_HH_mm_ss');
 
-    const separator = "--";
+    const separator = '--';
 
     const fileSafeNameWithDateTimestamp = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}`;
 
@@ -191,11 +191,11 @@ router.post("/file", upload.single("file"), async function (req, res, next) {
 
     // l(req.files);
     // l(req.body);
-    res.send("ok");
+    res.send('ok');
     // req.files is array of uploaded files
     // req.body will contain the text fields, if there were any
   } catch (err) {
-    l("err");
+    l('err');
     l(err);
     throw err;
   }

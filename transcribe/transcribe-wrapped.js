@@ -1,4 +1,4 @@
-const which = require("which");
+const which = require('which');
 const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
@@ -72,7 +72,7 @@ async function transcribe({
       // l(directorySafeFileNameWithExtension)
 
       // todo: refactor this a bit
-      websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
+      websocketConnection.send(JSON.stringify('Whisper initializing, updates to come...'), function () {});
 
       const osSpecificPathSeparator = path.sep;
 
@@ -135,7 +135,7 @@ async function transcribe({
       arguments.push('--verbose', 'False');
 
       // folder to save .txt, .vtt and .srt
-      arguments.push('-o', "transcriptions/" + uploadGeneratedFilename);
+      arguments.push('-o', 'transcriptions/' + uploadGeneratedFilename);
 
       l('transcribe arguments');
       l(arguments);
@@ -330,7 +330,7 @@ async function transcribe({
             if(libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate){
               // tell frontend that we're translating now
               websocketConnection.send(JSON.stringify({
-                languageUpdate: `Doing translations with LibreTranslate`,
+                languageUpdate: 'Doing translations with LibreTranslate',
                 message: 'languageUpdate'
               }), function () {});
               l('hitting LibreTranslate');

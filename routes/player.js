@@ -1,13 +1,13 @@
-const express = require("express");
+const express = require('express');
 const fs = require('fs-extra');
 
 const router = express.Router();
 
-const { newLanguagesMap } = require("../constants/constants");
-const { languagesToTranscribe } = require("../constants/constants");
+const { newLanguagesMap } = require('../constants/constants');
+const { languagesToTranscribe } = require('../constants/constants');
 
 /** PLYR PLAYER **/
-router.get("/player/:filename", async function (req, res, next) {
+router.get('/player/:filename', async function (req, res, next) {
   try {
     const fileNameWithoutExtension = req.params.filename;
 
@@ -15,7 +15,7 @@ router.get("/player/:filename", async function (req, res, next) {
 
     const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${fileNameWithoutExtension}`;
 
-    l("filePathWithoutExtension");
+    l('filePathWithoutExtension');
     l(filePathWithoutExtension);
 
     const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`;
@@ -23,7 +23,7 @@ router.get("/player/:filename", async function (req, res, next) {
     const processingDataPath = `${containingFolder}/processing_data.json`;
 
     const processingData = JSON.parse(
-      await fs.readFile(processingDataPath, "utf8")
+      await fs.readFile(processingDataPath, 'utf8')
     );
 
     const translatedLanguages = processingData.translatedLanguages;
@@ -33,13 +33,13 @@ router.get("/player/:filename", async function (req, res, next) {
       return translatedLanguages.includes(language.name);
     });
 
-    l("processing data");
+    l('processing data');
     l(processingData);
 
-    l("languages to loop");
+    l('languages to loop');
     l(languagesToLoop);
 
-    res.render("player", {
+    res.render('player', {
       filePath: filePathWithoutExtension,
       languages: languagesToTranscribe,
       fileNameWithoutExtension,
@@ -51,7 +51,7 @@ router.get("/player/:filename", async function (req, res, next) {
       // fileSource
     });
   } catch (err) {
-    l("err");
+    l('err');
     l(err);
     res.send(err);
   }

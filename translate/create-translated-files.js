@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 const projectConstants = require('../constants/constants');
 const { languagesToTranscribe, translationLanguages } = projectConstants;
 
-const convert = require("cyrillic-to-latin");
+const convert = require('cyrillic-to-latin');
 
 let l = console.log;
 

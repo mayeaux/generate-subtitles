@@ -3,20 +3,20 @@ const express = require('express');
 const axios = require('axios');
 const fs = require('fs-extra');
 const FormData = require('form-data');
-const multer = require("multer");
+const multer = require('multer');
 var router = express.Router();
 const transcribe = require('../transcribe/transcribe-api-wrapped')
-const transcribeWrapped = require("../transcribe/transcribe-wrapped");
-const constants = require("../constants/constants");
-const filenamify = require("filenamify");
-const createTranslatedFiles = require("../translate/translate-files-api");
+const transcribeWrapped = require('../transcribe/transcribe-wrapped');
+const constants = require('../constants/constants');
+const filenamify = require('filenamify');
+const createTranslatedFiles = require('../translate/translate-files-api');
 const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
 
 const makeFileNameSafe = function(string){
   return filenamify(string, {replacement: '_' })
     .split('：').join(':')
     .replace(/[&\/\\#,+()$~%.'":*?<>{}!]/g, '')
-    .replace(/\s+/g,"_")
+    .replace(/\s+/g,'_')
 }
 
 function getCodeFromLanguageName(languageName){
