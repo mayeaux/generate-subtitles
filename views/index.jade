@@ -260,9 +260,10 @@ block content
 
     #translate {
       position: relative;
-      height: 1.5rem;
-      width: 1.5rem;
+      height: 1.1rem;
+      width: 1.1rem;
       opacity: 0.8;
+      margin-left: 2px;
     }
 
     .group.translateHolder {
@@ -598,7 +599,7 @@ block content
 
       // filter options
       const filteredOptions = filterOptions(optionsArray, pressed.value);
-      
+
       // render filtered options
       optionsEl.innerHTML = `
         ${selectBtn.id === 'languageSelect' ? `<li class='option ${selectedValue === 'Auto-Detect' ? 'selected' : ''}' data-value='auto-detect'>Auto-Detect</li>` : ''}
