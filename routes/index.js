@@ -185,60 +185,6 @@ function checkFileFormat(file, format){
   return file.mimetype.match(`${format}`);
 }
 
-function getLastEditedFile(dir) {
-  let lastEditedFile;
-  let lastEditedTime = 0;
-
-  try {
-    const files = fs.readdirSync(dir);
-    console.log(`files:${files} len :${files.length}`);
-    for (let i = 0 ; i < files.length; i++){
-      let stat = fs.statSync(`${dir}/${files[i]}`);
-      if (stat.mtimeMs > lastEditedTime){
-        lastEditedFile = files[i];
-        lastEditedTime = stat.mtimeMs;
-      }
-    }
-  } catch (error) {
-    console.error(`Error finding last uploaded file:${error}`);
-  }
-  
-  return `${dir}/${lastEditedFile}`;
-}
-
-function trimFile(originalFileName, secondsToTrim, mediaDurationSeconds){
-  if(mediaDurationSeconds <= secondsToTrim){
-    l(`Can not trim file for ${secondsToTrim} since file length is ${mediaDurationSeconds}`);
-    return 1;
-  }
-
-  // last added file is the one that is currently processed
-  let newFile = getLastEditedFile(path.join(process.cwd(), 'uploads'));
-  if (newFile == null || newFile == undefined){
-    l(`Trimming couldn't find exact file to trim.`);
-    return 1;
-  }
-
-  let fileExtension = path.extname(originalFileName);
-
-  try {
-    // run ffmpeg comand sync so it's over before file is processed later
-    const ffmpegF = spawnSync('ffmpeg', [
-      '-i', newFile,                        // input file
-      '-ss', `00:00:${secondsToTrim}`,      // start time
-      '-c', 'copy',                         // copy codec
-      `${newFile}.${fileExtension}`         // output file
-    ]);
-    // ffmpeg requires format for file, so it's needed in command
-    // after command we can rename file to it's original name that is used for processing
-    fs.renameSync(`${newFile}.${fileExtension}`, `${newFile}`);
-    return 0;
-  } catch (error) {
-    l(`Error while trimming with ffmpeg: ${error}`);
-    return 1;    
-  }
-}
-
 router.post('/file', upload.single('file'), async function (req, res, next) {
   // l(global.ws);
   try {
@@ -265,16 +211,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
     
     const uploadDurationInSeconds = Math.round(audioStream.duration);
-
-    const secondsToTrim = 10;
-    const trimResult = trimFile(req.file.originalname, secondsToTrim, uploadDurationInSeconds); 
-    if (trimResult != 0){
-      l(`Trimming reuslted to an error. Check previous logs.`);
-    }
-    else{
-      l(`Trimming was succesful.`);
-    }
-    
     
     const amountOfSecondsInHour = 60 * 60;
     const domainName = req.hostname;
