@@ -10,7 +10,8 @@ const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLan
 const forHumans = require('./helpers').forHumans;
 const createTranslatedFiles = require('./create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
-const { formatStdErr } = require('./formatStdErr')
+const { formatStdErr } = require('./formatStdErr');
+const { Console } = require("console");
 
 
 l(formatStdErr);
@@ -111,7 +112,7 @@ async function transcribe({
       let arguments = [uploadedFilePath];
 
       // set the language for whisper (if undefined with auto-detect and translate off that)
-      if(language){
+      if (language && !/auto-detect/i.test(language)) {
         arguments.push('--language', language);
       }
 
