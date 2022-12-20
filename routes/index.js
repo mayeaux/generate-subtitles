@@ -386,6 +386,7 @@ router.get("/player/:filename" , async function(req, res, next){
       processingData,
       title: processingData.filename,
       languagesToLoop,
+      totalLanguages: languagesToLoop
       // vttPath,
       // fileSource
     })
