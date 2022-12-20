@@ -21,8 +21,6 @@ const { languagesToTranslateTo, newLanguagesMap } = constants;
 const ffprobePath = which.sync('ffprobe')
 const _ = require('lodash');
 
-const { spawnSync } = require('child_process');
-
 // const languageNameMap = require('language-name-map/map')
 // l('language name map');
 // l(newLanguagesMap.reverse())
