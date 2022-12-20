@@ -1,40 +1,23 @@
 const express = require("express");
-const multer = require("multer");
 const ffprobe = require("ffprobe");
 const which = require("which");
 const path = require("path");
-const filenamify = require("filenamify");
 const Queue = require("promise-queue");
 const moment = require("moment");
 const ffprobePath = which.sync("ffprobe");
 
-const transcribeWrapped = require("../transcribe/transcribe-wrapped");
-const { languagesToTranslateTo } = require("../constants/constants");
+const _ = require("lodash");
 
 const router = express.Router();
-
-const storage = multer.diskStorage({
-  // notice you are calling the multer.diskStorage() method here, not multer()
-  destination: function (req, file, cb) {
-    cb(null, "./uploads/");
-  },
-});
-
-l = console.log;
-
-var upload = multer({ storage });
-
-function decode_utf8(s) {
-  return decodeURIComponent(escape(s));
-}
-
-const makeFileNameSafe = function (string) {
-  return filenamify(string, { replacement: "_" })
-    .replace(/[&\/\\#,+()$~%.'":*?<>{}!]/g, "")
-    .replace(/\s+/g, "_")
-    .split("：")
-    .join(":");
-};
+const transcribeWrapped = require("../transcribe/transcribe-wrapped");
+const { languagesToTranslateTo } = require("../constants/constants");
+const {
+  getAllDirectories,
+  getMatchingFiles,
+  makeFileNameSafe,
+  decode_utf8,
+  upload
+} = require("../lib/file");
 
 let concurrentJobs = process.env.CONCURRENT_AMOUNT;
 if (process.NODE_ENV === "development") {
@@ -220,6 +203,86 @@ router.post("/file", upload.single("file"), async function (req, res, next) {
     l("err");
     l(err);
     throw err;
+  }
+});
+
+// see files
+router.get("/files", async function (req, res, next) {
+  try {
+    const { password, language } = req.query;
+
+    const keepMedia = req.query.keepMedia === "true";
+
+    if (password !== process.env.FILES_PASSWORD) {
+      res.redirect("/404");
+    } else {
+      const dir = "./transcriptions";
+
+      //
+      let files = await getAllDirectories("./transcriptions");
+
+      // log files length
+      l("files length");
+      l(files.length);
+      // l(files);
+
+      // TODO: what other things to match against?
+      files = await getMatchingFiles({ dir, files, language, keepMedia });
+
+      files = _.orderBy(
+        files,
+        (file) => new Date(file.processingData.finishedAT),
+        "desc"
+      );
+
+      return res.render("files", {
+        // list of file names
+        files,
+        title: "Files",
+      });
+    }
+  } catch (err) {
+    l("err");
+    l(err);
+  }
+});
+
+// see files
+router.get("/learnserbian", async function (req, res, next) {
+  try {
+    const dir = "./transcriptions";
+    //
+    let files = await getAllDirectories("./transcriptions");
+
+    const language = "Serbian";
+    const keepMedia = true;
+
+    // TODO: what other things to match against?
+    files = await getMatchingFiles({ dir, files, language, keepMedia });
+
+    l("files length");
+    l(files.length);
+    l(files);
+
+    files = files.filter(function (file) {
+      return file.processingData.translatedLanguages.length;
+    });
+
+    // TODO: finishedAT is misspelled
+    files = _.orderBy(
+      files,
+      (file) => new Date(file.processingData.finishedAT),
+      "desc"
+    );
+
+    return res.render("files", {
+      // list of file names
+      files,
+      title: "Files",
+    });
+  } catch (err) {
+    l("err");
+    l(err);
   }
 });
 
