@@ -4,11 +4,11 @@ const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 var convert = require('cyrillic-to-latin')
-const projectConstants = require('./constants');
+const projectConstants = require('../constants/constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
-const forHumans = require('./helpers').forHumans;
-const createTranslatedFiles = require('./translate-files-api');
-const {formatStdErr} = require("./formatStdErr");
+const forHumans = require('../helpers/helpers').forHumans;
+const createTranslatedFiles = require('../translate/translate-files-api');
+const {formatStdErr} = require("../helpers/formatStdErr");
 const LTHost = process.env.LIBRETRANSLATE;
 
 function getCodeFromLanguageName(languageName){

@@ -5,13 +5,12 @@ const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 var convert = require('cyrillic-to-latin')
 const path = require('path');
-const projectConstants = require('./constants');
+const projectConstants = require('../constants/constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
-const forHumans = require('./helpers').forHumans;
-const createTranslatedFiles = require('./create-translated-files');
+const forHumans = require('../helpers/helpers').forHumans;
+const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
-const { formatStdErr } = require('./formatStdErr')
-
+const { formatStdErr } = require('../helpers/formatStdErr')
 
 l(formatStdErr);
 
@@ -75,9 +74,11 @@ async function transcribe({
       // todo: refactor this a bit
       websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
 
+      const osSpecificPathSeparator = path.sep;
+
       // get the upload file name
       // the ugly generated file id made the during the upload (for moving the upload over)
-      let uploadFolderFileName = uploadedFilePath.split("/").pop();
+      let uploadFolderFileName = uploadedFilePath.split(osSpecificPathSeparator).pop();
 
       const originalUpload = `./uploads/${uploadFolderFileName}`;
 
@@ -409,11 +410,6 @@ async function transcribe({
             await fs.rename(containingDir, renamedDirectory)
 
           } else {
-            sendToWebsocket(websocketConnection, {
-              message: 'error',
-              text: 'The transcription failed, please try again or try again later'
-            })
-            websocketConnection.terminate()
             l('FAILED!');
             reject();
             throw new Error('Transcription has been ended')

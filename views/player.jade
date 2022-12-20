@@ -212,8 +212,13 @@ block content
             max-width: 99%;
             z-index: 9999;
             padding: 0px;
-            transform: translateY(-82px) !important;
             width: unset !important;
+            position: absolute;
+            bottom: 68px;
+        }
+
+        .plyr:not(.plyr--hide-controls) .plyr__controls:not(:empty)~.plyr__captions {
+            transform: unset !important;
         }
 
         .plyr__caption {
@@ -504,11 +509,10 @@ block content
         setTimeout(function(){
 
           $(function () {
+
             $('.plyr__captions').draggable({
               containment: 'plyr',
               // drag: function (event, ui) {
-              //   l('running!!!!');
-              //   player.toggleControls(false)
               // }
             });
           });
@@ -519,22 +523,6 @@ block content
           if (!captionsIsPressed) {
             $('button[data-plyr="captions"]').click();
           }
-
-          let thingHidden = false;
-          $('.plyr__captions').mousedown(function () {
-            $('.plyr__controls').hide();
-            thingHidden = true;
-            l('mouse down');
-          });
-
-          window.addEventListener('mouseup', function (event) {
-            if(thingHidden){
-              $('.plyr__controls').show();
-              thingHidden = false;
-              l('mouse up');
-            }
-            // do logic here
-          })
 
           player.on('cuechange', function (event) {
             // console.log('event!')

@@ -7,19 +7,9 @@ Under the hood, `generate-subtitles` uses Whisper AI for creating transcripts an
 
 You can find the installation instructions for Whisper here: https://github.com/openai/whisper#setup
 
-Optionally, you can install `Libretranslate` here: https://github.com/LibreTranslate/LibreTranslate#install-and-run
+Optionally, you can install Libretranslate here: https://github.com/LibreTranslate/LibreTranslate#install-and-run
 
-The other external dependency is `yt-dlp`: https://github.com/yt-dlp/yt-dlp 
-
-If you're using a UNIX based OS you can use:
-```
-sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-sudo chmod a+rx /usr/local/bin/yt-dlp
-```
-
-to install `yt-dlp`, otherwise check here for other installation options: https://github.com/yt-dlp/yt-dlp/wiki/Installation
-
-Once Whisper and `yt-dlp` are installed you can boot the app via:
+Once Whisper is installed and working properly, you can start the web server.
 
 `git clone https://github.com/mayeaux/generate`
 
