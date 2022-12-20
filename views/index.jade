@@ -509,7 +509,7 @@ block content
       document.querySelector('#language').textContent = previousLanguage;
     } else {
       document.querySelector('#language').dataset.value = 'auto-detect';
-      document.querySelector('#language').textContent = 'auto-detect';
+      document.querySelector('#language').textContent = 'Auto-Detect';
     }
 
     $('#translate').prop('checked', previousShouldTranslate === 'true');
@@ -550,7 +550,9 @@ block content
       const selectionBtn = clicked.closest('.select-btn');
       if (selectionBtn) {
         const selectWrapper = selectionBtn.closest('.wrapper');
+        const input = selectWrapper.querySelector('.search input');
         selectWrapper.classList.toggle('active');
+        input.focus();
       }
 
       // On option click
