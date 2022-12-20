@@ -6,6 +6,8 @@ const fileRouter = require('./files');
 const playerRouter = require('./player');
 const transcribeRouter = require('./transcribe');
 const { forHumans } = require('../helpers/helpers');
+const { uploadFileSizeLimitInMB } = require('../lib/transcribing');
+
 const {
   modelsArray,
   whisperLanguagesHumanReadableArray,
@@ -25,10 +27,7 @@ router.use(transcribeRouter);
 l('nodeEnv');
 l(nodeEnv);
 
-let uploadFileSizeLimitInMB = 3000;
-if (nodeEnv === 'production') {
-  uploadFileSizeLimitInMB = process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB;
-}
+
 l('uploadFileSizeLimitInMB');
 l(uploadFileSizeLimitInMB);
 
