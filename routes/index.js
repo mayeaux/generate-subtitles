@@ -21,6 +21,8 @@ const { languagesToTranslateTo, newLanguagesMap } = constants;
 const ffprobePath = which.sync('ffprobe')
 const _ = require('lodash');
 
+const { spawnSync } = require('child_process');
+
 // const languageNameMap = require('language-name-map/map')
 // l('language name map');
 // l(newLanguagesMap.reverse())
@@ -183,10 +185,53 @@ function checkFileFormat(file, format){
   return file.mimetype.match(`${format}`);
 }
 
-router.post('/file', upload.single('file'), async function (req, res, next) {
-  // l(global.ws);
+function getLastEditedFile(dir) {
+  let lastEditedFile;
+  let lastEditedTime = 0;
 
   try {
+    const files = fs.readdirSync(dir);
+    console.log(`files:${files} len :${files.length}`);
+    for (let i = 0 ; i < files.length; i++){
+      let stat = fs.statSync(`${dir}/${files[i]}`);
+      if (stat.mtimeMs > lastEditedTime){
+        lastEditedFile = files[i];
+        lastEditedTime = stat.mtimeMs;
+      }
+    }
+  } catch (error) {
+    console.error(`Error finding last uploaded file:${error}`);
+  }
+  
+  return `${dir}/${lastEditedFile}`;
+}
+
+function trimFile(originalFileName, secondsToTrim, mediaDurationSeconds){
+  if(mediaDurationSeconds <= secondsToTrim){
+    l(`Can not trim file for ${secondsToTrim} since file length is ${mediaDurationSeconds}`);
+    return false;
+  }
+
+  // last added file is the one that is currently processed
+  let newFile = getLastEditedFile(path.join(process.cwd(), 'uploads'));
+  let fileExtension = path.extname(originalFileName);
+
+  // run ffmpeg comand sync so it's over before file is processed later
+  const ffmpegF = spawnSync('ffmpeg', [
+    '-i', newFile,                        // input file
+    '-ss', `00:00:${secondsToTrim}`,      // start time
+    '-c', 'copy',                         // copy codec
+    `${newFile}.${fileExtension}`         // output file
+  ]);
+  // ffmpeg requires format for file, so it's needed in command
+  // after command we can rename file to it's original name that is used for processing
+  fs.renameSync(`${newFile}.${fileExtension}`, `${newFile}`);
+}
+
+router.post('/file', upload.single('file'), async function (req, res, next) {
+  // l(global.ws);
+  try {
+    
     l(req.file);
     l(req.body);
     
@@ -196,6 +241,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
         Required format should be audio or video.`
       );
     }
+    
     const language = req.body.language;
     let model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
@@ -204,10 +250,14 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const shouldTranslate = req.body.shouldTranslate === 'true';
 
     const ffprobeResponse = await ffprobe(uploadedFilePath, { path: ffprobePath });
-
+    
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
+    
     const uploadDurationInSeconds = Math.round(audioStream.duration);
 
+    const secondsToTrim = 10;
+    trimFile(req.file.originalname, secondsToTrim, uploadDurationInSeconds);
+    
     const amountOfSecondsInHour = 60 * 60;
     const domainName = req.hostname;
 
@@ -263,7 +313,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       } else {
         throw new Error('no websocket!');
       }
-
     }
 
     // TODO: this is wrong, it's with adding the pending length to get amount in front
