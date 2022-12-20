@@ -6,10 +6,10 @@ const path = require("path");
 const filenamify = require("filenamify");
 const Queue = require("promise-queue");
 const moment = require("moment");
+const ffprobePath = which.sync("ffprobe");
+
 const transcribeWrapped = require("../transcribe/transcribe-wrapped");
 const { languagesToTranslateTo } = require("../constants/constants");
-
-const ffprobePath = which.sync("ffprobe");
 
 const router = express.Router();
 

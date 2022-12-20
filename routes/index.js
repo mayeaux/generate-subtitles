@@ -1,24 +1,25 @@
 var express = require('express');
-var router = express.Router();
 const fs = require('fs-extra');
-
-const {global} = require("../lib/state")
-const file = require("./files")
-
-const {languagesToTranscribe} = require("../constants/constants");
 const filenamify = require("filenamify");
-const { forHumans, forHumansNoSeconds } = require('../helpers/helpers')
 const moment = require('moment');
-const { newLanguagesMap, modelsArray, whisperLanguagesHumanReadableArray } = require('../constants/constants');
 const _ = require('lodash');
 
-//file router 
-router.use(file)
+const {global} = require("../lib/state")
+const fileRouter = require("./files")
+const playerRouter = require("./player")
+const {languagesToTranscribe} = require("../constants/constants");
+const { forHumans } = require('../helpers/helpers')
+const { newLanguagesMap, modelsArray, whisperLanguagesHumanReadableArray } = require('../constants/constants');
 
+var router = express.Router();
 const uploadPath =  process.env.UPLOAD_PATH || 'localhost:3000';
-
-
 const nodeEnv = process.env.NODE_ENV || 'development';
+
+//file router 
+router.use(fileRouter)
+//player router
+router.use(playerRouter)
+
 l('nodeEnv');
 l(nodeEnv);
 
@@ -53,54 +54,54 @@ global.queueData = [];
 
 l(process.cwd());
 
-/** PLYR PLAYER **/
-router.get("/player/:filename" , async function(req, res, next){
-  try {
-    const fileNameWithoutExtension = req.params.filename
+// /** PLYR PLAYER **/
+// router.get("/player/:filename" , async function(req, res, next){
+//   try {
+//     const fileNameWithoutExtension = req.params.filename
 
-    const processDirectory = process.cwd();
+//     const processDirectory = process.cwd();
 
-    const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${fileNameWithoutExtension}`;
+//     const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${fileNameWithoutExtension}`;
 
-    l('filePathWithoutExtension')
-    l(filePathWithoutExtension);
+//     l('filePathWithoutExtension')
+//     l(filePathWithoutExtension);
 
-    const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+//     const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
 
-    const processingDataPath = `${containingFolder}/processing_data.json`;
+//     const processingDataPath = `${containingFolder}/processing_data.json`;
 
-    const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
+//     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
-    const translatedLanguages = processingData.translatedLanguages;
+//     const translatedLanguages = processingData.translatedLanguages;
 
-    // TODO: check that it doesn't include the original language? or it never will?
-    const languagesToLoop = newLanguagesMap.filter(function(language){
-      return translatedLanguages.includes(language.name)
-    });
+//     // TODO: check that it doesn't include the original language? or it never will?
+//     const languagesToLoop = newLanguagesMap.filter(function(language){
+//       return translatedLanguages.includes(language.name)
+//     });
 
-    l('processing data');
-    l(processingData);
+//     l('processing data');
+//     l(processingData);
 
-    l('languages to loop');
-    l(languagesToLoop);
+//     l('languages to loop');
+//     l(languagesToLoop);
 
-    res.render('player', {
-      filePath: filePathWithoutExtension,
-      languages: languagesToTranscribe,
-      fileNameWithoutExtension,
-      filePathWithoutExtension,
-      processingData,
-      title: processingData.filename,
-      languagesToLoop,
-      // vttPath,
-      // fileSource
-    })
-  } catch (err){
-    l('err');
-    l(err);
-    res.send(err);
-  }
-});
+//     res.render('player', {
+//       filePath: filePathWithoutExtension,
+//       languages: languagesToTranscribe,
+//       fileNameWithoutExtension,
+//       filePathWithoutExtension,
+//       processingData,
+//       title: processingData.filename,
+//       languagesToLoop,
+//       // vttPath,
+//       // fileSource
+//     })
+//   } catch (err){
+//     l('err');
+//     l(err);
+//     res.send(err);
+//   }
+// });
 
 // it's an array of file names
 const getAllDirectories = async (dir) => {
