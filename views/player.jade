@@ -250,6 +250,9 @@ block content
             cursor: pointer;
         }
 
+        label {
+            color: white;
+        }
 
 
 
@@ -277,6 +280,11 @@ block content
                 p Subtitle Spacing +
             #decreaseLineHeight
                 p Subtitle Spacing -
+            #selectTranslation
+                label Select Translation: 
+                select#selectTranslationSelect
+                    each language in processingData.translatedLanguages
+                        option(value=language) #{language}
 
         div.downloadLinks
             div.startAnotherTranscription(style="max-width:191px;")
@@ -573,13 +581,14 @@ block content
             l(thing);
 
             // DISPLAY TWO AT ONCE
-            if(thing.language === 'Serbian'){
-              const thing2 = findTextFromIndexNumber('English', thing.indexNumber);
-              if(thing2){
-                const oldText = $('span.plyr__caption').text()
-
-                $('span.plyr__caption').text(`${oldText}\n${thing2}`)
-              }
+            const selectedTranslation = $("#selectTranslationSelect").val();
+            if(selectedTranslation) {
+                const thing2 = findTextFromIndexNumber(selectedTranslation, thing.indexNumber);
+                if(thing2){
+                    const oldText = $('span.plyr__caption').text()
+    
+                    $('span.plyr__caption').text(`${oldText}\n${thing2}`)
+                }
             }
 
             // balance text not working at the moment
@@ -604,7 +613,6 @@ block content
 
             l(text);
           })
-
         }, 200)
 
 
