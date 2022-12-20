@@ -1,14 +1,14 @@
-
-var express = require('express');
-
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+let express = require('express');
+let path = require('path');
+let favicon = require('serve-favicon');
+let logger = require('morgan');
+let cookieParser = require('cookie-parser');
+let bodyParser = require('body-parser');
 const fs = require('fs');
 const sessions = require('express-session');
 const _ = require('lodash');
+
+global.l = console.log;
 
 // Check if the .env file exists
 if (!fs.existsSync('.env')) {
@@ -21,17 +21,11 @@ require('dotenv').config();
 
 const { server , app  } = require('./lib/websockets');
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
-var api = require('./routes/api');
-const WebSocket = require('ws'); //
+let routes = require('./routes/index');
+let users = require('./routes/users');
+let api = require('./routes/api');
 
-
-const isProd = process.NODE_ENV === 'production';
-
-l = console.log;
-
-var port = process.env.PORT || '3000';
+let port = process.env.PORT || '3000';
 app.set('port', port);
 
 // check every 5 seconds for dead sockets (still takes 10s)
@@ -84,7 +78,7 @@ app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  var err = new Error('Not Found');
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });

@@ -4,7 +4,7 @@ const axios = require('axios');
 const fs = require('fs-extra');
 const FormData = require('form-data');
 const multer = require('multer');
-var router = express.Router();
+let router = express.Router();
 const transcribe = require('../transcribe/transcribe-api-wrapped')
 const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 const constants = require('../constants/constants');
@@ -12,27 +12,27 @@ const filenamify = require('filenamify');
 const createTranslatedFiles = require('../translate/translate-files-api');
 const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
 
-const makeFileNameSafe = function(string){
+const makeFileNameSafe = function (string) {
   return filenamify(string, {replacement: '_' })
     .split('：').join(':')
     .replace(/[&\/\\#,+()$~%.'":*?<>{}!]/g, '')
     .replace(/\s+/g,'_')
 }
 
-function getCodeFromLanguageName(languageName){
-  return translationLanguages.find(function(filteredLanguage){
+function getCodeFromLanguageName (languageName) {
+  return translationLanguages.find(function (filteredLanguage) {
     return languageName === filteredLanguage.name;
   }).code
 }
 
 
 const storage = multer.diskStorage({ // notice  you are calling the multer.diskStorage() method here, not multer()
-  destination: function(req, file, cb) {
+  destination: function (req, file, cb) {
     cb(null, './uploads/')
   },
 });
 
-var upload = multer({ storage });
+let upload = multer({ storage });
 
 // file
 // {
@@ -64,7 +64,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     if (processingFileExists) {
       const completedProcessingData = await fs.readFile(processingDataFile, 'utf8')
 
-      if(completedProcessingData){
+      if (completedProcessingData) {
         l = console.log;
         return res.redirect(`/api/${sdHash}`)
       }
@@ -100,10 +100,10 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     })
 
     // tell the client it's started
-    if(response === 'started'){
+    if (response === 'started') {
       const port = req.socket.localPort;
       let apiPath = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
-      if(process.env.NODE_ENV === 'production'){
+      if (process.env.NODE_ENV === 'production') {
         apiPath = req.protocol + '://' + req.hostname + req.path;
       }
 
@@ -114,15 +114,15 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
         url: `${apiPath}/${sdHash}`,
       });
     }
-  } catch (err){
+  } catch (err) {
     l('err')
     l(err);
-    throw(err);
+    throw (err);
   }
 });
 
 // get info about the transcription via api
-router.get('/api/:sdHash', async function(req, res, next){
+router.get('/api/:sdHash', async function (req, res, next) {
   try {
 
     l('Getting info by SDHash');
@@ -139,7 +139,7 @@ router.get('/api/:sdHash', async function(req, res, next){
     const { language, languageCode, translatedLanguages } = processingData;
 
     /** transcription successfully completed **/
-    if(transcriptionStatus === 'processing' || transcriptionStatus === 'translating'){
+    if (transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {
       // send current processing data
       return res.send({
         status: transcriptionStatus,
@@ -149,7 +149,7 @@ router.get('/api/:sdHash', async function(req, res, next){
       })
 
     /** transcription successfully completed, attach VTT files **/
-    } else if(transcriptionStatus === 'completed'){
+    } else if (transcriptionStatus === 'completed') {
       let subtitles = [];
 
       // add original vtt
@@ -160,7 +160,7 @@ router.get('/api/:sdHash', async function(req, res, next){
         webVtt: originalVtt
       })
 
-      for(const translatedLanguage of translatedLanguages){
+      for (const translatedLanguage of translatedLanguages) {
         const originalVtt = await fs.readFile(`./transcriptions/${sdHash}/${sdHash}_${translatedLanguage}.vtt`, 'utf8');
         subtitles.push({
           language: translatedLanguage,
@@ -186,7 +186,7 @@ router.get('/api/:sdHash', async function(req, res, next){
     return res.send(processingData);
 
     // res.send('ok');
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
   }
@@ -198,7 +198,7 @@ router.get('/api/:sdHash', async function(req, res, next){
 
 /** UNFINISHED FUNCTIONALITY **/
 // post file from backend
-router.post('/post', async function(req, res, next){
+router.post('/post', async function (req, res, next) {
   try {
     l(req.body);
     l(req.params);
@@ -233,7 +233,7 @@ router.post('/post', async function(req, res, next){
     // l(response);
 
     // res.send('ok');
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
   }
