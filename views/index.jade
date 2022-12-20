@@ -364,11 +364,11 @@ block content
           div.content
             div.search
               i.fa-solid.fa-magnifying-glass
-              input(spellcheck='false' type='text' placeholder='Search...')
-            ul.options
-              li.option(data-value='auto-detect') Auto-Detect
+              input(spellcheck='false' type='text' placeholder='Filter...' tabindex='0')
+            ul.options.languages
+              li.option(data-value='auto-detect' tabindex='0') Auto-Detect
               each language in languages
-                li.option(data-value=language)= language
+                li.option(data-value=language tabindex='0')= language
       .group
         label(for='modelSelect')#modelLabel Model (#{modelsArray.length} Options)
         div.wrapper
@@ -378,10 +378,10 @@ block content
           div.content
             div.search
               i.fa-solid.fa-magnifying-glass
-              input(spellcheck='false' type='text' placeholder='Search...')
-            ul.options
+              input(spellcheck='false' type='text' placeholder='Filter...')
+            ul.options.models
               each model in modelsArray
-                li.option(data-value= model.value)= model.name
+                li.option(data-value= model.value tabindex='0')= model.name
       .group.translateHolder
         label#translateLabel(for='translate') Translate to different languages
         input#translate(type='checkbox')
@@ -493,6 +493,19 @@ block content
     l('previous should translate');
     l(previousShouldTranslate);
 
+    /* Add selected class to both selected options
+    */
+    const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
+    const modelOptions = Array.from(document.querySelectorAll('.options.models .option'));
+    const selectedLang = languageOptions.find(opt => opt.dataset.value === previousLanguage);
+    const selectedModel = modelOptions.find(opt => opt.dataset.value === previousModel);
+
+    selectedLang ? selectedLang.classList.add('selected')
+    : languageOptions[0].classList.add('selected');
+
+    selectedModel ? selectedModel.classList.add('selected')
+    : modelOptions.find(opt => opt.dataset.value === 'medium').classList.add('selected');
+
     if(previousModel){
       document.querySelector('#model').dataset.value = previousModel;
     } else {
@@ -564,8 +577,8 @@ block content
       }
 
       // On outside form click
-      const inputGroup = clicked.closest('.form');
-      if (!inputGroup) {
+      const formElement = clicked.closest('.form');
+      if (!formElement) {
         selectWrappers.forEach(wrapper => wrapper.classList.remove('active'));
       }
     });
@@ -574,11 +587,11 @@ block content
     document.body.addEventListener('input', evt => {
       // Elements
       const pressed = evt.target;
-      const input = pressed.closest('input');
-      const wrapper = input.closest('.wrapper');
-      const selectBtn = wrapper.querySelector('.select-btn');
-      const optionsEl = wrapper.querySelector('.options');
-      const selectedValue = wrapper.querySelector('.select-value').textContent;
+      const selectWrapper = pressed.closest('form .wrapper');
+      if (!selectWrapper) return;
+      const selectBtn = selectWrapper.querySelector('.select-btn');
+      const optionsEl = selectWrapper.querySelector('.options');
+      const selectedValue = selectWrapper.querySelector('.select-value').textContent;
 
       // assign options dynamically
       const optionsArray = selectBtn.id === 'languageSelect' ? languagesArray : selectBtn.id === 'modelSelect' ? modelsArray : [];
@@ -594,8 +607,29 @@ block content
           <li class='option ${selectedValue === opt.name ? 'selected' : ''}' data-value=${opt.value}>${opt.name}</li>
         `).join('')}
       `;
-      
-    })
+    });
+
+    // handle key press with event delegation
+    document.body.addEventListener('keydown', evt => {
+      const pressed = evt.target;
+      const key = evt.key;
+      const formContent = pressed.closest('form .content');
+      if (!formContent) return;
+      (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Enter') && evt.preventDefault();
+      const focusedOption = document.activeElement.closest('.option');
+
+      if (key === 'ArrowDown') {
+        // if there is a current focused option, focus the next one, else focus the first one
+        // optional chaining is used to prevent error on going past the last element
+        focusedOption ? focusedOption.nextSibling?.focus()
+        : formContent.querySelector('.option').focus();
+      } else if (key === 'ArrowUp') {
+        // optional chaining is used to prevent error on going past the first element
+        focusedOption.previousSibling?.focus();
+      } else if (key === 'Enter') {
+        focusedOption?.click();
+      }
+    });
 
 
     form.addEventListener("submit", submitForm);
