@@ -24,7 +24,8 @@ const {
   moveAndRenameFilesAndFolder,
   saveTranscriptionCompletedInformation,
   writeToProcessingDataFile,
-} = require('./transcribing');
+  translateIfNeeded
+} = require('../lib/transcribing');
 
 l = console.log;
 
