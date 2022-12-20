@@ -1,9 +1,10 @@
 var express = require("express");
 const _ = require("lodash");
 
-const { global } = require("../lib/state");
+const { global } = require("../lib/stats");
 const fileRouter = require("./files");
 const playerRouter = require("./player");
+const transcribeRouter = require("./transcribe");
 const { forHumans } = require("../helpers/helpers");
 const {
   modelsArray,
@@ -18,6 +19,8 @@ const nodeEnv = process.env.NODE_ENV || "development";
 router.use(fileRouter);
 //player router
 router.use(playerRouter);
+//transcribe router
+router.use(transcribeRouter);
 
 l("nodeEnv");
 l(nodeEnv);
