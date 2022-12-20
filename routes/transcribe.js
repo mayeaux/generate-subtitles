@@ -20,9 +20,9 @@ if (process.NODE_ENV === 'development') {
 }
 
 // todo: on dif node-env change it to 2
-var maxConcurrent = (concurrentJobs && Number(concurrentJobs)) || 1;
-var maxQueue = Infinity;
-var queue = new Queue(maxConcurrent, maxQueue);
+let maxConcurrent = (concurrentJobs && Number(concurrentJobs)) || 1;
+let maxQueue = Infinity;
+let queue = new Queue(maxConcurrent, maxQueue);
 
 l(queue);
 

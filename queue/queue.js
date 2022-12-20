@@ -25,7 +25,7 @@ const queue1 = [];
 // });
 
 
-async function waitForDelay(seconds) {
+async function waitForDelay (seconds) {
   l('waiting for', seconds, 'seconds');
   // Wait for 1000 milliseconds (1 second)
   await new Promise(resolve => setTimeout(resolve, seconds * 1000));
@@ -34,7 +34,7 @@ async function waitForDelay(seconds) {
   console.log(`done waiting for ${seconds} seconds`);
 }
 
-async function waitRandomSeconds(){
+async function waitRandomSeconds () {
   const randomNumber = _.random(2, 10);
   l('randomNumber', randomNumber);
 
@@ -42,7 +42,7 @@ async function waitRandomSeconds(){
   l('done waiting, randomNumber', randomNumber);
 }
 
-async function createPromise(name) {
+async function createPromise (name) {
   return new Promise(async (resolve, reject) => {
     try {
       await waitRandomSeconds
@@ -60,7 +60,7 @@ queue1.push(createPromise('first'));
 // queue1.push(createPromise);
 // queue1.push(createPromise);
 
-const promise = new Promise(async function(resolve, reject) {
+const promise = new Promise(async function (resolve, reject) {
   await waitForDelay(10)
   // resolve('done waiting for 10 seconds');
   // do something asynchronous here, but do not call resolve or reject
@@ -69,8 +69,8 @@ const promise = new Promise(async function(resolve, reject) {
 queue1.push(promise);
 
 
-async function startQueue() {
-  for(const promise of queue1) {
+async function startQueue () {
+  for (const promise of queue1) {
     try {
       l('starting promise!');
       l(promise);
@@ -92,15 +92,15 @@ l(queue1);
 // startQueue()
 
 
-var deferreds = [];
-var p = new Promise(function(resolve, reject){
+let deferreds = [];
+let p = new Promise(function (resolve, reject) {
   deferreds.push({resolve: resolve, reject: reject});
 });
 
 l('deferreds');
 l(deferreds);
 
-async function fred(){
+async function fred () {
   return await waitForDelay(5);
 }
 
@@ -110,34 +110,34 @@ l(queue1);
 
 global.processingQueue = [];
 
-function startTranscriptionProcess(){
+function startTranscriptionProcess () {
 
 }
 
-function startOrAddNewJob(thisJob){
+function startOrAddNewJob (thisJob) {
   const outstandingJobs = global.processingQueue.length;
-  if(outstandingJobs === 0){
+  if (outstandingJobs === 0) {
     startTranscriptionProcess(thisJob)
   }
-  if(outstandingJobs > 0){
+  if (outstandingJobs > 0) {
     processingQueue.push(thisJob)
   }
 }
 
-function startNewJobIfExists(){
+function startNewJobIfExists () {
   const outstandingJobs = processingQueue.length;
-  if(outstandingJobs > 0){
+  if (outstandingJobs > 0) {
     const nextJob = processingQueue.shift();
     startTranscriptionProcess(nextJob)
   }
 }
 
-function onJobEnd(){
+function onJobEnd () {
 
 }
 
 const transactionStatus = async (seconds) => new Promise((resolve, reject) => {
-  if(seconds > 25){
+  if (seconds > 25) {
     reject(new Error('Request timed out'));
   }
   setTimeout(() => {
@@ -150,7 +150,7 @@ queue2.push(transactionStatus(1));
 
 l(queue2);
 
-function stopQueue() {
+function stopQueue () {
   // stop queue
 
 }

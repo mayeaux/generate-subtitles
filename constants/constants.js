@@ -13,10 +13,10 @@ const whisperLanguagesHumanReadableArray = whisperLanguagesHumanNames.split(',')
 
 const whisperLanguagesAsSpacedString = whisperLanguagesHumanReadableArray.join(' ')
 
-function getLanguageCodeForAllLanguages(languageName){
+function getLanguageCodeForAllLanguages (languageName) {
   let foundLanguageCode;
   Object.keys(languageNameMap).forEach(languageCode =>{
-    if(languageNameMap[languageCode].name === languageName){
+    if (languageNameMap[languageCode].name === languageName) {
       foundLanguageCode = languageCode
     }
   });
@@ -89,8 +89,8 @@ const languagesToTranscribe = [
   'Japanese',
 ]
 
-function shouldTranslateFrom(languageName){
-  return translationLanguages.find(function(filteredLanguage){
+function shouldTranslateFrom (languageName) {
+  return translationLanguages.find(function (filteredLanguage) {
     return languageName === filteredLanguage.name;
   })
 }

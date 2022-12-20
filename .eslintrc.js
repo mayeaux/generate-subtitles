@@ -10,6 +10,10 @@ module.exports = {
   },
   ignorePatterns: ['public/*'],
   rules: {
-    'quotes': ['error', 'single']
+    'quotes': ['error', 'single'],
+    'space-before-blocks': ['error', 'always'],
+    'space-before-function-paren': ['error', 'always'],
+    'keyword-spacing': ['error', { 'before': true, 'after': true }],
+    'no-var': 'error'
   },
 };

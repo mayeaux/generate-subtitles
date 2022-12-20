@@ -1,5 +1,5 @@
-var fs = require('fs-extra')
-var convert = require('cyrillic-to-latin')
+let fs = require('fs-extra')
+let convert = require('cyrillic-to-latin')
 // const srt2vtt = Promise.promisifyAll(require('srt2vtt'));
 const srt2vtt = require('srt2vtt')
 
@@ -28,19 +28,19 @@ l(srt2vtt)
 //   });
 // }
 
-function converSrtToVtt(){
+function converSrtToVtt () {
 
 }
 
-async function main(){
-  var data = await fs.readFile(path, 'utf8');
+async function main () {
+  let data = await fs.readFile(path, 'utf8');
 
   data = convert(data);
 
   // l(data);
   // data = await srt2vtt(data);
 
-  srt2vtt(data, async function(err, vttData) {
+  srt2vtt(data, async function (err, vttData) {
     l('running here');
 
     l(vttData);

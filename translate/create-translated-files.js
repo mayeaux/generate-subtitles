@@ -7,8 +7,8 @@ const convert = require('cyrillic-to-latin');
 
 let l = console.log;
 
-if(global.debug === 'false'){
-  l = function(){}
+if (global.debug === 'false') {
+  l = function () {}
 }
 
 // l('translationLanguages')
@@ -17,8 +17,8 @@ if(global.debug === 'false'){
 // l('languagesToTranscribe')
 // l(languagesToTranscribe);
 
-function getCodeFromLanguageName(languageName){
-  return translationLanguages.find(function(filteredLanguage){
+function getCodeFromLanguageName (languageName) {
+  return translationLanguages.find(function (filteredLanguage) {
     return languageName === filteredLanguage.name;
   }).code
 }
@@ -27,21 +27,21 @@ function getCodeFromLanguageName(languageName){
 
 
 // TODO: add the 'webvtt' thing and don't need these
-function cleanUpSubtitles(language, text){
+function cleanUpSubtitles (language, text) {
   // l('clean up subtitles');
   // l(language);
-  if(language === 'Spanish'){
+  if (language === 'Spanish') {
     // l('Spanish');
     // l(language);
     return text.replace(/-- título/g, '-->');
 
-  } else if(language === 'French'){
+  } else if (language === 'French') {
     return text.replace(/-- Cancer/g, '-->');
 
-  } else if(language === 'German'){
+  } else if (language === 'German') {
     return text.replace(/WEBVAT/g, 'WEBVTT');
 
-  }  else if(language === 'Japanese'){
+  }  else if (language === 'Japanese') {
     return text.replace(/ウェブサイト/g, 'WEBVTT');
   } else {
     // Russian works out of the box
@@ -55,11 +55,11 @@ function cleanUpSubtitles(language, text){
 }
 
 /** for translation **/
-async function createTranslatedFiles({
+async function createTranslatedFiles ({
     directoryAndFileName,
     language,
     websocketConnection
-}){
+}) {
 
   const loopThrough = ['.srt', '.vtt', 'txt'];
 
@@ -71,7 +71,7 @@ async function createTranslatedFiles({
   // copy original as copied
   await fs.copy(`${directoryAndFileName}.vtt`, `${directoryAndFileName}_${language}.vtt`)
 
-  for(const languageToConvertTo of languagesToTranscribe){
+  for (const languageToConvertTo of languagesToTranscribe) {
     l('languageToConvertTo');
     l(languageToConvertTo);
 
@@ -80,7 +80,7 @@ async function createTranslatedFiles({
 
     try {
       // no need to translate just copy the file
-      if(languageToConvertTo !== language){
+      if (languageToConvertTo !== language) {
         websocketConnection.send(JSON.stringify({
           languageUpdate: `Translating into ${languageToConvertTo}..`,
           message: 'languageUpdate'
@@ -107,7 +107,7 @@ async function createTranslatedFiles({
 
         await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, translatedText, 'utf-8');
       }
-    } catch (err){
+    } catch (err) {
       l(err);
       l('error in translation');
       return err

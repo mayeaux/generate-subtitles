@@ -18,7 +18,7 @@ process.on('unhandledRejection', (reason, promise) => {
   l(promise);
 });
 
-async function hitLTBackend({ text, sourceLanguage, targetLanguage }){
+async function hitLTBackend ({ text, sourceLanguage, targetLanguage }) {
   const res = await fetch(endpoint, {
     method: 'POST',
     body: JSON.stringify({
@@ -32,7 +32,7 @@ async function hitLTBackend({ text, sourceLanguage, targetLanguage }){
   return await res.json()
 }
 
-async function translateText({ text, sourceLanguage, targetLanguage }){
+async function translateText ({ text, sourceLanguage, targetLanguage }) {
   const translatedResponse = await hitLTBackend({ text, sourceLanguage, targetLanguage });
   // l(translatedResponse);
 

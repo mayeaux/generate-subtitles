@@ -1,4 +1,4 @@
-var express = require('express');
+let express = require('express');
 const _ = require('lodash');
 
 const { global } = require('../lib/stats');
@@ -11,7 +11,7 @@ const {
   whisperLanguagesHumanReadableArray,
 } = require('../constants/constants');
 
-var router = express.Router();
+let router = express.Router();
 const uploadPath = process.env.UPLOAD_PATH || 'localhost:3000';
 const nodeEnv = process.env.NODE_ENV || 'development';
 

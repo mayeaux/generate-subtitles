@@ -3,7 +3,7 @@ const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
-var convert = require('cyrillic-to-latin')
+let convert = require('cyrillic-to-latin')
 const path = require('path');
 const projectConstants = require('../constants/constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
@@ -12,11 +12,6 @@ const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
 
-l(formatStdErr);
-
-l = console.log;
-
-const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 const nodeEnvironment = process.env.NODE_ENV;
 const libreTranslateHostPath = process.env.LIBRETRANSLATE;
 
@@ -28,13 +23,13 @@ const whisperPath = which.sync('whisper')
 
 global.transcriptions = [];
 
-function sendToWebsocket(websocketConnection, data){
+function sendToWebsocket (websocketConnection, data) {
   websocketConnection.send(JSON.stringify(data), function () {});
 }
 
 
 let topLevelValue = 1;
-async function transcribe({
+async function transcribe ({
   uploadedFilePath,
   language,
   model,
@@ -49,11 +44,11 @@ async function transcribe({
   uploadGeneratedFilename,
   shouldTranslate,
   uploadDurationInSeconds,
-}){
+}) {
   return new Promise(async (resolve, reject) => {
 
     // if the upload was removed from the queue, don't run it
-    if(!global.queueData.includes(websocketNumber)){
+    if (!global.queueData.includes(websocketNumber)) {
       l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
       // if they're not in the queue, cut them off
       // TODO: change to reject?
@@ -112,21 +107,21 @@ async function transcribe({
       let arguments = [uploadedFilePath];
 
       // set the language for whisper (if undefined with auto-detect and translate off that)
-      if(language){
+      if (language) {
         arguments.push('--language', language);
       }
 
       // set the language for whisper (if undefined with auto-detect and translate off that)
-      if(model){
+      if (model) {
         arguments.push('--model', model);
       }
 
       // alternate
       // todo: do an 'express' queue and a 'large files' queue
-      if(isProd && multipleGpusEnabled){
-        if(topLevelValue === 1){
+      if (isProd && multipleGpusEnabled) {
+        if (topLevelValue === 1) {
           arguments.push('--device', 'cuda:0');
-        } else if(topLevelValue === 2){
+        } else if (topLevelValue === 2) {
           arguments.push('--device', 'cuda:1');
         }
       }
@@ -144,9 +139,9 @@ async function transcribe({
 
       let serverNumber = topLevelValue;
 
-      if(serverNumber === 1){
+      if (serverNumber === 1) {
         topLevelValue = 2
-      } else if(serverNumber === 2){
+      } else if (serverNumber === 2) {
         topLevelValue = 1
       }
 
@@ -170,13 +165,13 @@ async function transcribe({
         // TODO: pull this out into own function
         // check if language is autodetected)
         const dataAsString = data.toString();
-        if(dataAsString.includes('Detected language:')){
+        if (dataAsString.includes('Detected language:')) {
 
           // parse out the language from the console output
           foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
 
           l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`);
-          if(!language && foundLanguage){
+          if (!language && foundLanguage) {
             language = foundLanguage
             displayLanguage = `${language} (Auto-Detected)`
           }
@@ -211,13 +206,13 @@ async function transcribe({
          Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language ${language}, Filename: ${directorySafeFileNameWithoutExtension}, Queue: ${totalOutstanding}, Translating: ${shouldTranslate}  `);
 
         // loop through and do with websockets
-        for(let [, websocket] of global['webSocketData'].entries() ) {
+        for (let [, websocket] of global['webSocketData'].entries() ) {
           const websocketConnection = websocket.websocket;
           const clientWebsocketNumber = websocket.websocketNumber;
           const websocketFromProcess = websocketNumber;
 
           let ownershipPerson = 'others'
-          if(clientWebsocketNumber === websocketFromProcess){
+          if (clientWebsocketNumber === websocketFromProcess) {
             ownershipPerson = 'you'
           }
 
@@ -228,7 +223,7 @@ async function transcribe({
           const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
 
           let processingString = '';
-          if(timeRemaining){
+          if (timeRemaining) {
             processingString = `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s`
           }
 
@@ -262,14 +257,14 @@ async function transcribe({
           l('code');
           l(code);
 
-          if(!language){
+          if (!language) {
             language = foundLanguage;
           }
 
           const processFinishedSuccessfully = code === 0;
 
           // successful output
-          if(processFinishedSuccessfully){
+          if (processFinishedSuccessfully) {
             // TODO: pull out all this moving stuff into its own function
 
             const containingDir = `./transcriptions/${uploadGeneratedFilename}`;
@@ -299,7 +294,7 @@ async function transcribe({
 
             // TODO: convert to loop
             // convert Cyrillic to latin
-            if(language === 'Serbian'){
+            if (language === 'Serbian') {
               let data = await fs.readFile(transcribedSrtFile, 'utf-8');
               let latinCharactersText = convert(data);
               await fs.writeFile(transcribedSrtFile, latinCharactersText, 'utf-8');
@@ -327,7 +322,7 @@ async function transcribe({
 
             let translationStarted, translationFinished = false;
             /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
-            if(libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate){
+            if (libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate) {
               // tell frontend that we're translating now
               websocketConnection.send(JSON.stringify({
                 languageUpdate: 'Doing translations with LibreTranslate',
@@ -378,7 +373,7 @@ async function transcribe({
             const translationStartedAndCompleted = translationStarted && translationFinished;
 
             let translatedLanguages = [];
-            if(translationStartedAndCompleted){
+            if (translationStartedAndCompleted) {
               const trimmedLanguagesToTranscribe = languagesToTranscribe.filter(e => e !== language);
               translatedLanguages = trimmedLanguagesToTranscribe
             }
@@ -416,7 +411,7 @@ async function transcribe({
           }
 
           l(`child process exited with code ${code}`);
-        } catch (err){
+        } catch (err) {
           reject(err);
           sendToWebsocket({
             message: 'error',
@@ -429,7 +424,7 @@ async function transcribe({
           throw new Error(err);
         }
       });
-    } catch (err){
+    } catch (err) {
       l('error from transcribe')
       l(err);
 
