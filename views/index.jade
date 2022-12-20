@@ -710,34 +710,38 @@ block content
         }
       }
 
-      function capitalize(s) {
-        return s[0].toUpperCase() + s.slice(1);
-      }
+      /*
+        OBSOLETE VALIDATION, TO BE DELETED
+      */
+
+      //- function capitalize(s) {
+      //-   return s[0].toUpperCase() + s.slice(1);
+      //- }
 
       // capitalize for people who can't follow specs
-      language = language && capitalize(language);
+      //- language = language && capitalize(language);
 
-      const existsAndNotValidLanguage = language && !languages.includes(language)
+      //- const existsAndNotValidLanguage = language && !languages.includes(language)
 
-      if(existsAndNotValidLanguage){
-        return Swal.fire({
-          title: 'Can only use one of the following languages',
-          text: languages,
-          icon: 'error',
-          confirmButtonText: 'Cool'
-        })
-      }
+      //- if(existsAndNotValidLanguage){
+      //-   return Swal.fire({
+      //-     title: 'Can only use one of the following languages',
+      //-     text: languages,
+      //-     icon: 'error',
+      //-     confirmButtonText: 'Cool'
+      //-   })
+      //- }
 
-      const modelExistsAndNotValid = model && !models.includes(model);
+      //- const modelExistsAndNotValid = model && !models.includes(model);
 
-      if (modelExistsAndNotValid) {
-        return Swal.fire({
-          title: 'Can only use one of the following models',
-          text: models,
-          icon: 'error',
-          confirmButtonText: 'Cool'
-        })
-      }
+      //- if (modelExistsAndNotValid) {
+      //-   return Swal.fire({
+      //-     title: 'Can only use one of the following models',
+      //-     text: models,
+      //-     icon: 'error',
+      //-     confirmButtonText: 'Cool'
+      //-   })
+      //- }
 
       const translateIsChecked = $('#translate').is(':checked');
 
