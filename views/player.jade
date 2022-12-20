@@ -580,17 +580,6 @@ block content
             const thing = getCurrentLanguageAndTrack()
             l(thing);
 
-            // DISPLAY TWO AT ONCE
-            const selectedTranslation = $("#selectTranslationSelect").val();
-            if(selectedTranslation) {
-                const thing2 = findTextFromIndexNumber(selectedTranslation, thing.indexNumber);
-                if(thing2){
-                    const oldText = $('span.plyr__caption').text()
-    
-                    $('span.plyr__caption').text(`${oldText}\n${thing2}`)
-                }
-            }
-
             // balance text not working at the moment
             if(subtitlesFontSize){
               $('.plyr__caption').css('font-size', `${subtitlesFontSize}px`);
