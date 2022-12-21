@@ -27,13 +27,13 @@ async function stripOutTextAndTimestamps(filePath){
 
     let counter = 1;
     rl.on('line', (line) => {
-      l(counter)
-      l(line);
+      // l(counter)
+      // l(line);
       const timestampLine = isTimestampLine(counter)
       const textLine = isTextLine(counter)
-      l('is timestamp line', timestampLine)
-      l('is text line', textLine)
-      l(`\n\n`)
+      // l('is timestamp line', timestampLine)
+      // l('is text line', textLine)
+      // l(`\n\n`)
       if(textLine) {
         strippedText = strippedText + `${line}\n`
       }
@@ -63,36 +63,49 @@ async function stripOutTextAndTimestamps(filePath){
 
 // main();
 
-async function reformatVtt(){
-  const timestampArray = [
-    '00:00.000 --> 00:24.860',
-    '00:24.860 --> 00:34.860',
-    '00:34.860 --> 00:44.860',
-    '00:44.860 --> 00:52.860',
-    '00:52.860 --> 01:04.860'
-  ];
+const timestampArray = [
+  '00:00.000 --> 00:24.860',
+  '00:24.860 --> 00:34.860',
+  '00:34.860 --> 00:44.860',
+  '00:44.860 --> 00:52.860',
+  '00:52.860 --> 01:04.860'
+];
 
-  const translatedText = 'Good day. I\'m Mirela Vasin, and this is the News of the Day.\n' +
-    'A Serb, a former member of the Kosovo Police, was arrested in spring. Serbs began to gather and set up barricades.\n' +
-    'Prime Minister Anna Brnabić appealed to the International Community not to turn its head away from the human rights of Serbs in Kosmet.\n' +
-    'Ukraine asks for additional weapons, Moscow warns of consequences.\n' +
-    'Today, two quarter-final matches are being played at the world football championship - Morocco-Portugal and England-France.'
+const translatedText = 'Good day. I\'m Mirela Vasin, and this is the News of the Day.\n' +
+  'A Serb, a former member of the Kosovo Police, was arrested in spring. Serbs began to gather and set up barricades.\n' +
+  'Prime Minister Anna Brnabić appealed to the International Community not to turn its head away from the human rights of Serbs in Kosmet.\n' +
+  'Ukraine asks for additional weapons, Moscow warns of consequences.\n' +
+  'Today, two quarter-final matches are being played at the world football championship - Morocco-Portugal and England-France.'
 
-  const splitText = translatedText.split('\n')
+
+function reformatVtt(timestampArray, translatedText){
+  l('timestampArray')
+  l(timestampArray);
+
+  const splitText = translatedText.split('\n').slice(0, -1);
   l(splitText)
 
   let formattedVtt = `WEBVTT\n`;
 
   for (const [index, value] of splitText.entries()) {
     formattedVtt = formattedVtt + `\n${timestampArray[index]}\n${value}\n`
-    // console.log(`Index: ${index}, Value: ${value}`);
   }
 
-  l(formattedVtt);
+  return formattedVtt
 }
 
-async function main(){
-  reformatVtt()
+module.exports = {
+  stripOutTextAndTimestamps,
+  reformatVtt
 }
 
-main();
+// async function main(){
+//   const { strippedText, timestampsArray } = await stripOutTextAndTimestamps(srtPath)
+//   l(strippedText);
+//   l(timestampsArray);
+//
+//   const formattedVtt = reformatVtt(timestampsArray, translatedText)
+//   l(formattedVtt)
+// }
+//
+// main();

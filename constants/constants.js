@@ -85,7 +85,7 @@ const languagesToTranscribe = [
   'German',
   'Spanish',
   'Russian',
-  // 'Chinese', // can't get Chinese to work
+  'Chinese', // can't get Chinese to work
   'Japanese',
 ]
 
