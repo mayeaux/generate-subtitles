@@ -418,7 +418,7 @@ router.get("/player/:filename" , async function(req, res, next){
     l('languages to loop');
     l(languagesToLoop);
 
-    res.render('player', {
+    res.render('player/player', {
       filePath: filePathWithoutExtension,
       languages: languagesToTranscribe,
       fileNameWithoutExtension,
