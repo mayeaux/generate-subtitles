@@ -5,6 +5,8 @@ const { global } = require("../lib/stats");
 const fileRouter = require("./files");
 const playerRouter = require("./player");
 const transcribeRouter = require("./transcribe");
+const statsRouter = require("./stats");
+
 const { forHumans } = require("../helpers/helpers");
 const {
   modelsArray,
@@ -21,6 +23,8 @@ router.use(fileRouter);
 router.use(playerRouter);
 //transcribe router
 router.use(transcribeRouter);
+//stats router
+router.use(statsRouter)
 
 l("nodeEnv");
 l(nodeEnv);

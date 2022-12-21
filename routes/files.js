@@ -29,6 +29,7 @@ router.get("/files", async function (req, res, next) {
       // TODO: what other things to match against?
       files = await getMatchingFiles({ dir, files, language, keepMedia });
 
+      console.log(`Files: ${JSON.stringify(files)}`);
       files = _.orderBy(
         files,
         (file) => new Date(file.processingData.finishedAT),
