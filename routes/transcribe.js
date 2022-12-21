@@ -167,7 +167,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     queue.add(async function () {
 
       
-      sendToWebsocket(websocketConnection,"Hi Ahhmed Here")
+      sendToWebsocket(websocketConnection,'Hi Ahhmed Here')
       // // TODO: catch the error here?
       await transcribeWrapped({
         uploadedFilePath,
@@ -189,7 +189,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
         languagesToTranslateTo,
       });
 
-      l("Hi Ahmed here ",testData)
+      l('Hi Ahmed here ',testData)
     });
 
    
