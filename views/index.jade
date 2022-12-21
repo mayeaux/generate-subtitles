@@ -189,7 +189,7 @@ block content
           div.content
             div.search
               i.fa-solid.fa-magnifying-glass
-              input(spellcheck='false' type='text' placeholder='Filter...' tabindex='0')
+              input(spellcheck='false' type='search' placeholder='Filter...' tabindex='0')
             ul.options.languages
               li.option(data-value='auto-detect' tabindex='0') Auto-Detect
               each language in languages
@@ -203,7 +203,7 @@ block content
           div.content
             div.search
               i.fa-solid.fa-magnifying-glass
-              input(spellcheck='false' type='text' placeholder='Filter...')
+              input(spellcheck='false' type='search' placeholder='Filter...')
             ul.options.models
               each model in modelsArray
                 li.option(data-value= model.value tabindex='0')= model.name
