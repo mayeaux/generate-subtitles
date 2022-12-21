@@ -15,7 +15,7 @@ block content
   include components/social-buttons.jade
 
   .container
-    
+
     include components/amounts-header.jade
 
     h1#header File Upload
@@ -89,17 +89,10 @@ block content
     const modelsString = 'tiny.en,tiny,base.en,base,small.en,small,medium.en,medium,large';
     const models = modelsString.split(',');
 
-    const modelsArray = [
-      {name: 'Tiny (English Only)', value: 'tiny.en'},
-      {name: 'Tiny', value: 'tiny'},
-      {name: 'Base (English Only)', value: 'base.en'},
-      {name: 'Base', value: 'base'},
-      {name: 'Small (English Only)', value: 'small.en'},
-      {name: 'Small', value: 'small'},
-      {name: 'Medium (English Only)', value: 'medium.en'},
-      {name: 'Medium', value: 'medium'},
-      {name: 'Large', value: 'large'},
-    ];
+    const modelsArray = !{JSON.stringify(modelsArray)}
+
+    l('models array here');
+    l(modelsArray);
 
     const previousModel = localStorage.getItem('model');
     // differentiate between model value and name
@@ -217,10 +210,10 @@ block content
 
       // filter options
       const filteredOptions = filterOptions(optionsArray, pressed.value);
-      
+
       // render filtered options
       optionsEl.innerHTML = selectBtn.id === 'languageSelect' ? `<li class='option ${selectedValue === 'Auto-Detect' ? 'selected' : ''}' data-value='auto-detect' tabindex='0'>Auto-Detect</li>` : '';
-      
+
       optionsEl.innerHTML += filteredOptions.map(opt => `<li class='option ${selectedValue === opt.name ? 'selected' : ''}' data-value=${opt.value} tabindex='0'>${opt.name}</li>`).join('');
     });
 
