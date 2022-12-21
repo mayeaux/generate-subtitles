@@ -1,116 +1,48 @@
 extends layout
 
 block content
+    link(href='/views/styles/stats.css' rel='stylesheet')
+    link(href='https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css' rel='stylesheet')
+    
+    
+    script(type='text/javascript' src='https://code.jquery.com/jquery-3.5.1.js')
+    script(type='text/javascript' src='https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js')
+    //- Let browser know website is optimized for mobile
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    meta(charset='UTF-8')
     style.
         video {
             top: 0px;
         }
+        body {
+          margin: 2rem;
+        }
+
 
 
     div
         h1 Files
 
-        table#myTable
+        table#myTable.table.table-striped.table-bordered(style='width:100%')
+            thead 
+              tr
+                th Filename
+                th Duration
+                th Date
             tbody
+              for file in files
                 tr
-                    th Filename
-                    th Duration
-                    th Date
-
-
-                each file in files
-                    tr
-
-                        td(data-sort-value=file.name)
-                            a(href='/player/' + file.name target="_blank") #{file.name}
-                        td(data-sort-value=file.processingData.uploadDurationInSeconds data-type="number") #{file.processingData.uploadDurationInSecondsHumanReadable}
-                        td(data-sort-value=file.timestamp data-type) #{file.formattedDate}
+                  td
+                    a(href='/player/' + file.name target="_blank") #{file.name}
+                  td #{file.processingData.uploadDurationInSecondsHumanReadable}
+                  td #{file.formattedDate}
 
 
     script.
       l = console.log;
 
       $(document).ready(function () {
-        console.log("ready!");
-
-        // probably better to do on plyr ready if available as event
-        setTimeout(function(){
-          // const captionsIsPressed = $('button[data-plyr="captions"]')?.hasClass('plyr__control--pressed')
-
-        }, 200)
-
-        function convertToNumber(string) {
-          const number = Number(string);
-          if (isNaN(number)) {
-            // If the string is not a valid number, return 0
-            return 0;
-          } else {
-            // If the string is a valid number, return the number
-            return number;
-          }
-        }
-
-        var table = document.getElementById("myTable");
-        var currentSort = null; // Keep track of the current sort column
-
-        table.addEventListener("click", function (event) {
-          // Get the element that was clicked
-          var element = event.target;
-
-          // If the element is a table header, sort the table by the corresponding column
-          if (element.tagName == "TH") {
-            // Get the index of the column that was clicked
-            var index = Array.prototype.indexOf.call(element.parentNode.children, element);
-
-            // If the same column was clicked twice, reverse the sort order
-            if (currentSort === index) {
-              currentSort = -1 * currentSort;
-            } else {
-              currentSort = index;
-            }
-
-            // Sort the table by the values in the clicked column
-            sortTable(table, index, currentSort);
-          }
-        });
-
-        function sortTable(table, column, sortOrder) {
-          // Get the rows of the table
-          var rows = table.rows;
-
-          // Convert the rows to an array (we'll need to sort this array)
-          var rowArray = Array.prototype.slice.call(rows, 1);
-
-          // Sort the array of rows according to the values in the specified column
-          rowArray.sort(function (a, b) {
-            // Get the text content of the cells in the specified column
-            var A = convertToNumber(a.cells[column].getAttribute("data-sort-value"));
-            var B = convertToNumber(b.cells[column].getAttribute("data-sort-value"));
-
-            // Compare the values and return -1, 0, or 1 depending on the comparison result
-            if (sortOrder > 0) {
-              if (A < B) return -1;
-              if (A > B) return 1;
-              return 0;
-            } else {
-              if (A > B) return -1;
-              if (A < B) return 1;
-              return 0;
-            }
-          });
-
-          // Remove the existing rows from the table
-          while (rows.length > 1) {
-            table.deleteRow(1);
-          }
-
-          // Add the sorted rows back to the table
-          rowArray.forEach(function (row) {
-            table.appendChild(row);
-          });
-        }
-
-
+        $('#myTable').DataTable();
       });
 
 
