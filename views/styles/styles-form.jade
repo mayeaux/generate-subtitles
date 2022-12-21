@@ -8,6 +8,13 @@ style.
     font-size: 1rem;
   }
 
+  form :where(input:not([type='checkbox']), .select-btn) {
+    padding: 0.5em 1em;
+    width: 100%;
+    border: 1px solid #ccc;
+    font-size: inherit;
+  }
+
   form .group {
     display: flex;
     flex-direction: column;
@@ -30,8 +37,6 @@ style.
   .select-btn {
     background: transparent;
     justify-content: space-between;
-    border: 1px solid #aaaaaa70;
-    font-size: inherit;
   }
 
   .select-btn i {
@@ -110,6 +115,7 @@ style.
   .options::-webkit-scrollbar{
     width: 7px;
   }
+
   .options::-webkit-scrollbar-track{
     background: #f1f1f1;
     border-radius: 1rem;
@@ -119,6 +125,7 @@ style.
     background: #ccc;
     border-radius: 1rem;
   }
+
   .options::-webkit-scrollbar-thumb:hover {
     background: #b3b3b3;
   }
@@ -128,9 +135,14 @@ style.
     font-size: 1rem;
   }
 
-  .options li:hover, li.selected{
+  .options li:where(:hover, :focus, .selected) {
     border-radius: 5px;
     background: hsl(0deg 0% 90%);
+  }
+
+  .options li:focus {
+    outline: 0;
+    box-shadow: 0 0 3px #4285f4;
   }
 
   #languageLabel, #modelLabel, #translateLabel, #translate {
