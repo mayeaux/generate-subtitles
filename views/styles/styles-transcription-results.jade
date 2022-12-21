@@ -1,0 +1,93 @@
+style.
+
+  .transcription-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 1.25rem;
+    color: #fff;
+  }
+
+  .downloadLink, #refreshButton, #startNewUpload {
+    color: white;
+    font-size: 1.25rem;
+    text-align: center;
+  }
+
+  #timeEstimator {
+    font-size: 1.25rem;
+  }
+
+  #finishedData {
+    text-align: left;
+    font-size: 1.125rem;
+    color: white;
+  }
+
+  #latestData, #processingData, #secondProcessingData, #refreshButton, #startNewUpload, .downloadLink {
+    display: none;
+  }
+
+  #refreshButton, #startNewUpload {
+    text-decoration: underline;
+  }
+
+  .startNewUpload {
+    --color: #fff;
+    --bg-color: hsl(235deg 100% 60%);
+    color: var(--color);
+    background-color: var(--bg-color);
+    margin-block: 0.5em;
+  }
+
+  .startNewUpload:where(:hover, :focus) {
+    background-color: hsl(235deg 100% 65%);
+  }
+
+  #latestData, #processingData, #secondProcessingData, #timeEstimator, #finishedData {
+    white-space: pre;
+  }
+
+  .downloadLink {
+    color: white;
+    font-size: 1.25rem;
+  }
+
+  .circle-progress-value {
+    stroke-width: 50px;
+    stroke: hsl(160, 63%, 55%);
+  }
+
+  .circle-progress-circle {
+    stroke-width: 50px;
+    stroke: #999;
+  }
+
+  .circle-progress-text {
+    fill: white;
+  }
+
+  .progress svg {
+    height: 202px;
+    width: 202px;
+  }
+
+  .circle-progress-value {
+    stroke-width: 50px;
+    stroke: white;
+  }
+
+  .circle-progress-text {
+    fill: black;
+  }
+
+  .circle-progress-circle {
+    stroke-width: 50px;
+    stroke: #bdbdbd;
+  }
+
+  .progress {
+    margin: 0 auto;
+    text-align: center;
+  }

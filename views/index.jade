@@ -6,6 +6,7 @@ block content
   include styles/styles-global.jade
   include styles/styles-form.jade
   include styles/styles-social.jade
+  include styles/styles-transcription-results.jade
 
   //- TODO
   //- separate components
@@ -13,100 +14,9 @@ block content
 
   style.
 
-    #latestData, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload, #processingData, #secondProcessingData {
-      color: white;
-      font-size: 24px;
-      text-align: center;
-    }
-
-    #timeEstimator {
-      font-size: 21px;
-    }
-
-    #finishedData {
-      white-space: pre;
-      text-align: left;
-      font-size: 18px;
-      color: white;
-      margin-top: -18px;
-      margin-bottom: 29px;
-    }
-
-    #refreshButton, #startNewUpload {
-      cursor: pointer;
-      text-decoration: underline;
-      margin-top: 29px;
-      display: none;
-      font-size: 18px;
-    }
-
-    #startNewUpload {
-      margin-top: 45px;
-    }
-
-    #processingData {
-      display: none;
-      white-space: pre;
-      margin-bottom: 35px;
-    }
-
-    #secondProcessingData, #latestData {
-      white-space: pre;
-      display: none;
-    }
-
-    .downloadLink {
-      color: white;
-      font-size: 19px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    .circle-progress-value {
-      stroke-width: 50px;
-      stroke: hsl(160, 63%, 55%);
-    }
-
-    .circle-progress-circle {
-      stroke-width: 50px;
-      stroke: #999;
-    }
-
-    .circle-progress-text {
-      fill: white;
-    }
-
-    .progress svg {
-      height: 202px;
-      width: 202px;
-    }
-
-    .circle-progress-value {
-      stroke-width: 50px;
-      stroke: white;
-    }
-
-    .circle-progress-text {
-      fill: black;
-    }
-
-    .circle-progress-circle {
-      stroke-width: 50px;
-      stroke: #bdbdbd;
-    }
-
-    .progress {
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    #timeEstimator {
-      white-space: pre;
-    }
-
     .amountsHeader {
-        text-align: center;
-        color: white;
+      text-align: center;
+      color: white;
     }
 
     .amountsHeader:nth-of-type(1) {
@@ -131,26 +41,8 @@ block content
 
     h1#header File Upload
     include components/upload-form.jade
+    include components/transcription-results.jade
 
-    //DISPLAY DIFFERENT DATA
-    p#progress
-    .progress
-    p#timeEstimator
-    p#latestData
-    p#processingData
-    p#secondProcessingData
-    p#finishedData
-
-    // kind of duplicated, not sure it's needed
-    a#startNewUpload(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start Another Transcription
-
-    a.downloadLink#srtDownloadLink(href='#')
-
-    a.downloadLink#vttDownloadLink(href='#')
-
-    a.downloadLink#txtDownloadLink(href='#')
-
-    a#refreshButton(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start New Transcription
   script.
     l = console.log;
 
@@ -664,7 +556,6 @@ block content
         timeRemainingDiv.style.display = 'none';
 
         header.innerHTML = 'Processing..';
-        document.getElementById('startNewUpload').style.marginTop = '29px';
       }, false);
       // TODO: implement these
       // ajax.addEventListener("event", eventHandler, false);
