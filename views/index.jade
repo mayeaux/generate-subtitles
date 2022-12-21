@@ -5,7 +5,12 @@ block content
 
   include styles/styles-global.jade
   include styles/styles-form.jade
-  
+  include styles/styles-social.jade
+
+  //- TODO
+  //- separate components
+  //- organize scripts
+
   style.
 
     #latestData, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload, #processingData, #secondProcessingData {
@@ -55,21 +60,6 @@ block content
       font-size: 19px;
       text-align: center;
       margin-bottom: 10px;
-    }
-
-    #githubLogo, #discordLogo, #telegramLogo, #twitterLogo {
-      width: 100px;
-      float: right;
-      clear: both;
-      margin-bottom: 10px;
-    }
-
-    #telegramLogo {
-      margin-top: 5px;
-    }
-
-    #twitterLogo {
-      margin-top: -14px;
     }
 
     .circle-progress-value {
@@ -128,15 +118,7 @@ block content
       margin-bottom: 35px;
     }
 
-
-  a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
-    img#githubLogo(src='/images/inverted.png')
-  a(href='https://discord.gg/vfXg7GHMpR' target='_blank')
-    img#discordLogo(src='/images/discordLogo.png')
-  a(href='https://t.me/freesubtitles_ai' target='_blank')
-    img#telegramLogo(src='/images/telegramLogo.webp')
-  a(href='https://twitter.com/FreeSubtitlesAI' target='_blank')
-    img#twitterLogo(src='/images/twitterLogo.png')
+  include components/social-buttons.jade
 
   .container
     //if isFreeSubtitles
