@@ -127,12 +127,12 @@ block content
       document.querySelector('#model').textContent = 'Medium';
     }
 
-    if(previousLanguage){
-      document.querySelector('#language').dataset.value = previousLanguage;
-      document.querySelector('#language').textContent = previousLanguage;
-    } else {
+    if (!previousLanguage || previousLanguage === 'Auto-Detect') {
       document.querySelector('#language').dataset.value = 'auto-detect';
       document.querySelector('#language').textContent = 'Auto-Detect';
+    } else {
+      document.querySelector('#language').dataset.value = previousLanguage;
+      document.querySelector('#language').textContent = previousLanguage;
     }
 
     $('#translate').prop('checked', previousShouldTranslate === 'true');
@@ -369,7 +369,7 @@ block content
 
       localStorage.setItem('model', model);
       localStorage.setItem('modelName', modelName);
-      localStorage.setItem('language', language);
+      localStorage.setItem('language', language === 'auto-detect' ? 'Auto-Detect' : language);
       localStorage.setItem('shouldTranslate', translateIsChecked);
 
       // Display the key/value pairs
