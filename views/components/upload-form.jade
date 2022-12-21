@@ -1,0 +1,35 @@
+form.form#form
+  .group
+    label(for='file') Select (or drop) file
+    input#file(type='file')
+  .group
+    label(for='languageSelect')#languageLabel Language (#{languages.length + 1} Options)
+    .wrapper
+      button#languageSelect.select-btn(type='button')
+        span#language.select-value(data-value='auto-detect') Auto-Detect
+        i.fa-solid.fa-angle-down
+      .content
+        .search
+          i.fa-solid.fa-magnifying-glass
+          input(spellcheck='false' type='search' placeholder='Filter...' tabindex='0')
+        ul.options.languages
+          li.option(data-value='auto-detect' tabindex='0') Auto-Detect
+          each language in languages
+            li.option(data-value=language tabindex='0')= language
+  .group
+    label(for='modelSelect')#modelLabel Model (#{modelsArray.length} Options)
+    .wrapper
+      button#modelSelect.select-btn(type='button')
+        span#model.select-value= modelsArray[0].name
+        i.fa-solid.fa-angle-down
+      .content
+        .search
+          i.fa-solid.fa-magnifying-glass
+          input(spellcheck='false' type='search' placeholder='Filter...')
+        ul.options.models
+          each model in modelsArray
+            li.option(data-value= model.value tabindex='0')= model.name
+  .group.translateHolder
+    label#translateLabel(for='translate') Translate to different languages
+    input#translate(type='checkbox')
+  button#upload-button.submit-btn(type='submit') Upload
