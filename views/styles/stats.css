@@ -1,77 +1,8 @@
-@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700");
 body {
-  font-family: "Open Sans", sans-serif;
-  background-color: #e4e4e4;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: baseline;
-  justify-content: baseline;
-  overflow: hidden;
+  margin: 2rem;
 }
 
-.card {
-  background-color: #ffffff;
-  width: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+tr {
+  align-content: center;
+  align-items: center;
 }
-
-.table-concept {
-  width: 100%;
-  height: 100%;
-  max-height: 100%;
-  overflow: auto;
-  box-sizing: border-box;
-}
-.table-concept .table-display {
-  background-color: #e2e2e2;
-  text-align: right;
-  padding: 10px;
-  display: inline-block;
-  position: sticky;
-  left: 0;
-}
-.table-concept table {
-  background-color: #ffffff;
-  font-size: 16px;
-  border-collapse: collapse;
-  display: inline-block;
-}
-.table-concept table tr:last-child td {
-  border-bottom: 0;
-}
-.table-concept table tr th,
-.table-concept table tr td {
-  text-align: left;
-  padding: 15px;
-  box-sizing: border-box;
-}
-.table-concept table tr th {
-  color: #ffffff;
-  font-weight: normal;
-  background-color: #8f8f8f;
-  border-bottom: solid 2px #d8d8d8;
-  position: sticky;
-  top: 0;
-}
-.table-concept table tr td {
-  border: solid 1px #d8d8d8;
-  border-left: 0;
-  border-right: 0;
-  white-space: nowrap;
-}
-.table-concept table tbody tr {
-  transition: background-color 150ms ease-out;
-}
-.table-concept table tbody tr:nth-child(2n) {
-  background-color: whitesmoke;
-}
-.table-concept table tbody tr:hover {
-  background-color: #ebebeb;
-}
-
-/*# sourceMappingURL=stats.css.map */

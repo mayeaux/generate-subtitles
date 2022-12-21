@@ -1,55 +1,59 @@
 extends layout 
 
 block content 
-    link(rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootswatch/3.3.0/flatly/bootstrap.min.css')
-    link(rel='stylesheet', href='/stylesheets/style.css')
-    link(rel='stylesheet', href='views/styles/stats.css')
+    //- Import Google Icon Font
+    link(href='/views/styles/stats.css' rel='stylesheet')
+    link(href='https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css' rel='stylesheet')
     
-    script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js') 
-    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js')
-     
-    .card
-    .table-concept
-        .table-display
-        table
-            tbody
-                tr 
-                    th 
-                    th Last 24 hours
-                    th Last 7 days
-                    th Last 30 days
-                    th Total
+    //- Import materialize.css
+    
+    script(type='text/javascript' src='https://code.jquery.com/jquery-3.5.1.js')
+    script(type='text/javascript' src='https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js')
+    //- Let browser know website is optimized for mobile
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    meta(charset='UTF-8')
 
+    table#perPeriod.table.table-striped.table-bordered(style='width:100%')
+        thead
+            tr
+                th 
+                th Last 24 hours
+                th Last 7 days
+                th Last 30 days
+                th Total
+        tbody
+            tr 
+                th Total transcriptions:
+                th #{arrangedTranscStats.allTranscriptionPerPeriod.last24h.transcriptionsCount}
+                th #{arrangedTranscStats.allTranscriptionPerPeriod.last7days.transcriptionsCount}
+                th #{arrangedTranscStats.allTranscriptionPerPeriod.last30days.transcriptionsCount}
+                th #{arrangedTranscStats.allTranscriptionPerPeriod.total.transcriptionsCount}
+            tr 
+                th Total time transcribed:
+                th #{arrangedTranscStats.allTranscriptionPerPeriod.last24h.timeTranscribed}
+                th #{arrangedTranscStats.allTranscriptionPerPeriod.last7days.timeTranscribed}
+                th #{arrangedTranscStats.allTranscriptionPerPeriod.last30days.timeTranscribed}
+                th #{arrangedTranscStats.allTranscriptionPerPeriod.total.timeTranscribed}
+    br
+    br
+    br
+    table#languages.table.table-striped.table-bordered(style='width:100%')
+        thead
+            tr
+                th 
+                th Language
+                th Total transcriptions
+                th Total time [s]
+        tbody
+            for k,v in arrangedTranscStats.languagesPerPeriod
                 tr
-                    td Number of transcriptions: 
-                    td #{arrangedTranscStats.allTranscriptionPerPeriod.last24h.transcriptionsCount}
-                    td #{arrangedTranscStats.allTranscriptionPerPeriod.last7days.transcriptionsCount}
-                    td #{arrangedTranscStats.allTranscriptionPerPeriod.last30days.transcriptionsCount}
-                    td #{arrangedTranscStats.allTranscriptionPerPeriod.total.transcriptionsCount}
-                    
-                tr
-                    td Total time of transcription:
-                    td #{arrangedTranscStats.allTranscriptionPerPeriod.last24h.timeTranscribed}s
-                    td #{arrangedTranscStats.allTranscriptionPerPeriod.last7days.timeTranscribed}s
-                    td #{arrangedTranscStats.allTranscriptionPerPeriod.last30days.timeTranscribed}s
-                    td #{arrangedTranscStats.allTranscriptionPerPeriod.total.timeTranscribed}s
-            for k, v in arrangedTranscStats.languagesPerPeriod
-                tr 
-                    td #{v} number of transcriptions:
-                    td #{k.last24h.transcriptionsCount}
-                    td #{k.last7days.transcriptionsCount}
-                    td #{k.last30days.transcriptionsCount}
-                    td #{k.total.transcriptionsCount}
-                tr 
-                    td #{v} total time of transcription:
-                    td #{k.last24h.timeTranscribed}s
-                    td #{k.last7days.timeTranscribed}s
-                    td #{k.last30days.timeTranscribed}s
-                    td #{k.total.timeTranscribed}s
-
+                    td
+                    td #{v}
+                    td #{k.transcriptionsCount}
+                    td #{k.timeTranscribed}
 
     script.
         $(document).ready(function () {
-            console.log('bla');
-
+            $('#perPeriod').DataTable();
+            $('#languages').DataTable();
         });
