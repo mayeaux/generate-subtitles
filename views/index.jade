@@ -164,7 +164,23 @@ block content
       return options.filter(opt => !!opt.name.match(regex))
     };
 
-    //- const handleSelectionShortcuts = (evt, key, )
+    const handleSelectionShortcuts = (evt, key) => {
+      (key === 'ArrowDown' || key === 'ArrowUp') && evt.preventDefault();
+      const selectionContent = evt.target.closest('form .content');
+      const focusedOption = document.activeElement.closest('.option');
+
+      if (key === 'ArrowDown') {
+        // if there is a current focused option, focus the next one, else focus the first one
+        // optional chaining is used to prevent error on going past the last element
+        focusedOption ? focusedOption.nextSibling?.focus()
+        : selectionContent.querySelector('.option').focus();
+      } else if (key === 'ArrowUp') {
+        // optional chaining is used to prevent error on going past the first element
+        focusedOption.previousSibling?.focus();
+      } else if (key === 'Enter') {
+        focusedOption?.click();
+      }
+    }
 
     // Handle clicks with event delegation
     document.body.addEventListener('click', evt => {
@@ -221,22 +237,10 @@ block content
     document.body.addEventListener('keydown', evt => {
       const pressed = evt.target;
       const key = evt.key;
-      const formContent = pressed.closest('form .content');
-      //- if (!formContent) return;
-      (key === 'ArrowDown' || key === 'ArrowUp') && evt.preventDefault();
-      const focusedOption = document.activeElement.closest('.option');
+      const selectionContent = pressed.closest('form .content');
 
-      if (key === 'ArrowDown') {
-        console.log(focusedOption?.nextSibling);
-        // if there is a current focused option, focus the next one, else focus the first one
-        // optional chaining is used to prevent error on going past the last element
-        focusedOption ? focusedOption.nextSibling?.focus()
-        : formContent.querySelector('.option').focus();
-      } else if (key === 'ArrowUp') {
-        // optional chaining is used to prevent error on going past the first element
-        focusedOption.previousSibling?.focus();
-      } else if (key === 'Enter') {
-        focusedOption?.click();
+      if (selectionContent) {
+        handleSelectionShortcuts(evt, key);
       }
     });
 
