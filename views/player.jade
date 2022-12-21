@@ -513,7 +513,6 @@ block content
             
             const languagesToLoop = !{JSON.stringify(languagesToLoop)};
             const defaultLang = !{JSON.stringify(processingData.language)};
-            console.log(languagesToLoop);
 
             const menuText = `
             <button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="-1">
@@ -547,7 +546,6 @@ block content
 
                 $("span.plyr__caption").text(`${originalText}\n${translationText}`);
 
-                console.log(languageValue);
                 $(this).attr("aria-checked", "true");
                 $("div[id*='secondCaptions'] button span").eq(0).text(languageValue)
 
@@ -580,13 +578,13 @@ block content
             l(thing);
 
             const selectedTranslation = $("#languageName[aria-checked='true'] > span[id*='languageValue']").attr("value");
-            
             if(selectedTranslation) {
                 const translation = findTextFromIndexNumber(selectedTranslation, thing.indexNumber);
                 const originalText = $('span.plyr__caption').text();
                 
                 $('span.plyr__caption').text(`${originalText}\n${translation})`);
             }
+            
             // balance text not working at the moment
             if(subtitlesFontSize){
               $('.plyr__caption').css('font-size', `${subtitlesFontSize}px`);
