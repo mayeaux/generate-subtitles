@@ -10,7 +10,6 @@ block content
   include styles/styles-transcription-results.jade
 
   //- TODO
-  //- separate components
   //- organize scripts
 
   include components/social-buttons.jade
@@ -172,6 +171,8 @@ block content
       return options.filter(opt => !!opt.name.match(regex))
     };
 
+    //- const handleSelectionShortcuts = (evt, key, )
+
     // Handle clicks with event delegation
     document.body.addEventListener('click', evt => {
       const clicked = evt.target;
@@ -228,8 +229,8 @@ block content
       const pressed = evt.target;
       const key = evt.key;
       const formContent = pressed.closest('form .content');
-      if (!formContent) return;
-      (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Enter') && evt.preventDefault();
+      //- if (!formContent) return;
+      (key === 'ArrowDown' || key === 'ArrowUp') && evt.preventDefault();
       const focusedOption = document.activeElement.closest('.option');
 
       if (key === 'ArrowDown') {
