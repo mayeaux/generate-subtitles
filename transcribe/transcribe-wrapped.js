@@ -315,7 +315,6 @@ async function transcribe({
               data = await fs.readFile(transcribedTxtFile, 'utf-8');
               latinCharactersText = convert(data);
               await fs.writeFile(transcribedTxtFile, latinCharactersText, 'utf-8');
-
             }
 
             // return await so queue moves on, don't need to wait for translations
