@@ -4,43 +4,24 @@ block content
   script(src='/javascripts/circle-progress.min.js')
 
   include styles/styles-global.jade
-  include styles/styles-form.jade
   include styles/styles-social.jade
+  include styles/styles-amounts-header.jade
+  include styles/styles-form.jade
   include styles/styles-transcription-results.jade
 
   //- TODO
   //- separate components
   //- organize scripts
 
-  style.
-
-    .amountsHeader {
-      text-align: center;
-      color: white;
-    }
-
-    .amountsHeader:nth-of-type(1) {
-      font-size: 22px;
-      margin-bottom: -1px;
-    }
-
-    .amountsHeader:nth-of-type(3) {
-      margin-bottom: 35px;
-    }
-
   include components/social-buttons.jade
 
   .container
-    //if isFreeSubtitles
-    //  h3.amountsHeader #{siteStats.amountOfTranscriptions} transcriptions completed
-    //  h3.amountsHeader #{siteStats.humanReadableTime} transcribed
-    if isFreeSubtitles
-      h3.amountsHeader File Limits:
-      h3.amountsHeader Size: #{uploadFileSizeLimitInMB}MB
-      h3.amountsHeader Duration: 1 Hour
+    
+    include components/amounts-header.jade
 
     h1#header File Upload
     include components/upload-form.jade
+
     include components/transcription-results.jade
 
   script.
