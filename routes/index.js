@@ -394,16 +394,17 @@ router.get("/player/:filename" , async function(req, res, next){
 
     const processDirectory = process.cwd();
 
-    const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${fileNameWithoutExtension}`;
-
-    l('filePathWithoutExtension')
-    l(filePathWithoutExtension);
-
     const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
 
     const processingDataPath = `${containingFolder}/processing_data.json`;
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
+
+
+    const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${processingData.directoryFileName}`;
+
+    l('filePathWithoutExtension')
+    l(filePathWithoutExtension);
 
     const translatedLanguages = processingData.translatedLanguages;
 
