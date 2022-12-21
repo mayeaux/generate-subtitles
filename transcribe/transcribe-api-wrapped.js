@@ -24,7 +24,6 @@ const {
   moveAndRenameFilesAndFolder,
   saveTranscriptionCompletedInformation,
   writeToProcessingDataFile,
-  translateIfNeeded
 } = require('../lib/transcribing');
 
 l = console.log;
@@ -59,7 +58,7 @@ async function transcribe ({
       l(startingDate);
 
       // todo: should probably rename since Whisper doesn't like special chars in folder path
-      const whisperProcess = spawn(whisperPath, buildArguments({
+      const whisperProcess = spawn(whisperPath, buildArguments({ 
         uploadedFilePath: originalUpload, // file to use
         language, //
         model,

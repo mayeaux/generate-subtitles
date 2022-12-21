@@ -11,6 +11,7 @@ const forHumans = require('../helpers/helpers').forHumans;
 const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
+const { sendToWebsocket ,autoDetectLanguage } = require('../lib/transcribing');
 
 const nodeEnvironment = process.env.NODE_ENV;
 const libreTranslateHostPath = process.env.LIBRETRANSLATE;
@@ -23,12 +24,10 @@ const whisperPath = which.sync('whisper')
 
 global.transcriptions = [];
 
-function sendToWebsocket (websocketConnection, data) {
-  websocketConnection.send(JSON.stringify(data), function () {});
-}
-
+l = console.log
 
 let topLevelValue = 1;
+
 async function transcribe ({
   uploadedFilePath,
   language,
@@ -66,8 +65,10 @@ async function transcribe ({
       // l('directorySafeFileNameWithExtension')
       // l(directorySafeFileNameWithExtension)
 
-      // todo: refactor this a bit
-      websocketConnection.send(JSON.stringify('Whisper initializing, updates to come...'), function () {});
+      // todo: refactor this a bit // done
+      //websocketConnection.send(JSON.stringify('Whisper initializing, updates to come...'), function () {});
+      // refactoring
+      sendToWebsocket(websocketConnection,'Whisper initializing, updates to come...' )
 
       const osSpecificPathSeparator = path.sep;
 
@@ -79,13 +80,13 @@ async function transcribe ({
 
       const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
 
-      const fileDetailsJSON = {
-        filename: directorySafeFileNameWithoutExtension,
-        language,
-        model,
-        uploadDurationInSeconds,
-        uploadDurationInSecondsHumanReadable,
-      }
+      // const fileDetailsJSON = {
+      //   filename: directorySafeFileNameWithoutExtension,
+      //   language,
+      //   model,
+      //   uploadDurationInSeconds,
+      //   uploadDurationInSecondsHumanReadable,
+      // }
 
       // just do JSON, then loop through properties on the frontend
       let fileDetails = `
@@ -96,11 +97,19 @@ async function transcribe ({
             uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
       `.replace(/^ +/gm, ''); // remove indentation
 
-      // update filedetails
-      websocketConnection.send(JSON.stringify({
+      
+      //update filedetails //refactoring
+      // websocketConnection.send(JSON.stringify({
+      //   message: 'fileDetails',
+      //   fileDetails
+      // }), function () {});
+
+      //new refactoring
+      //update filedetails
+      sendToWebsocket(websocketConnection,{
         message: 'fileDetails',
         fileDetails
-      }), function () {});
+      })
 
       /** INSTANTIATE WHISPER PROCESS **/
       // queue up arguments, path is the first one
@@ -157,14 +166,33 @@ async function transcribe ({
       let foundLanguage;
       let displayLanguage = language;
 
+            /**  console output from stdoutt **/ // ahmed
+            async function handleStdOut (data) {
+              sendToWebsocket(websocketConnection,`stdout: ${data}`)
+              l(`STDOUT: ${data}`)
+      
+              // save auto-detected language
+              const parsedLanguage = autoDetectLanguage(data.toString());
+              if (parsedLanguage) foundLanguage = parsedLanguage;
+            }
+
+            whisperProcess.stdout.on('data', handleStdOut);
+
       //  console output from stdoutt
       whisperProcess.stdout.on('data', data => {
-        websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
-        l(`STDOUT: ${data}`);
+        handleStdOut(data)
+        //websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
+        // sendToWebsocket(websocketConnection,`stdout: ${data}`) ///*
+        // l(`STDOUT: ${data}`);            ///*
 
         // TODO: pull this out into own function
         // check if language is autodetected)
         const dataAsString = data.toString();
+
+        const parsedLanguage = autoDetectLanguage(dataAsString) //
+        l("parsedLanguageAhmed")
+        l(parsedLanguage)
+
         if (dataAsString.includes('Detected language:')) {
 
           // parse out the language from the console output
@@ -187,10 +215,14 @@ async function transcribe ({
           `.replace(/^ +/gm, ''); // remove indentation
 
           // update file details
-          websocketConnection.send(JSON.stringify({
+          // websocketConnection.send(JSON.stringify({
+          //   message: 'fileDetails',
+          //   fileDetails
+          // }), function () {});
+          sendToWebsocket(websocketConnection,{
             message: 'fileDetails',
             fileDetails
-          }), function () {});
+          })
         }
       });
 

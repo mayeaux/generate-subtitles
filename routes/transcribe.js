@@ -13,7 +13,7 @@ const { languagesToTranslateTo } = constants;
 
 const router = express.Router();
 const { makeFileNameSafe, decode_utf8, upload } = require('../lib/files');
-const { uploadFileSizeLimitInMB } = require('../lib/transcribing');
+const { uploadFileSizeLimitInMB ,sendToWebsocket } = require('../lib/transcribing');
 
 let concurrentJobs = process.env.CONCURRENT_AMOUNT;
 if (process.NODE_ENV === 'development') {
@@ -165,7 +165,10 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}${originalFileExtension}`;
 
     queue.add(async function () {
-      // TODO: catch the error here?
+
+      
+      sendToWebsocket(websocketConnection,"Hi Ahhmed Here")
+      // // TODO: catch the error here?
       await transcribeWrapped({
         uploadedFilePath,
         language,
@@ -185,7 +188,11 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
         queue,
         languagesToTranslateTo,
       });
+
+      l("Hi Ahmed here ",testData)
     });
+
+   
 
     const obj = JSON.parse(JSON.stringify(req.body));
     l(obj);
