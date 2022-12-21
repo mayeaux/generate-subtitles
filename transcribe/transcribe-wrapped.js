@@ -3,7 +3,6 @@ const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
-var convert = require('cyrillic-to-latin')
 const path = require('path');
 const projectConstants = require('../constants/constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
@@ -11,6 +10,7 @@ const forHumans = require('../helpers/helpers').forHumans;
 const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
+const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
 
 l(formatStdErr);
 
@@ -286,35 +286,27 @@ async function transcribe({
 
             // turn this to a loop
             /** COPY TO BETTER NAME, SRT, VTT, TXT **/
-            const transcribedSrtFile = `${originalDirectoryAndNewFileName}.srt`;
+            const transcribedSrtFilePath = `${originalDirectoryAndNewFileName}.srt`;
 
-            const transcribedVttFile = `${originalDirectoryAndNewFileName}.vtt`;
+            const transcribedVttFilePath = `${originalDirectoryAndNewFileName}.vtt`;
 
-            const transcribedTxtFile = `${originalDirectoryAndNewFileName}.txt`;
+            const transcribedTxtFilePath = `${originalDirectoryAndNewFileName}.txt`;
 
             // copy srt with the original filename
             // SOURCE, ORIGINAL
             // TODO: could probably move here instead of copy
-            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.srt`, transcribedSrtFile, { overwrite: true })
+            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.srt`, transcribedSrtFilePath, { overwrite: true })
 
-            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.vtt`, transcribedVttFile, { overwrite: true })
+            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.vtt`, transcribedVttFilePath, { overwrite: true })
 
-            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.txt`, transcribedTxtFile, { overwrite: true })
+            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.txt`, transcribedTxtFilePath, { overwrite: true })
 
-            // TODO: convert to loop
-            // convert Cyrillic to latin
             if(language === 'Serbian'){
-              let data = await fs.readFile(transcribedSrtFile, 'utf-8');
-              let latinCharactersText = convert(data);
-              await fs.writeFile(transcribedSrtFile, latinCharactersText, 'utf-8');
+              await convertSerbianCyrillicToLatin({ transcribedSrtFilePath, transcribedVttFilePath, transcribedTxtFilePath })
+            }
 
-              data = await fs.readFile(transcribedVttFile, 'utf-8');
-              latinCharactersText = convert(data);
-              await fs.writeFile(transcribedVttFile, latinCharactersText, 'utf-8');
-
-              data = await fs.readFile(transcribedTxtFile, 'utf-8');
-              latinCharactersText = convert(data);
-              await fs.writeFile(transcribedTxtFile, latinCharactersText, 'utf-8');
+            if(language === 'Chinese'){
+              await convertChineseTraditionalToSimplified({ transcribedSrtFilePath, transcribedVttFilePath, transcribedTxtFilePath })
             }
 
             // return await so queue moves on, don't need to wait for translations
@@ -371,9 +363,9 @@ async function transcribe({
             // tell frontend upload is done
             websocketConnection.send(JSON.stringify({
               status: 'Completed',
-              urlSrt: transcribedSrtFile,
-              urlVtt: transcribedVttFile,
-              urlTxt: transcribedTxtFile,
+              urlSrt: transcribedSrtFilePath,
+              urlVtt: transcribedVttFilePath,
+              urlTxt: transcribedTxtFilePath,
               filename: fileSafeNameWithDateTimestamp,
               detailsString: outputText
             }), function () {});

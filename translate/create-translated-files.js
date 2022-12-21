@@ -2,6 +2,7 @@ const translateText = require('./libreTranslateWrapper');
 const fs = require('fs-extra');
 const { languagesToTranscribe, translationLanguages } = require('../constants/constants');;
 const { stripOutTextAndTimestamps, reformatVtt } = require('./helpers')
+const { simplified } = require('zh-convert');
 
 const convert = require("cyrillic-to-latin");
 
@@ -84,6 +85,10 @@ async function createTranslatedFiles({
 
         if(!translatedText){
           continue
+        }
+
+        if(languageToConvertTo === 'Chinese'){
+          translatedText = simplified(translatedText);
         }
 
         const reformattedVtt = reformatVtt(timestampsArray, translatedText);
