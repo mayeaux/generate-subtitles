@@ -511,7 +511,8 @@ block content
             $('.plyr__menu__container > div > div > div > button').eq(1).html('<span>Second Captions<span class="plyr__menu__value">Disabled</span></span>');
             
             const languagesToLoop = !{JSON.stringify(languagesToLoop)};
-            const defaultLang = !{JSON.stringify(processingData.language)};
+            const defaultLang = !{JSON.stringify(processingData)};
+            languagesToLoop.push({languageCode: defaultLang.languageCode, name: defaultLang.language});
 
             const menuText = `
             <button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="-1">
