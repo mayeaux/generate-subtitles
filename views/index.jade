@@ -782,6 +782,11 @@ block content
 
       } else if (data.message === 'error') {
         document.getElementById('processingData').innerHTML = data.text;
+      } else if (data.message === 'starting') {
+        latestData.innerHTML = data.text;
+        processingData.style.fontSize = '1.6rem';
+        // latestData.css("font-size", "20px");
+
       } else {
         latestData.innerHTML = data;
       }

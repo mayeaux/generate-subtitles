@@ -71,8 +71,10 @@ async function transcribe({
       // l('directorySafeFileNameWithExtension')
       // l(directorySafeFileNameWithExtension)
 
-      // todo: refactor this a bit
-      websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
+      sendToWebsocket(websocketConnection, {
+        message: 'starting',
+        text: `Whisper initializing, updates to come...`
+      })
 
       const osSpecificPathSeparator = path.sep;
 
@@ -319,6 +321,13 @@ async function transcribe({
             l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
             l(`should translate: ${shouldTranslate}`)
+
+            if(shouldTranslate){
+              const vttPath = `${originalDirectoryAndNewFileName}.vtt`;
+
+              // copy original as copied
+              await fs.copy(vttPath, `${originalDirectoryAndNewFileName}_${language}.vtt`)
+            }
 
             let translationStarted, translationFinished = false;
             /** AUTOTRANSLATE WITH LIBRETRANSLATE **/

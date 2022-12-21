@@ -42,9 +42,6 @@ async function createTranslatedFiles({
   l('vttData');
   l(vttData);
 
-  // copy original as copied
-  await fs.copy(vttPath, `${directoryAndFileName}_${language}.vtt`)
-
   const { strippedText, timestampsArray } = await stripOutTextAndTimestamps(vttPath)
 
   for(const languageToConvertTo of languagesToTranscribe){
