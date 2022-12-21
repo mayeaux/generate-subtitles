@@ -784,7 +784,9 @@ block content
         document.getElementById('processingData').innerHTML = data.text;
       } else if (data.message === 'starting') {
         latestData.innerHTML = data.text;
-        processingData.style.fontSize = '1.6rem';
+        document.getElementById('processingData').style.fontSize = '1.6rem';
+        document.getElementById('processingData').style.display = 'none';
+        document.getElementById('secondProcessingData').style.display = 'none';
         // latestData.css("font-size", "20px");
 
       } else {
