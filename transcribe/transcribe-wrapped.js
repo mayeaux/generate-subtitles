@@ -15,7 +15,10 @@ const forHumans = require('../helpers/helpers').forHumans;
 const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr');
-const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
+const {
+  convertChineseTraditionalToSimplified,
+  convertSerbianCyrillicToLatin,
+} = require('../lib/convertText');
 const { sendToWebsocket, autoDetectLanguage } = require('../lib/transcribing');
 
 const nodeEnvironment = process.env.NODE_ENV;
@@ -71,8 +74,8 @@ async function transcribe ({
 
       sendToWebsocket(websocketConnection, {
         message: 'starting',
-        text: `Whisper initializing, updates to come...`
-      })
+        text: 'Whisper initializing, updates to come...',
+      });
 
       const osSpecificPathSeparator = path.sep;
 
@@ -88,13 +91,14 @@ async function transcribe ({
         uploadDurationInSeconds
       );
 
-      const fileDetailsJSON = { //
+      const fileDetailsJSON = {
+        //
         filename: directorySafeFileNameWithExtension,
         language,
         model,
         uploadDurationInSeconds,
         uploadDurationInSecondsHumanReadable,
-      }
+      };
 
       // just do JSON, then loop through properties on the frontend
       let fileDetails = `
@@ -172,27 +176,13 @@ async function transcribe ({
 
         // save auto-detected language
         const parsedLanguage = autoDetectLanguage(data.toString());
-        if (parsedLanguage) foundLanguage = parsedLanguage;
-      }
-
-      whisperProcess.stdout.on('data', handleStdOut);
-
-      //  console output from stdoutt
-      whisperProcess.stdout.on('data', (data) => {
-        handleStdOut(data);
-
-        // TODO: pull this out into own function
-        // check if language is autodetected)
-        const dataAsString = data.toString();
-        if(dataAsString.includes('Detected language:')){
-
-          // parse out the language from the console output
-          foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
-
+        if (parsedLanguage) {
+          foundLanguage = parsedLanguage;
           l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`);
-          if(!language && foundLanguage){
-            language = foundLanguage
-            displayLanguage = `${language} (Auto-Detected)`
+
+          if (!language && foundLanguage) {
+            language = foundLanguage;
+            displayLanguage = `${language} (Auto-Detected)`;
           }
 
           // send data to frontend with updated language
@@ -206,11 +196,51 @@ async function transcribe ({
           `.replace(/^ +/gm, ''); // remove indentation
 
           // update file details
-          websocketConnection.send(JSON.stringify({
+          sendToWebsocket(websocketConnection, {
             message: 'fileDetails',
-            fileDetails
-          }), function () {});
+            fileDetails,
+          });
         }
+      }
+
+      whisperProcess.stdout.on('data', handleStdOut);
+
+      //  console output from stdoutt
+      whisperProcess.stdout.on('data', (data) => {
+        handleStdOut(data);
+
+        // // TODO: pull this out into own function
+        // // check if language is autodetected)
+        // const dataAsString = data.toString(); //
+        // if (dataAsString.includes("Detected language:")) {
+        //   // parse out the language from the console output
+        //   foundLanguage = dataAsString.split(":")[1].substring(1).trimEnd(); //
+
+        //   l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`); //
+        //   if (!language && foundLanguage) {
+        //     language = foundLanguage;
+        //     displayLanguage = `${language} (Auto-Detected)`;
+        //   }
+
+        //   // send data to frontend with updated language
+        //   // TODO: when it's JSON, just add the detected language here as a property
+        //   fileDetails = `
+        //     filename: ${directorySafeFileNameWithExtension}
+        //     language: ${displayLanguage}
+        //     model: ${model}
+        //     uploadDurationInSeconds: ${uploadDurationInSeconds}
+        //     uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
+        //   `.replace(/^ +/gm, ""); // remove indentation
+
+        //   // update file details
+        //   websocketConnection.send(
+        //     JSON.stringify({
+        //       message: "fileDetails",
+        //       fileDetails,
+        //     }),
+        //     function () {}
+        //   );
+        // }
       });
 
       // log output from bash (it all comes through stderr for some reason?)
@@ -282,11 +312,10 @@ async function transcribe ({
             language = foundLanguage;
           }
 
-          const processFinishedSuccessfully = code === 0
+          const processFinishedSuccessfully = code === 0;
 
           // directorySafeFileNameWithoutExtension = fileSafeNameWithDateTimestamp
           // directorySafeFileNameWithExtension = fileSafeNameWithDateTimestampAndExtension
-
 
           // successful output
           if (processFinishedSuccessfully) {
@@ -294,9 +323,13 @@ async function transcribe ({
 
             const originalContainingDir = `./transcriptions/${uploadGeneratedFilename}`;
 
-            const originalDirectoryAndNewFileName = `${originalContainingDir}/${directorySafeFileNameWithoutExtension}`
+            const originalDirectoryAndNewFileName = `${originalContainingDir}/${directorySafeFileNameWithoutExtension}`;
 
-            await fs.move(originalUpload, `${originalContainingDir}/${directorySafeFileNameWithExtension}`, { overwrite: true }) //fixhere
+            await fs.move(
+              originalUpload,
+              `${originalContainingDir}/${directorySafeFileNameWithExtension}`,
+              { overwrite: true }
+            ); //fixhere
 
             // const fileNameWithLanguage = `${directorySafeFileNameWithoutExtension}_${language}`;
 
@@ -311,18 +344,38 @@ async function transcribe ({
             // copy srt with the original filename
             // SOURCE, ORIGINAL
             // TODO: could probably move here instead of copy
-            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.srt`, transcribedSrtFilePath, { overwrite: true })
+            await fs.move(
+              `${originalContainingDir}/${uploadFolderFileName}.srt`,
+              transcribedSrtFilePath,
+              { overwrite: true }
+            );
 
-            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.vtt`, transcribedVttFilePath, { overwrite: true })
+            await fs.move(
+              `${originalContainingDir}/${uploadFolderFileName}.vtt`,
+              transcribedVttFilePath,
+              { overwrite: true }
+            );
 
-            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.txt`, transcribedTxtFilePath, { overwrite: true })
+            await fs.move(
+              `${originalContainingDir}/${uploadFolderFileName}.txt`,
+              transcribedTxtFilePath,
+              { overwrite: true }
+            );
 
-            if(language === 'Serbian'){
-              await convertSerbianCyrillicToLatin({ transcribedSrtFilePath, transcribedVttFilePath, transcribedTxtFilePath })
+            if (language === 'Serbian') {
+              await convertSerbianCyrillicToLatin({
+                transcribedSrtFilePath,
+                transcribedVttFilePath,
+                transcribedTxtFilePath,
+              });
             }
 
-            if(language === 'Chinese'){
-              await convertChineseTraditionalToSimplified({ transcribedSrtFilePath, transcribedVttFilePath, transcribedTxtFilePath })
+            if (language === 'Chinese') {
+              await convertChineseTraditionalToSimplified({
+                transcribedSrtFilePath,
+                transcribedVttFilePath,
+                transcribedTxtFilePath,
+              });
             }
 
             // return await so queue moves on, don't need to wait for translations
@@ -334,13 +387,16 @@ async function transcribe ({
 
             l(`libreTranslateHostPath: ${libreTranslateHostPath}`);
 
-            l(`should translate: ${shouldTranslate}`)
+            l(`should translate: ${shouldTranslate}`);
 
-            if(shouldTranslate){
+            if (shouldTranslate) {
               const vttPath = `${originalDirectoryAndNewFileName}.vtt`;
 
               // copy original as copied
-              await fs.copy(vttPath, `${originalDirectoryAndNewFileName}_${language}.vtt`)
+              await fs.copy(
+                vttPath,
+                `${originalDirectoryAndNewFileName}_${language}.vtt`
+              );
             }
 
             let translationStarted,
@@ -398,14 +454,17 @@ async function transcribe ({
           `.replace(/^ +/gm, ''); // remove indentation
 
             // tell frontend upload is done
-            websocketConnection.send(JSON.stringify({
-              status: 'Completed',
-              urlSrt: transcribedSrtFilePath,
-              urlVtt: transcribedVttFilePath,
-              urlTxt: transcribedTxtFilePath,
-              filename: fileSafeNameWithDateTimestamp,
-              detailsString: outputText
-            }), function () {});
+            websocketConnection.send(
+              JSON.stringify({
+                status: 'Completed',
+                urlSrt: transcribedSrtFilePath,
+                urlVtt: transcribedVttFilePath,
+                urlTxt: transcribedTxtFilePath,
+                filename: fileSafeNameWithDateTimestamp,
+                detailsString: outputText,
+              }),
+              function () {}
+            );
 
             const translationStartedAndCompleted =
               translationStarted && translationFinished;
@@ -438,12 +497,15 @@ async function transcribe ({
             };
 
             // save data to the file
-            await fs.appendFile(`${originalContainingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');
+            await fs.appendFile(
+              `${originalContainingDir}/processing_data.json`,
+              JSON.stringify(fileDetailsObject),
+              'utf8'
+            );
 
             // TODO: rename directory here
             const renamedDirectory = `./transcriptions/${fileSafeNameWithDateTimestamp}`;
-            await fs.rename(originalContainingDir, renamedDirectory)
-
+            await fs.rename(originalContainingDir, renamedDirectory);
           } else {
             l('FAILED!');
             reject();

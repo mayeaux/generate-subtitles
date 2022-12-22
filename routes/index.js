@@ -37,11 +37,11 @@ router.get('/', function (req, res, next) {
 
   const isFreeSubtitles = domainName === 'freesubtitles.ai';
 
-  function decrementBySecond(timeRemainingValues) {
+  function decrementBySecond (timeRemainingValues) {
     let { secondsRemaining, minutesRemaining, hoursRemaining } = timeRemainingValues;
 
-    if(secondsRemaining === 0 || secondsRemaining === '00'){
-      if(minutesRemaining > 0){
+    if (secondsRemaining === 0 || secondsRemaining === '00') {
+      if (minutesRemaining > 0) {
         secondsRemaining = 59;
         minutesRemaining = minutesRemaining - 1;
       }
@@ -50,7 +50,7 @@ router.get('/', function (req, res, next) {
     }
 
     if (minutesRemaining === 0 || minutesRemaining === '00') {
-      if(hoursRemaining > 0){
+      if (hoursRemaining > 0) {
         minutesRemaining = 59;
         hoursRemaining = hoursRemaining - 1;
       }
@@ -66,7 +66,7 @@ router.get('/', function (req, res, next) {
 
 
     let thingString = `${minutesRemaining}:${secondsRemaining}`;
-    if(hoursRemaining){ thingString = `${hoursRemaining}:${thingString}` }
+    if (hoursRemaining) { thingString = `${hoursRemaining}:${thingString}` }
 
     return {
       secondsRemaining,
@@ -96,7 +96,7 @@ global.queueData = [];
 l(process.cwd());
 
 /** PLYR PLAYER **/
-router.get("/player/:filename" , async function(req, res, next){
+router.get('/player/:filename' , async function (req, res, next) {
   try {
     const fileNameWithoutExtension = req.params.filename
 
@@ -117,7 +117,7 @@ router.get("/player/:filename" , async function(req, res, next){
     const translatedLanguages = processingData.translatedLanguages;
 
     // TODO: check that it doesn't include the original language? or it never will?
-    const languagesToLoop = newLanguagesMap.filter(function(language){
+    const languagesToLoop = newLanguagesMap.filter(function (language) {
       return translatedLanguages.includes(language.name)
     });
 
@@ -138,7 +138,7 @@ router.get("/player/:filename" , async function(req, res, next){
       // vttPath,
       // fileSource
     })
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
     res.send(err);
@@ -156,12 +156,12 @@ const getAllDirectories = async (dir) => {
     // l(file);
     // l(file.name);
     // l(file.isDirectory());
-    if(!file.isDirectory()) continue;
+    if (!file.isDirectory()) continue;
 
     let processingData;
     try {
       processingData = JSON.parse(await fs.readFile(`${dir}/${file.name}/processing_data.json`, 'utf8'));
-    } catch (err){
+    } catch (err) {
       // l('err');
       // l(err);
       processingData = null;
@@ -170,11 +170,11 @@ const getAllDirectories = async (dir) => {
     // l('processing data');
     // l(processingData);
 
-    if(processingData && processingData.startedAt && processingData.uploadDurationInSeconds){
+    if (processingData && processingData.startedAt && processingData.uploadDurationInSeconds) {
       newFiles.push({
         name: file.name,
         processingData,
-        formattedDate: moment(processingData.startedAt).format("D MMM YYYY"),
+        formattedDate: moment(processingData.startedAt).format('D MMM YYYY'),
         timestamp: processingData.startedAt && new Date(processingData.startedAt).getTime()
       });
     }
@@ -183,7 +183,7 @@ const getAllDirectories = async (dir) => {
   return newFiles
 }
 
-async function sortByModifiedAtTime(dir){
+async function sortByModifiedAtTime (dir) {
   // sort by modified date
   return files
     .map(async fileName => ({
@@ -194,10 +194,10 @@ async function sortByModifiedAtTime(dir){
     .map(file => file.name);
 };
 
-async function getMatchingFiles({ files, language, keepMedia }){
+async function getMatchingFiles ({ files, language, keepMedia }) {
   // TODO: ugly design but can't think of a better approach atm
   let keepMediaMatch;
-  if(keepMedia === false){
+  if (keepMedia === false) {
     keepMediaMatch = undefined;
   } else {
     keepMediaMatch = keepMedia;
@@ -214,13 +214,13 @@ async function getMatchingFiles({ files, language, keepMedia }){
 
 
 // see files
-router.get('/files', async function(req, res, next) {
+router.get('/files', async function (req, res, next) {
   try {
     const { password, language } = req.query;
 
     const keepMedia = req.query.keepMedia === 'true';
 
-    if(password !== process.env.FILES_PASSWORD){
+    if (password !== process.env.FILES_PASSWORD) {
       res.redirect('/404')
     } else {
       const dir = './transcriptions';
@@ -262,14 +262,14 @@ router.get('/files', async function(req, res, next) {
       })
     }
 
-  } catch(err){
+  } catch (err) {
     l('err');
     l(err);
   }
 });
 
 // see files
-router.get('/learnserbian', async function(req, res, next) {
+router.get('/learnserbian', async function (req, res, next) {
   try {
 
     const dir = './transcriptions';
@@ -286,7 +286,7 @@ router.get('/learnserbian', async function(req, res, next) {
     l(files.length);
     l(files);
 
-    files = files.filter(function(file){
+    files = files.filter(function (file) {
       return file.processingData.translatedLanguages.length;
     });
 
@@ -299,7 +299,7 @@ router.get('/learnserbian', async function(req, res, next) {
       title: 'Files',
     })
 
-  } catch(err){
+  } catch (err) {
     l('err');
     l(err);
   }

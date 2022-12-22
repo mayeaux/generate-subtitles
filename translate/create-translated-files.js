@@ -80,11 +80,11 @@ async function createTranslatedFiles ({
         // l('translatedText');
         // l(translatedText);
 
-        if(!translatedText){
+        if (!translatedText) {
           continue
         }
 
-        if(languageToConvertTo === 'Chinese'){
+        if (languageToConvertTo === 'Chinese') {
           translatedText = simplified(translatedText);
         }
 
