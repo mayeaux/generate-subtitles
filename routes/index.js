@@ -429,7 +429,7 @@ router.get("/player/:filename" , async function(req, res, next){
     l('all languages');
     l(allLanguages);
 
-    res.render('player', {
+    res.render('player/player', {
       filePath: filePathWithoutExtension,
       languages: languagesToTranscribe,
       fileNameWithoutExtension,

@@ -71,8 +71,10 @@ async function transcribe({
       // l('directorySafeFileNameWithExtension')
       // l(directorySafeFileNameWithExtension)
 
-      // todo: refactor this a bit
-      websocketConnection.send(JSON.stringify(`Whisper initializing, updates to come...`), function () {});
+      sendToWebsocket(websocketConnection, {
+        message: 'starting',
+        text: `Whisper initializing, updates to come...`
+      })
 
       const osSpecificPathSeparator = path.sep;
 
@@ -92,10 +94,17 @@ async function transcribe({
         uploadDurationInSecondsHumanReadable,
       }
 
+      let displayLanguage;
+      if(language === 'auto-detect'){
+        displayLanguage = 'Auto-Detect';
+      } else {
+        displayLanguage = language;
+      }
+
       // just do JSON, then loop through properties on the frontend
       let fileDetails = `
             filename: ${directorySafeFileNameWithExtension}
-            language: ${language}
+            language: ${displayLanguage}
             model: ${model}
             uploadDurationInSeconds: ${uploadDurationInSeconds}
             uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
@@ -160,7 +169,6 @@ async function transcribe({
 
       /** FIND AUTO-DETECTED LANGUAGE **/
       let foundLanguage;
-      let displayLanguage = language;
 
       //  console output from stdoutt
       whisperProcess.stdout.on('data', data => {
@@ -176,7 +184,7 @@ async function transcribe({
           foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
 
           l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`);
-          if(!language && foundLanguage){
+          if(language === 'auto-detect' && foundLanguage){
             language = foundLanguage
             displayLanguage = `${language} (Auto-Detected)`
           }
@@ -262,7 +270,7 @@ async function transcribe({
           l('code');
           l(code);
 
-          if(!language){
+          if(!language || language === 'auto-detect'){
             language = foundLanguage;
           }
 
@@ -319,6 +327,13 @@ async function transcribe({
             l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
             l(`should translate: ${shouldTranslate}`)
+
+            if(shouldTranslate){
+              const vttPath = `${originalDirectoryAndNewFileName}.vtt`;
+
+              // copy original as copied
+              await fs.copy(vttPath, `${originalDirectoryAndNewFileName}_${language}.vtt`)
+            }
 
             let translationStarted, translationFinished = false;
             /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
