@@ -413,9 +413,21 @@ router.get("/player/:filename" , async function(req, res, next){
       return translatedLanguages.includes(language.name)
     });
 
-    l({processingData});
+    l('processing data');
+    l(processingData);
 
-    l({languagesToLoop});
+    l('languages to loop');
+    l(languagesToLoop);
+
+    let allLanguages = languagesToLoop.slice();
+
+    allLanguages.push({
+      name: processingData.language,
+      languageCode: processingData.languageCode
+    })
+
+    l('all languages');
+    l(allLanguages);
 
     res.render('player/player', {
       filePath: filePathWithoutExtension,
@@ -425,6 +437,7 @@ router.get("/player/:filename" , async function(req, res, next){
       processingData,
       title: processingData.filename,
       languagesToLoop,
+      allLanguages
       // vttPath,
       // fileSource
     })
