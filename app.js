@@ -22,6 +22,7 @@ require('dotenv').config();
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var api = require('./routes/api');
+var stats = require('./routes/stats');
 const WebSocket = require("ws");
 
 var app = express();
@@ -213,6 +214,8 @@ app.use(function(req, res, next){
 app.use('/', routes);
 app.use('/', api);
 app.use('/users', users);
+app.use('/', stats);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
