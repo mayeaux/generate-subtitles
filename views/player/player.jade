@@ -1,338 +1,61 @@
-extends layout
+extends ../layout
 
 block content
-    style.
-        video {
-            top: 0px;
-            right: 0px;
-            bottom: 0px;
-            left: 0px;
-            max-height: 100%;
-            max-width: 100%;
-            margin: auto;
-            object-fit: contain;
-            height: 100%;
-            width: 100%;
-            background-color: black;
-        }
 
-        body {
-            background-color: black;
-            padding: 0px;
-            margin: 0px;
-        }
+    include ../styles/styles-global.jade
+    include styles-player.jade
 
-        h2, p, h4, h3 {
-            color: white;
-        }
-
-        .video-details {
-            margin-top: -13px;
-            margin-left: 15px;
-        }
-
-        .description {
-            line-height:23px;
-            font-family: serif;
-            font-size: 44px;
-            line-height: 80px;
-        }
-
-        .pulled-right {
-            max-width: 500px;
-            margin-right: 0px;
-            width: 200px;
-            position: relative;
-            float: right;
-            top: -6px;
-        }
-
-        .video-title {
-            font-size: 58px;
-            margin-top: 25px;
-        }
-
-        .hide-cursor {
-            cursor: none;
-        }
-
-        .plyr {
-            max-height: 94.6vh;
-        }
-
-        #back-button {
-            font-size: 14px;
-            margin-top: 12px;
-        }
-
-        #download-button {
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        .upload-details-holder {
-            /*height: 1300px;*/
-        }
-
-        .upload-details h4:not(.description) {
-            font-size: 35px;
-        }
-
-        .vjs-text-track-display div div {
-            font-size: 40px !important;
-        }
-
-        .video-js {
-            max-height: 400px;
-        }
-
-        .bottomSection {
-            padding-left: 20px;
-        }
-
-        .downloadLinks a {
-            color: white;
-        }
-
-        .links div, .links p, .links a p {
-            display: inline;
-        }
-
-        .links a p {
-            margin-left: 10px;
-        }
-
-        .links {
-            margin-bottom: 10px;
-        }
-
-        @media (min-width: 320px) {
-            /* smartphones, portrait iPhone, portrait 480x320 phones (Android) */
-        }
-
-        @media (min-width: 480px) {
-            /* smartphones, Android phones, landscape iPhone */
-        }
-
-
-
-        /** larger than this size **/
-        @media (min-width: 320px) {
-
-            .plyr__captions  .plyr__caption {
-                font-size: 21px;
-                line-height: 33px;
-            }
-        }
-
-        @media (min-width: 801px) {
-
-            .plyr__captions  .plyr__caption {
-                font-size: 21px;
-                line-height: 33px;
-            }
-            /* tablet, landscape iPad, lo-res laptops ands desktops */
-        }
-
-        @media (min-width: 1025px) {
-            /* big landscape tablets, laptops, and desktops */
-        }
-
-        /* not mobile */
-        @media (min-width: 1281px) {
-            .plyr__captions .plyr__caption {
-                font-size: 21px;
-                line-height: 33px;
-            }
-            /* hi-res laptops and desktops */
-        }
-
-        @media (max-width: 900px) {
-            .plyr__volume {
-                display: none !important;
-            }
-
-            .plyr__time--current, .plyr__time--duration {
-                font-size: 24px !important;
-            }
-
-            body {
-                font-size: 28px;
-            }
-
-            .plyr__control svg {
-                width: 53px !important;
-                height: 53px !important;
-            }
-
-
-            button[data-plyr="language"], button[data-plyr="settings"] {
-                font-size: 28px !important;
-            }
-
-            /* hi-res laptops and desktops */
-        }
-
-        .buttons {
-            margin-top: 9px;
-        }
-
-        .buttons div {
-            display: inline-block;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-
-        .buttons div p {
-            margin-top: 4px;
-            margin-bottom: 4px;
-        }
-
-        .buttons div {
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        .buttons #increaseSize p:hover, .buttons #increaseLineHeight p:hover  {
-            color: #55ed55;
-        }
-
-        .buttons #decreaseSize p:hover, .buttons #decreaseLineHeight p:hover {
-            color: #df2b2b;
-        }
-
-        .plyr__poster {
-            display: none;
-        }
-
-        .plyr .plyr__captions {
-            display: inline-table !important;
-            text-align: left !important;
-            cursor: pointer;
-            max-width: 99%;
-            z-index: 9999;
-            padding: 0px;
-            width: unset !important;
-            position: absolute;
-            bottom: 68px;
-        }
-
-        .plyr:not(.plyr--hide-controls) .plyr__controls:not(:empty)~.plyr__captions {
-            transform: unset !important;
-        }
-
-        .plyr__caption {
-            text-wrap: balance;
-            display: block;
-        }
-
-        .plyr__controls {
-            flex-wrap: wrap;
-            justify-content: left !important;
-        }
-
-        .plyr__progress__container {
-            flex-basis: 100% !important;
-        }
-
-        .plyr__progress {
-            max-width: 99%;
-            text-align: center;
-            margin: 0 auto;
-            margin-bottom: 5px;
-        }
-
-        button[data-plyr=captions] {
-            margin-left: auto !important;
-        }
-
-        input[data-plyr=seek], input[data-plyr=volume] {
-            cursor: pointer;
-        }
-
-
-
-    div
-        div.video-containing-div
-            video#player(playsinline controls='' autoplay='true' name='media' preload="auto")
-                // file extension includes the .
-                source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
-                // TODO: replace with loop (has to fix on the backend)
-                if languagesToLoop.length > 0
-                    each loopLanguage in languagesToLoop
-                        track(kind='captions' label=loopLanguage.name srclang=loopLanguage.languageCode src=`${filePathWithoutExtension}_${loopLanguage.name}.vtt` default='')
-                    track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
-                else
-                    track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}.vtt` default=true)
-
-    div.bottomSection
+    main
+      section.video-container
+        video#player(playsinline controls='' autoplay='true' name='media' preload="auto")
+          // file extension includes the .
+          source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
+          // TODO: replace with loop (has to fix on the backend)
+          if languagesToLoop.length > 0
+            each loopLanguage in languagesToLoop
+              track(kind='captions' label=loopLanguage.name srclang=loopLanguage.languageCode src=`${filePathWithoutExtension}_${loopLanguage.name}.vtt` default='')
+            track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
+          else
+            track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}.vtt` default=true)
+      section.bottomSection
         .buttons
-            #increaseSize
-                p Subtitle Text Size +
-            #decreaseSize
-                p Subtitle Text Size -
-            #increaseLineHeight
-                p Subtitle Spacing +
-            #decreaseLineHeight
-                p Subtitle Spacing -
+          button.btn#increaseSize Subtitle Text Size +
+          button.btn#decreaseSize Subtitle Text Size -
+          button.btn#increaseLineHeight Subtitle Spacing +
+          button.btn#decreaseLineHeight Subtitle Spacing -
+        .downloadLinks
+          a.btn.startAnotherTranscription(href='/') Start Another Transcription
 
-        div.downloadLinks
-            div.startAnotherTranscription(style="max-width:191px;")
-                a(href=`/`)
-                    p Start Another Transcription
+          // ORIGINAL LANGUAGE FILES
+          if processingData.translatedLanguages.length > 1
+            span Original Language:
+          .srtLinks.links
+            span SRT (#{processingData.language})
+            a(download href=`${filePathWithoutExtension}.srt`) Download
+          .vttLinks.links
+            span VTT (#{processingData.language})
+            a(href=`${filePathWithoutExtension}.vtt`) View
+            a(download href=`${filePathWithoutExtension}.vtt`) Download
+          .txtLinks.links
+            span TXT (#{processingData.language})
+            a(href=`${filePathWithoutExtension}.txt`) View
+            a(download href=`${filePathWithoutExtension}.txt`) Download
 
-            // ORIGINAL LANGUAGE FILES
-            if processingData.translatedLanguages.length > 1
-                p Original Language:
-            div.srtLinks.links
-                p SRT (#{processingData.language})
-                div
-                    a(download href=`${filePathWithoutExtension}.srt`)
-                        p Download
-            div.vttLinks.links
-                p VTT (#{processingData.language})
-                div
-                    a(href=`${filePathWithoutExtension}.vtt`)
-                        p View
-                div
-                    a(download href=`${filePathWithoutExtension}.vtt`)
-                        p Download
-
-            div.txtLinks.links
-                p TXT (#{processingData.language})
-                div
-                    a(download href=`${filePathWithoutExtension}.txt`)
-                        div
-                            a(href=`${filePathWithoutExtension}.txt`)
-                                p View
-                        div
-                            a(download href=`${filePathWithoutExtension}.txt`)
-                                p Download
-
-            // TRANSLATED FILES //
-            if processingData.translatedLanguages.length > 0
-                p Translations:
-            // translated VTT files
-            each language in processingData.translatedLanguages
-                div.links
-                    p VTT (#{language})
-                    div
-
-                        div
-                            a(href=`${filePathWithoutExtension}_${language}.vtt`)
-                                p View
-                        div
-                            a(href=`${filePathWithoutExtension}_${language}.vtt` download)
-                                p Download
-            div.links
-                a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`)
-                    p(style="margin-left:0px") Download File
-
-
-        div.fileDetails
-            each property, value in processingData
-                p #{value}: #{property}
-                //p Filename: #{processingData.filename}
+          // TRANSLATED FILES //
+          if processingData.translatedLanguages.length > 0
+            p Translations:
+          // translated VTT files
+          each language in processingData.translatedLanguages
+            .links
+              span VTT (#{language})
+              a(href=`${filePathWithoutExtension}_${language}.vtt`) View
+              a(href=`${filePathWithoutExtension}_${language}.vtt` download) Download
+          .links
+            a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`) Download File
+        .fileDetails
+          each property, value in processingData
+            p #{value}: #{property}
+            //p Filename: #{processingData.filename}
 
     script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')

@@ -413,13 +413,11 @@ router.get("/player/:filename" , async function(req, res, next){
       return translatedLanguages.includes(language.name)
     });
 
-    l('processing data');
-    l(processingData);
+    l({processingData});
 
-    l('languages to loop');
-    l(languagesToLoop);
+    l({languagesToLoop});
 
-    res.render('player', {
+    res.render('player/player', {
       filePath: filePathWithoutExtension,
       languages: languagesToTranscribe,
       fileNameWithoutExtension,
