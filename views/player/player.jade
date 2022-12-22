@@ -55,6 +55,8 @@ block content
         .fileDetails
           each property, value in processingData
             p #{value}: #{property}
+        a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
+          p(style="color:rgb(22, 29, 29);") Add Here
             //p Filename: #{processingData.filename}
 
     script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
