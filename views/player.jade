@@ -442,11 +442,12 @@ block content
             <span>Disabled</span>
         </button>`;
 
-      const menuText = `${disabledMenuItem}
-        ${allLanguages.map((language, index) => {
-        return buildMenuItemString(language, index)}).join('')}`;
-
       function createSecondCaptionsSetting() {
+        const menuText = `${disabledMenuItem}
+                ${allLanguages.map((language, index) => {
+          return buildMenuItemString(language, index)
+        }).join('')}`;
+
         // show second caption option in popup
         $('.plyr__menu__container > div > div > div > button')[1].removeAttribute('hidden')
 
@@ -603,7 +604,7 @@ block content
         // probably better to do on plyr ready if available as event
         setTimeout(function(){
 
-          if (languagesToLoop.length) {
+          if (allLanguages.length > 1) {
             createSecondCaptionsSetting();
           }
 
