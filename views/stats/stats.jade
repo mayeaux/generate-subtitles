@@ -1,0 +1,59 @@
+extends ../layout
+
+block content
+    style.
+        video {
+            top: 0px;
+        }
+
+        #transcriptionAmountTable tbody tr th, #transcriptionTimeTable tbody tr th {
+            text-align: left;
+            width: 248px;
+        }
+
+
+    div
+        h1 Stats
+
+        h2 Completed Transcriptions
+
+        table#transcriptionAmountTable
+            tbody
+                tr
+                    th Last 24h
+                    th Last Week
+                    th Last Month
+                    th All-Time
+                tr
+                    td #{stats.last24h}
+                    td #{stats.lastWeek}
+                    td #{stats.lastMonth}
+                    td #{stats.allTime}
+
+        br
+        h2 Transcription Time
+
+        table#transcriptionTimeTable
+            tbody
+                tr
+                    th Last 24h
+                    th Last Week
+                    th Last Month
+                    th All-Time
+                tr
+                    td #{transcriptionTime.last24h}
+                    td #{transcriptionTime.lastWeek}
+                    td #{transcriptionTime.lastMonth}
+                    td #{transcriptionTime.allTime}
+
+
+
+    script.
+      l = console.log;
+
+      $(document).ready(function () {
+
+      });
+
+
+
