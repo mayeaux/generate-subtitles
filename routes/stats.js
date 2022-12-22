@@ -71,6 +71,8 @@ router.get('/stats', async function (req, res, next) {
     const withinWeek = moment().subtract(1, 'weeks').valueOf();
     const withinMonth = moment().subtract(1, 'months').valueOf();
 
+    let languages = {};
+
     for(const file of files){
       if(file.timestamp > within24h){
         stats.last24h++;
@@ -86,21 +88,46 @@ router.get('/stats', async function (req, res, next) {
       }
       stats.allTime++;
       transcriptionTime.allTime += file.processingData.uploadDurationInSeconds;
+
+      if(file.processingData.language){
+        if(!languages[file.processingData.language]){
+          languages[file.processingData.language] = 1;
+        } else {
+          languages[file.processingData.language]++;
+        }
+      }
     }
 
-    l('files');
-    l(files);
+    // l('files');
+    // l(files);
 
     transcriptionTime.last24h = forHumans(transcriptionTime.last24h);
     transcriptionTime.lastWeek = forHumans(transcriptionTime.lastWeek);
     transcriptionTime.lastMonth = forHumans(transcriptionTime.lastMonth);
     transcriptionTime.allTime = forHumans(transcriptionTime.allTime);
 
+    // l('languages');
+    // l(languages);
+
+    const entries = Object.entries(languages);
+
+    // Sort the array using the value
+    entries.sort((a, b) => b[1] - a[1]);
+
+    // Reconstruct the object
+    const sortedObj = Object.fromEntries(entries);
+
+    l('sortedObj');
+    console.log(sortedObj);
+
+    // l('languages');
+    // l(languages);
 
     return res.render('stats/stats', {
       // list of file names
       stats,
-      transcriptionTime
+      transcriptionTime,
+      languages: sortedObj
     });
   } catch (err) {
     l('err');
