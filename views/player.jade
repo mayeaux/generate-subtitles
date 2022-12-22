@@ -447,28 +447,17 @@ block content
         return buildMenuItemString(language, index)}).join('')}`;
 
       function createSecondCaptionsSetting() {
+        // show second caption option in popup
         $('.plyr__menu__container > div > div > div > button')[1].removeAttribute('hidden')
 
+        // write Second Captions name with Disabled as default on popup
         $('.plyr__menu__container > div > div > div > button').eq(1).html('<span>Second Captions<span class="plyr__menu__value">Disabled</span></span>');
 
+        // add menu items for when you click the button
         $("div[id*='secondCaptions'] div").html(menuText)
 
+        // set default chosen value as Disabled
         $("div[id*='secondCaptions'] button span").eq(0).text('Disabled')
-
-        $("div[id*='secondCaptions'] div").html(menuText)
-
-        const currentSecondLanguageDefaults = getSecondCaptionsDefaults()
-        l('currentSecondLanguageDefaults', currentSecondLanguageDefaults)
-        l(language);
-
-        const presetLanguage = currentSecondLanguageDefaults[language];
-        if (presetLanguage) {
-          l('found default language!');
-          l(presetLanguage)
-          $(`span#languageValue[value="${presetLanguage}"]`).click();
-        } else {
-          l('nothing found');
-        }
 
         // handle when language value is clicked
         $("div[id*='secondCaptions'] div button").click(function () {
@@ -487,13 +476,8 @@ block content
 
             // get current vtt text
             const currentLang = getCurrentLanguageAndTrack();
-            l('currentLang');
-            l(currentLang);
 
             const translationText = findTextFromIndexNumber(languageValue, currentLang.indexNumber);
-
-            l('translationText');
-            l(translationText);
 
             const originalText = $("span.plyr__caption").text();
 
@@ -612,16 +596,16 @@ block content
 
         player.on('ready', event => {
           $('.plyr__volume').append($('.plyr__volume').children('').get().reverse());
-
-          if (languagesToLoop.length) {
-            createSecondCaptionsSetting();
-          }
         });
 
         l('captions');
 
         // probably better to do on plyr ready if available as event
         setTimeout(function(){
+
+          if (languagesToLoop.length) {
+            createSecondCaptionsSetting();
+          }
 
           $(function () {
             $('.plyr__captions').draggable({
@@ -638,10 +622,29 @@ block content
             $('button[data-plyr="captions"]').click();
           }
 
-          player.on('cuechange', function (event) {
-            // console.log('event!')
-            // console.log(event)
+          let haveSetupSecondCaptions = false;
+          // set secondsDefault language
+          player.on('playing', function(){
+            const currentSecondLanguageDefaults = getSecondCaptionsDefaults()
+            l('currentSecondLanguageDefaults', currentSecondLanguageDefaults)
+            l(language);
+            if(!haveSetupSecondCaptions){
+              setTimeout(function () {
+                // open menu
+                $('.plyr__menu').children().eq(0).click()
+                const presetLanguage = currentSecondLanguageDefaults[language];
+                if (presetLanguage) {
+                  // set preset value
+                  $(`span#languageValue[value="${presetLanguage}"]`).parent().click();
+                  // close menu
+                  $('.plyr__menu').children().eq(0).click()
+                  haveSetupSecondCaptions = true;
+                }
+              }, 10)
+            }
+          })
 
+          player.on('cuechange', function (event) {
             const text = event.detail.plyr.captions.currentTrackNode.activeCues[0]?.text;
             const thing = getCurrentLanguageAndTrack()
             l(thing);
@@ -665,7 +668,4 @@ block content
             l(text);
           })
         }, 200)
-
-
-
       });
