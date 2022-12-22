@@ -2,7 +2,8 @@ extends layout
 
 block content 
     link(href='/views/styles/stats.css' rel='stylesheet')
-    link(href='https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css' rel='stylesheet')
+    link(href='https://cdnjs.cloudflare.com/ajax/libs/material-components-web/4.0.0/material-components-web.min.css' rel='stylesheet')
+    link(href='https://cdn.datatables.net/1.13.1/css/dataTables.material.min.css' rel='stylesheet')
     
     
     script(type='text/javascript' src='https://code.jquery.com/jquery-3.5.1.js')
@@ -11,7 +12,7 @@ block content
     meta(name='viewport' content='width=device-width, initial-scale=1.0')
     meta(charset='UTF-8')
 
-    table#perPeriod.table.table-striped.table-bordered(style='width:100%')
+    table#perPeriod.mdl-data-table(style='width:100%')
         thead
             tr
                 th 
@@ -35,7 +36,7 @@ block content
     br
     br
     br
-    table#languages.table.table-striped.table-bordered(style='width:100%')
+    table#languages.mdl-data-table(style='width:100%')
         thead
             tr
                 th 
@@ -43,7 +44,7 @@ block content
                 th Total transcriptions
                 th Total time [s]
         tbody
-            for k,v in arrangedTranscStats.languagesPerPeriod
+            for k,v in arrangedTranscStats.languagesStats
                 tr
                     td
                     td #{v}
@@ -52,6 +53,28 @@ block content
 
     script.
         $(document).ready(function () {
-            $('#perPeriod').DataTable();
-            $('#languages').DataTable();
+            $('#perPeriod').DataTable({
+                paging : false,
+                info : false,
+                sort : false,
+                order : false,
+                filter: false,
+                columnDefs: [
+                    {
+                        targets: ['_all'],
+                        className: 'mdc-data-table__cell',
+                    },
+                ],
+            });
+            $('#languages').DataTable({
+                paging : false,
+                info : false,
+                autoWidth: false,
+                columnDefs: [
+                    {
+                        targets: ['_all'],
+                        className: 'mdc-data-table__cell',
+                    },
+                ],
+            });
         });

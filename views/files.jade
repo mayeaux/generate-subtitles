@@ -2,8 +2,8 @@ extends layout
 
 block content
     link(href='/views/styles/stats.css' rel='stylesheet')
-    link(href='https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css' rel='stylesheet')
-    
+    link(href='https://cdnjs.cloudflare.com/ajax/libs/material-components-web/4.0.0/material-components-web.min.css' rel='stylesheet')
+    link(href='https://cdn.datatables.net/1.13.1/css/dataTables.material.min.css' rel='stylesheet')
     
     script(type='text/javascript' src='https://code.jquery.com/jquery-3.5.1.js')
     script(type='text/javascript' src='https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js')
@@ -18,12 +18,10 @@ block content
           margin: 2rem;
         }
 
-
-
     div
         h1 Files
 
-        table#myTable.table.table-striped.table-bordered(style='width:100%')
+        table#myTable.mdl-data-table(style='width:100%')
             thead 
               tr
                 th Filename
@@ -42,7 +40,19 @@ block content
       l = console.log;
 
       $(document).ready(function () {
-        $('#myTable').DataTable();
+        $('#myTable').DataTable({
+          paging : false,
+              info : false,
+              sort : false,
+              order : false,
+              filter: false,
+              columnDefs: [
+                  {
+                      targets: ['_all'],
+                      className: 'mdc-data-table__cell',
+                  },
+              ],
+        });
       });
 
 
