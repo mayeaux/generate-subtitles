@@ -341,6 +341,13 @@ block content
 
       let player;
 
+      const language = '#{processingData.language}';
+      const languagesToLoop = !{JSON.stringify(languagesToLoop)};
+      const allLanguages = !{JSON.stringify(allLanguages)};
+
+      l('all languages');
+      l(allLanguages);
+
       function findIndexNumber(language, text) {
         const video = $('video')[0]
         const textTracks = video.textTracks;
@@ -376,6 +383,9 @@ block content
         const textTracks = video.textTracks;
 
         let text;
+        l('text tracks');
+        l(textTracks);
+
         for (const track of textTracks) {
           const trackLanguage = track.label
           if (language === trackLanguage) {
@@ -404,26 +414,42 @@ block content
         }
       }
 
+      function getSecondCaptionsDefaults(){
+        let secendCaptionsDefaults = localStorage.getItem('secondCaptionsDefaults')
+        if(!secendCaptionsDefaults){
+          localStorage.setItem('secondCaptionsDefaults', JSON.stringify({}))
+          return {}
+        } else {
+          secendCaptionsDefaults = JSON.parse(secendCaptionsDefaults)
+          return secendCaptionsDefaults
+        }
+      }
+
+      function setSecondCaptionsDefaults(secondCaptionsLanguage){
+        const secondCaptionsDefaults = getSecondCaptionsDefaults()
+        secondCaptionsDefaults[language] = secondCaptionsLanguage;
+        localStorage.setItem('secondCaptionsDefaults', JSON.stringify(secondCaptionsDefaults))
+      }
+
+      function buildMenuItemString(language, index){
+        return `<button data-plyr="language" id="languageName" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="${index}">
+              <span id="languageValue" value="${language.name}">${language.name}<span class="plyr__menu__value"><span class="plyr__badge">${language.languageCode.toUpperCase()}</span></span></span>
+          </button>`;
+      }
+
+      const disabledMenuItem = `
+         <button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="-1">
+            <span>Disabled</span>
+        </button>`;
+
+      const menuText = `${disabledMenuItem}
+        ${allLanguages.map((language, index) => {
+        return buildMenuItemString(language, index)}).join('')}`;
+
       function createSecondCaptionsSetting() {
         $('.plyr__menu__container > div > div > div > button')[1].removeAttribute('hidden')
 
         $('.plyr__menu__container > div > div > div > button').eq(1).html('<span>Second Captions<span class="plyr__menu__value">Disabled</span></span>');
-        
-        const languagesToLoop = !{JSON.stringify(languagesToLoop)};
-        const defaultLang = !{JSON.stringify(processingData)};
-        languagesToLoop.push({languageCode: defaultLang.languageCode, name: defaultLang.language});
-
-        const menuText = `
-        <button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="-1">
-            <span>Disabled</span>
-        </button>
-        ${languagesToLoop.map((language, index) => {
-            return `
-            <button data-plyr="language" id="languageName" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="${index}">
-                <span id="languageValue" value="${language.name}">${language.name}<span class="plyr__menu__value"><span class="plyr__badge">${language.languageCode.toUpperCase()}</span></span></span>
-            </button>
-            `;
-        }).join('')}`;
 
         $("div[id*='secondCaptions'] div").html(menuText)
 
@@ -431,28 +457,63 @@ block content
 
         $("div[id*='secondCaptions'] div").html(menuText)
 
+        const currentSecondLanguageDefaults = getSecondCaptionsDefaults()
+        l('currentSecondLanguageDefaults', currentSecondLanguageDefaults)
+        l(language);
+
+        const presetLanguage = currentSecondLanguageDefaults[language];
+        if (presetLanguage) {
+          l('found default language!');
+          l(presetLanguage)
+          $(`span#languageValue[value="${presetLanguage}"]`).click();
+        } else {
+          l('nothing found');
+        }
+
+        // handle when language value is clicked
         $("div[id*='secondCaptions'] div button").click(function () {
+            // mark all languages as not checked
             $("div[id*='secondCaptions'] div button").attr("aria-checked", "false");
+
+            // get language of clicked value
             let languageValue = $(this).children().text();
 
+            // remove last two characters from string (couldn't get only French instead of FrenchFR)
             if (/[A-Z]{2}$/.test(languageValue)) {
                 languageValue = languageValue.slice(0, -2);
             }
 
-            localStorage.setItem("secondCaptions", languageValue);
+            setSecondCaptionsDefaults(languageValue)
+
+            // get current vtt text
             const currentLang = getCurrentLanguageAndTrack();
+            l('currentLang');
+            l(currentLang);
+
             const translationText = findTextFromIndexNumber(languageValue, currentLang.indexNumber);
+
+            l('translationText');
+            l(translationText);
+
             const originalText = $("span.plyr__caption").text();
 
-            $("span.plyr__caption").text(`${originalText}\n${translationText}`);
-
+            // mark language as activated
             $(this).attr("aria-checked", "true");
+
+            // update text at the top of the menu options
             $("div[id*='secondCaptions'] button span").eq(0).text(languageValue)
 
+            // immediately add text if they didn't select Disabled
+            if (languageValue !== 'Disabled') {
+                $("span.plyr__caption").text(`${originalText}\n${translationText}`);
+            }
+
+            // update text on secondCaptions option
             $('.plyr__menu__container > div > div > div > button').eq(1)
             .find('span.plyr__menu__value')
             .text(languageValue)
 
+            // click back button (mirrors plyr functionality)
             $("div[id*='secondCaptions'] button span").eq(0).click()
         })
       }
@@ -461,8 +522,8 @@ block content
 
       $(document).ready(function () {
 
+        // make all links open in new tab
         const anchorTags = document.querySelectorAll('a');
-
         anchorTags.forEach((anchor) => {
           anchor.setAttribute('target', '_blank');
         });
@@ -552,14 +613,16 @@ block content
         player.on('ready', event => {
           $('.plyr__volume').append($('.plyr__volume').children('').get().reverse());
 
-          createSecondCaptionsSetting();
+          if (languagesToLoop.length) {
+            createSecondCaptionsSetting();
+          }
         });
 
         l('captions');
 
         // probably better to do on plyr ready if available as event
         setTimeout(function(){
-        
+
           $(function () {
             $('.plyr__captions').draggable({
               containment: 'plyr',
@@ -579,18 +642,18 @@ block content
             // console.log('event!')
             // console.log(event)
 
-            const text = event.detail.plyr.captions.currentTrackNode.activeCues[0].text;
+            const text = event.detail.plyr.captions.currentTrackNode.activeCues[0]?.text;
             const thing = getCurrentLanguageAndTrack()
             l(thing);
 
             const selectedTranslation = $("#languageName[aria-checked='true'] > span[id*='languageValue']").attr("value");
-            if(selectedTranslation) {
+            if(selectedTranslation && selectedTranslation !== 'Disabled') {
                 const translation = findTextFromIndexNumber(selectedTranslation, thing.indexNumber);
                 const originalText = $('span.plyr__caption').text();
-                
-                $('span.plyr__caption').text(`${originalText}\n${translation})`);
+
+                $('span.plyr__caption').text(`${originalText}\n${translation || ''}`);
             }
-            
+
             // balance text not working at the moment
             if(subtitlesFontSize){
               $('.plyr__caption').css('font-size', `${subtitlesFontSize}px`);
@@ -599,17 +662,6 @@ block content
             if(subtitlesLineHeight){
               $('.plyr__caption').css('line-height', `${subtitlesLineHeight}px`);
             }
-
-
-            // const language = 'Russian';
-            //
-            // const thing2 = findTextFromIndexNumber(language, thing.indexNumber);
-            // l(thing2);
-            //
-            // const oldText = $('span.plyr__caption').text()
-            //
-            // $('span.plyr__caption').text(`${oldText}\n${thing2}`)
-
             l(text);
           })
         }, 200)
