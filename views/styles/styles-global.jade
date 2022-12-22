@@ -1,6 +1,8 @@
 style.
   body {
-      background-color: rgb(22, 29, 29);
+    background-color: rgb(22, 29, 29);
+    padding: 0;
+    margin: 0;
   }
 
   * {
@@ -9,7 +11,7 @@ style.
 
   .container {
     max-width: 500px;
-    margin: 60px auto;
+    margin: 140px auto;
   }
 
   .container h1 {
@@ -24,7 +26,17 @@ style.
   .btn {
     width: fit-content;
     display: inline-block;
-    padding: 0.5em 1em;
+    padding: 0.5em 0;
     margin: 0 auto;
+    background-color: transparent;
+    font-size: inherit;
+    color: inherit;
+    border-color: currentColor;
+    text-decoration: underline;
     cursor: pointer;
+    transition: all 200ms ease;
+  }
+
+  a {
+    color: inherit;
   }
