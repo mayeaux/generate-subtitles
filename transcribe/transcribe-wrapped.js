@@ -105,14 +105,6 @@ async function transcribe ({
             uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
       `.replace(/^ +/gm, ''); // remove indentation
 
-      //update filedetails //refactoring
-      // websocketConnection.send(JSON.stringify({
-      //   message: 'fileDetails',
-      //   fileDetails
-      // }), function () {});
-
-      //new refactoring
-      //update filedetails
       sendToWebsocket(websocketConnection, {
         message: 'fileDetails',
         fileDetails,
@@ -188,26 +180,19 @@ async function transcribe ({
       //  console output from stdoutt
       whisperProcess.stdout.on('data', (data) => {
         handleStdOut(data);
-        //websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
-        // sendToWebsocket(websocketConnection,`stdout: ${data}`) ///*
-        // l(`STDOUT: ${data}`);            ///*
 
         // TODO: pull this out into own function
         // check if language is autodetected)
         const dataAsString = data.toString();
+        if(dataAsString.includes('Detected language:')){
 
-        const parsedLanguage = autoDetectLanguage(dataAsString); //
-        l('parsedLanguageAhmed');
-        l(parsedLanguage);
-
-        if (dataAsString.includes('Detected language:')) {
           // parse out the language from the console output
           foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
 
           l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`);
-          if (!language && foundLanguage) {
-            language = foundLanguage;
-            displayLanguage = `${language} (Auto-Detected)`;
+          if(!language && foundLanguage){
+            language = foundLanguage
+            displayLanguage = `${language} (Auto-Detected)`
           }
 
           // send data to frontend with updated language
@@ -221,14 +206,10 @@ async function transcribe ({
           `.replace(/^ +/gm, ''); // remove indentation
 
           // update file details
-          // websocketConnection.send(JSON.stringify({
-          //   message: 'fileDetails',
-          //   fileDetails
-          // }), function () {});
-          sendToWebsocket(websocketConnection, {
+          websocketConnection.send(JSON.stringify({
             message: 'fileDetails',
-            fileDetails,
-          });
+            fileDetails
+          }), function () {});
         }
       });
 

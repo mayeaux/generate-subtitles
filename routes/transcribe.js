@@ -165,9 +165,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}${originalFileExtension}`;
 
     queue.add(async function () {
-
-      
-      sendToWebsocket(websocketConnection,'Hi Ahhmed Here')
       // // TODO: catch the error here?
       await transcribeWrapped({
         uploadedFilePath,
