@@ -208,39 +208,6 @@ async function transcribe ({
       //  console output from stdoutt
       whisperProcess.stdout.on('data', (data) => {
         handleStdOut(data);
-
-        // // TODO: pull this out into own function
-        // // check if language is autodetected)
-        // const dataAsString = data.toString(); //
-        // if (dataAsString.includes("Detected language:")) {
-        //   // parse out the language from the console output
-        //   foundLanguage = dataAsString.split(":")[1].substring(1).trimEnd(); //
-
-        //   l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`); //
-        //   if (!language && foundLanguage) {
-        //     language = foundLanguage;
-        //     displayLanguage = `${language} (Auto-Detected)`;
-        //   }
-
-        //   // send data to frontend with updated language
-        //   // TODO: when it's JSON, just add the detected language here as a property
-        //   fileDetails = `
-        //     filename: ${directorySafeFileNameWithExtension}
-        //     language: ${displayLanguage}
-        //     model: ${model}
-        //     uploadDurationInSeconds: ${uploadDurationInSeconds}
-        //     uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
-        //   `.replace(/^ +/gm, ""); // remove indentation
-
-        //   // update file details
-        //   websocketConnection.send(
-        //     JSON.stringify({
-        //       message: "fileDetails",
-        //       fileDetails,
-        //     }),
-        //     function () {}
-        //   );
-        // }
       });
 
       // log output from bash (it all comes through stderr for some reason?)
