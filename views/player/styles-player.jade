@@ -1,5 +1,5 @@
 style.
-  
+
   main {
     display: flex;
     flex-direction: column;
@@ -81,6 +81,8 @@ style.
   .buttons .btn {
     margin: 0;
     border: 0;
+    margin-right: 8px;
+    font-size: 15px;
   }
 
   .buttons :where(#increaseSize:hover, #increaseLineHeight:hover)  {
@@ -97,9 +99,22 @@ style.
     gap: 0.5em;
   }
 
+  #translationsHeader {
+    margin-bottom: 1px;
+  }
+
   .links {
     display: flex;
     gap: 1em;
+    margin-top: 5px;
+  }
+
+  .downloadLinks, .fileDetails {
+    font-size: 14px;
+  }
+
+  .startAnotherTranscription {
+    margin: 0 0;
   }
 
   @media (min-width: 320px) {
