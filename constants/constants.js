@@ -80,12 +80,13 @@ const languagesToTranslateTo = [
 
 // if the human readable name matches thing (or the 'en' version, transcribe
 const languagesToTranscribe = [
-  'English', //
+  'Arabic',
+  'English',
   'French',
   'German',
   'Spanish',
   'Russian',
-  // 'Chinese', // can't get Chinese to work
+  'Chinese',
   'Japanese',
 ]
 
