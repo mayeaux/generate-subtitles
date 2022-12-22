@@ -189,7 +189,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
         languagesToTranslateTo,
       });
 
-      l('Hi Ahmed here ',testData)
     });
 
    
