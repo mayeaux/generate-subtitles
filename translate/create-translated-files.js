@@ -4,12 +4,12 @@ const { languagesToTranscribe, translationLanguages } = require('../constants/co
 const { stripOutTextAndTimestamps, reformatVtt } = require('./helpers')
 const { simplified } = require('zh-convert');
 
-const convert = require("cyrillic-to-latin");
+const convert = require('cyrillic-to-latin');
 
 let l = console.log;
 
-if(global.debug === 'false'){
-  l = function(){}
+if (global.debug === 'false') {
+  l = function () {}
 }
 
 // l('translationLanguages')
@@ -18,8 +18,8 @@ if(global.debug === 'false'){
 // l('languagesToTranscribe')
 // l(languagesToTranscribe);
 
-function getCodeFromLanguageName(languageName){
-  return translationLanguages.find(function(filteredLanguage){
+function getCodeFromLanguageName (languageName) {
+  return translationLanguages.find(function (filteredLanguage) {
     return languageName === filteredLanguage.name;
   }).code
 }
@@ -27,11 +27,11 @@ function getCodeFromLanguageName(languageName){
 // l(getCodeFromLanguageName('English'))
 
 /** for translation **/
-async function createTranslatedFiles({
+async function createTranslatedFiles ({
     directoryAndFileName,
     language,
     websocketConnection
-}){
+}) {
 
   const loopThrough = ['.srt', '.vtt', 'txt'];
 
@@ -44,7 +44,7 @@ async function createTranslatedFiles({
 
   const { strippedText, timestampsArray } = await stripOutTextAndTimestamps(vttPath)
 
-  for(const languageToConvertTo of languagesToTranscribe){
+  for (const languageToConvertTo of languagesToTranscribe) {
     l('languageToConvertTo');
     l(languageToConvertTo);
 
@@ -53,7 +53,7 @@ async function createTranslatedFiles({
 
     try {
       // no need to translate just copy the file
-      if(languageToConvertTo !== language){
+      if (languageToConvertTo !== language) {
         websocketConnection.send(JSON.stringify({
           languageUpdate: `Translating into ${languageToConvertTo}..`,
           message: 'languageUpdate'
@@ -92,7 +92,7 @@ async function createTranslatedFiles({
 
         await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, reformattedVtt, 'utf-8');
       }
-    } catch (err){
+    } catch (err) {
       l(err);
       l('error in translation');
       return err

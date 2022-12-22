@@ -22,8 +22,8 @@ const ten = ' 10%|█         | 5332/52135 [00:10<01:25, 545.77frames/s]';
 //
 // const progressBar = ten.split('|')[1].split('|')[0]
 
-function formatStdErr(stdErrData){
-  if(stdErrData.includes('frames')){
+function formatStdErr (stdErrData) {
+  if (stdErrData.includes('frames')) {
     const progressBar = stdErrData.split('|')[1].split('|')[0]
 
     let percentDone = stdErrData.split('|')[0].trim();

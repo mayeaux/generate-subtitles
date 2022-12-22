@@ -14,6 +14,8 @@ block content
             tbody
                 tr
                     th Filename
+                    th Language
+                    th Keep Media
                     th Duration
                     th Date
 
@@ -23,6 +25,8 @@ block content
 
                         td(data-sort-value=file.name)
                             a(href='/player/' + file.name target="_blank") #{file.name}
+                        td(data-sort-value=file.processingData.language) #{file.processingData.language}
+                        td(data-sort-value=file.processingData.keepMedia) #{file.processingData.keepMedia}
                         td(data-sort-value=file.processingData.uploadDurationInSeconds data-type="number") #{file.processingData.uploadDurationInSecondsHumanReadable}
                         td(data-sort-value=file.timestamp data-type) #{file.formattedDate}
 
@@ -84,18 +88,34 @@ block content
           // Sort the array of rows according to the values in the specified column
           rowArray.sort(function (a, b) {
             // Get the text content of the cells in the specified column
-            var A = convertToNumber(a.cells[column].getAttribute("data-sort-value"));
-            var B = convertToNumber(b.cells[column].getAttribute("data-sort-value"));
+            var A = a.cells[column].getAttribute("data-sort-value");
+            var B = b.cells[column].getAttribute("data-sort-value");
 
-            // Compare the values and return -1, 0, or 1 depending on the comparison result
-            if (sortOrder > 0) {
-              if (A < B) return -1;
-              if (A > B) return 1;
-              return 0;
+            // Check if the values are numeric or not
+            if (isNaN(A) || isNaN(B)) {
+              // Compare the values as strings
+              if (sortOrder > 0) {
+                if (A < B) return -1;
+                if (A > B) return 1;
+                return 0;
+              } else {
+                if (A > B) return -1;
+                if (A < B) return 1;
+                return 0;
+              }
             } else {
-              if (A > B) return -1;
-              if (A < B) return 1;
-              return 0;
+              // Convert the values to numbers and compare them
+              A = parseFloat(A);
+              B = parseFloat(B);
+              if (sortOrder > 0) {
+                if (A < B) return -1;
+                if (A > B) return 1;
+                return 0;
+              } else {
+                if (A > B) return -1;
+                if (A < B) return 1;
+                return 0;
+              }
             }
           });
 

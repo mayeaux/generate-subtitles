@@ -1,4 +1,4 @@
-```
+''`
 const ltEndpoint = 'https://freesubtitles.ai/translate'; 
 
 const res = await fetch(ltEndpoint, {

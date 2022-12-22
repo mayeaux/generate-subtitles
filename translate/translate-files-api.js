@@ -11,27 +11,27 @@ let l = console.log;
 // l(languagesToTranscribe)
 // [ 'English', 'French', 'German', 'Spanish', 'Russian', 'Japanese' ]
 
-if(global.debug === 'false'){
-  l = function(){}
+if (global.debug === 'false') {
+  l = function () {}
 }
 
-function getCodeFromLanguageName(languageName){
-  return translationLanguages.find(function(filteredLanguage){
+function getCodeFromLanguageName (languageName) {
+  return translationLanguages.find(function (filteredLanguage) {
     return languageName === filteredLanguage.name;
   }).code
 }
 
 /** for translation **/
-async function createTranslatedFiles({
+async function createTranslatedFiles ({
   directoryAndFileName,
   language,
-}){
+}) {
   const webVttData = await fs.readFile(`${directoryAndFileName}.vtt`, 'utf-8');
 
   // copy original as copied
   await fs.copy(`${directoryAndFileName}.vtt`, `${directoryAndFileName}_${language}.vtt`)
 
-  for(const languageToConvertTo of languagesToTranscribe){
+  for (const languageToConvertTo of languagesToTranscribe) {
     l('languageToConvertTo');
     l(languageToConvertTo);
 
@@ -40,7 +40,7 @@ async function createTranslatedFiles({
 
     try {
       // no need to translate just copy the file
-      if(languageToConvertTo !== language){
+      if (languageToConvertTo !== language) {
         // hit LibreTranslate backend
         l(`hitting libretranslate: ${language} -> ${languageToConvertTo}`);
 
@@ -51,13 +51,13 @@ async function createTranslatedFiles({
         })
 
         // do the regexp here
-        translatedText.replace(/^(\d[\d:.]+\d) .*?( \d[\d:.]+\d)$/gm, "$1 -->$2");
+        translatedText.replace(/^(\d[\d:.]+\d) .*?( \d[\d:.]+\d)$/gm, '$1 -->$2');
 
         translatedText = 'WEBVTT' + translatedText.slice(6);
 
         await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, translatedText, 'utf-8');
       }
-    } catch (err){
+    } catch (err) {
       l(err);
       l('error in translation');
       return err
