@@ -135,7 +135,7 @@ router.post("/player/:filename/add" , async function(req, res, next){
     l('stripped text');
     l(strippedText);
 
-    const { timestampsArray } = await stripOutTextAndTimestamps(originalVttPath);
+    const { timestampsArray } = await stripOutTextAndTimestamps(originalVttPath); 
 
     l('timestamps array');
     l(timestampsArray);
