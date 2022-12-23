@@ -537,6 +537,8 @@ router.post("/player/:filename/add" , async function(req, res, next){
 
     processingData.translatedLanguages.push(language);
 
+    processingData.keepMedia = true;
+
     await fs.writeFile(processingDataPath, JSON.stringify(processingData), 'utf-8');
 
     await fs.writeFile(originalFileVtt, originalVtt, 'utf-8');
