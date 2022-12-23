@@ -38,6 +38,45 @@ router.get('/', function (req, res, next) {
 
   const isFreeSubtitles = domainName === 'freesubtitles.ai';
 
+  function decrementBySecond(timeRemainingValues) {
+    let { secondsRemaining, minutesRemaining, hoursRemaining } = timeRemainingValues;
+
+    if(secondsRemaining === 0 || secondsRemaining === '00'){
+      if(minutesRemaining > 0){
+        secondsRemaining = 59;
+        minutesRemaining = minutesRemaining - 1;
+      }
+    } else {
+      secondsRemaining = secondsRemaining - 1;
+    }
+
+    if (minutesRemaining === 0 || minutesRemaining === '00') {
+      if(hoursRemaining > 0){
+        minutesRemaining = 59;
+        hoursRemaining = hoursRemaining - 1;
+      }
+    }
+
+    if (minutesRemaining.toString()?.length === 1) {
+      minutesRemaining = '0' + minutesRemaining;
+    }
+
+    if (secondsRemaining.toString()?.length === 1) {
+      secondsRemaining = '0' + secondsRemaining;
+    }
+
+
+    let thingString = `${minutesRemaining}:${secondsRemaining}`;
+    if(hoursRemaining){ thingString = `${hoursRemaining}:${thingString}` }
+
+    return {
+      secondsRemaining,
+      minutesRemaining,
+      hoursRemaining,
+      string: thingString
+    }
+  }
+
   // transcribe frontend page
   res.render('index', {
     title: 'Transcribe File',
@@ -49,6 +88,7 @@ router.get('/', function (req, res, next) {
     uploadFileSizeLimitInMB,
     modelsArray,
     languages: whisperLanguagesHumanReadableArray,
+    decrementBySecond
   });
 });
 

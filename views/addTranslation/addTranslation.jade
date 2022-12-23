@@ -1,0 +1,21 @@
+extends ../layout
+
+block content
+
+    h2= title
+    form(action=`/player/` + renderedFilename + `/add` method='post')
+        input(type='text', name="language" placeholder="Language" value="English")
+        br
+        textarea#message(name='message' rows='40' cols='100' value="Hello World")
+        br
+        input(type='submit' value='Submit')
+
+    script.
+      $(document).ready(function() {
+
+      });
+      // const originalVtt = `#{originalVtt}`
+      // document.getElementById('message').innerHTML = originalVtt;
+
+
+

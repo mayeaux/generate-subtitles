@@ -3,268 +3,26 @@ extends layout
 block content
   script(src='/javascripts/circle-progress.min.js')
 
-  style.
-    body {
-      background-color: rgb(22, 29, 29);
-    }
+  include styles/styles-global.jade
+  include styles/styles-social.jade
+  include styles/styles-amounts-header.jade
+  include styles/styles-form.jade
+  include styles/styles-transcription-results.jade
 
-    * {
-      box-sizing: border-box;
-    }
+  //- TODO
+  //- organize scripts
 
-    .container {
-      max-width: 500px;
-      margin: 60px auto;
-    }
-
-    .container h1 {
-      text-align: center;
-      color: white;
-    }
-
-    form {
-      background-color: white;
-      padding: 30px;
-    }
-
-    form .input-group {
-      margin-bottom: 15px;
-    }
-
-    form label {
-      display: block;
-      margin-bottom: 5px;
-      margin-top: 12px;
-    }
-
-    form input {
-      padding: 12px 20px;
-      width: 100%;
-      border: 1px solid #ccc;
-    }
-
-    .submit-btn {
-      width: 100%;
-      border: none;
-      background: rgb(60, 57, 57);
-      font-size: 18px;
-      color: white;
-      border-radius: 3px;
-      padding: 20px;
-      text-align: center;
-      cursor: pointer;
-    }
-
-    #latestData, #progress, .downloadLink, #refreshButton, #timeEstimator, #startNewUpload, #processingData, #secondProcessingData {
-      color: white;
-      font-size: 24px;
-      text-align: center;
-    }
-
-    #timeEstimator {
-      font-size: 21px;
-    }
-
-    /*#srtDownloadLink, #vttDownloadLink, #txtDownloadLink {*/
-    /*  display: none;*/
-    /*}*/
-
-    #finishedData {
-      white-space: pre;
-      text-align: left;
-      font-size: 18px;
-      color: white;
-      margin-top: -18px;
-      margin-bottom: 29px;
-    }
-
-    #refreshButton, #startNewUpload {
-      cursor: pointer;
-      text-decoration: underline;
-      margin-top: 29px;
-      display: none;
-      font-size: 18px;
-    }
-
-    #startNewUpload {
-      margin-top: 45px;
-    }
-
-    #processingData {
-      display: none;
-      white-space: pre;
-      margin-bottom: 35px;
-    }
-
-    #secondProcessingData, #latestData {
-      white-space: pre;
-      display: none;
-    }
-
-    .downloadLink {
-      color: white;
-      font-size: 19px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    #githubLogo, #discordLogo, #telegramLogo, #twitterLogo {
-      width: 100px;
-      float: right;
-      clear: both;
-      margin-bottom: 10px;
-    }
-
-    #telegramLogo {
-      margin-top: 5px;
-    }
-
-    #twitterLogo {
-      margin-top: -14px;
-    }
-
-    #languageLabel, #modelLabel {
-      cursor: pointer;
-    }
-
-    #upload-button {
-
-    }
-
-    #translate {
-      position: relative;
-      top: -23px;
-      left: 6px;
-      height: 16px;
-      opacity: 0.8;
-    }
-
-    .translateHolder {
-      height: 32px;
-    }
-
-    .no-pointer-events {
-      pointer-events: none;
-    }
-
-    .circle-progress-value {
-      stroke-width: 50px;
-      stroke: hsl(160, 63%, 55%);
-    }
-
-    .circle-progress-circle {
-      stroke-width: 50px;
-      stroke: #999;
-    }
-
-    .circle-progress-text {
-      fill: white;
-    }
-
-    .progress svg {
-      height: 202px;
-      width: 202px;
-    }
-
-    .circle-progress-value {
-      stroke-width: 50px;
-      stroke: white;
-    }
-
-    .circle-progress-text {
-      fill: black;
-    }
-
-    .circle-progress-circle {
-      stroke-width: 50px;
-      stroke: #bdbdbd;
-    }
-
-    .progress {
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    #timeEstimator {
-      white-space: pre;
-    }
-
-    .amountsHeader {
-        text-align: center;
-        color: white;
-    }
-
-    .amountsHeader:nth-of-type(1) {
-      font-size: 22px;
-      margin-bottom: -1px;
-    }
-
-    .amountsHeader:nth-of-type(3) {
-      margin-bottom: 35px;
-    }
-
-    #translateLabel, #translate {
-      cursor: pointer;
-    }
-
-  a(href='https://github.com/mayeaux/generate-subtitles' target='_blank')
-    img#githubLogo(src='/images/inverted.png')
-  a(href='https://discord.gg/vfXg7GHMpR' target='_blank')
-    img#discordLogo(src='/images/discordLogo.png')
-  a(href='https://t.me/freesubtitles_ai' target='_blank')
-    img#telegramLogo(src='/images/telegramLogo.webp')
-  a(href='https://twitter.com/FreeSubtitlesAI' target='_blank')
-    img#twitterLogo(src='/images/twitterLogo.png')
+  include components/social-buttons.jade
 
   .container
-    //if isFreeSubtitles
-    //  h3.amountsHeader #{siteStats.amountOfTranscriptions} transcriptions completed
-    //  h3.amountsHeader #{siteStats.humanReadableTime} transcribed
-    if isFreeSubtitles
-      h3.amountsHeader File Limits:
-      h3.amountsHeader Size: #{uploadFileSizeLimitInMB}MB
-      h3.amountsHeader Duration: 1 Hour
+
+    include components/amounts-header.jade
 
     h1#header File Upload
-    form#form
-      .input-group
-        label(for='file') Select (or drop) file
-        input#file(type='file')
-        label#languageLabel Language (#{languages.length + 1} Options)
-        select#language(name='language' dir='auto')
-          option(value="auto-detect") Auto-Detect
-          each language in languages
-            option(value=language)= language
-        //input#language(type='text' value=previousLanguage placeholder="Leave empty for Auto-Detect")
-        label#modelLabel Model (#{modelsArray.length} Options)
-        select#model(name='model')
-          each model in modelsArray
-            option(value= model.value default=placeholder===model.name)= model.name
-        //input#model(type='text' value=previousModel placeholder="Leave empty for medium")
-        div.translateHolder
-          label#translateLabel Translate to different languages
-          input#translate(type='checkbox')
-        button#upload-button.submit-btn(type='submit') Upload
+    include components/upload-form.jade
 
-    //DISPLAY DIFFERENT DATA
-    p#progress
-    .progress
-    p#timeEstimator
-    p#latestData
-    p#processingData
-    p#secondProcessingData
-    p#finishedData
+    include components/transcription-results.jade
 
-    // kind of duplicated, not sure it's needed
-    a#startNewUpload(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start Another Transcription
-
-    a.downloadLink#srtDownloadLink(href='#')
-
-    a.downloadLink#vttDownloadLink(href='#')
-
-    a.downloadLink#txtDownloadLink(href='#')
-
-    a#refreshButton(onclick='(function(){ window.open(window.location.href, \'_blank\').focus(); })();') Start New Transcription
   script.
     l = console.log;
 
@@ -326,32 +84,63 @@ block content
     // TODO: pass from frontend
     const languagesString = 'Afrikaans,Albanian,Amharic,Arabic,Armenian,Assamese,Azerbaijani,Bashkir,Basque,Belarusian,Bengali,Bosnian,Breton,Bulgarian,Burmese,Castilian,Catalan,Chinese,Croatian,Czech,Danish,Dutch,English,Estonian,Faroese,Finnish,Flemish,French,Galician,Georgian,German,Greek,Gujarati,Haitian,Haitian Creole,Hausa,Hawaiian,Hebrew,Hindi,Hungarian,Icelandic,Indonesian,Italian,Japanese,Javanese,Kannada,Kazakh,Khmer,Korean,Lao,Latin,Latvian,Letzeburgesch,Lingala,Lithuanian,Luxembourgish,Macedonian,Malagasy,Malay,Malayalam,Maltese,Maori,Marathi,Moldavian,Moldovan,Mongolian,Myanmar,Nepali,Norwegian,Nynorsk,Occitan,Panjabi,Pashto,Persian,Polish,Portuguese,Punjabi,Pushto,Romanian,Russian,Sanskrit,Serbian,Shona,Sindhi,Sinhala,Sinhalese,Slovak,Slovenian,Somali,Spanish,Sundanese,Swahili,Swedish,Tagalog,Tajik,Tamil,Tatar,Telugu,Thai,Tibetan,Turkish,Turkmen,Ukrainian,Urdu,Uzbek,Valencian,Vietnamese,Welsh,Yiddish,Yoruba';
     const languages = languagesString.split(',');
+    // for consistent array formatting
+    const languagesArray = languages.map(lang => ({value: lang, name: lang}));
     const modelsString = 'tiny.en,tiny,base.en,base,small.en,small,medium.en,medium,large';
     const models = modelsString.split(',');
 
+    const modelsArray = !{JSON.stringify(modelsArray)}
+
+    l('models array here');
+    l(modelsArray);
 
     const previousModel = localStorage.getItem('model');
+    // differentiate between model value and name
+    const previousModelName = localStorage.getItem('modelName');
     const previousLanguage = localStorage.getItem('language');
     const previousShouldTranslate = localStorage.getItem('shouldTranslate');
 
     l('previous should translate');
     l(previousShouldTranslate);
+
+    /* Add selected class to both selected options
+    */
+    const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
+    const modelOptions = Array.from(document.querySelectorAll('.options.models .option'));
+    const selectedLang = languageOptions.find(opt => opt.dataset.value === previousLanguage);
+    const selectedModel = modelOptions.find(opt => opt.dataset.value === previousModel);
+
+    selectedLang ? selectedLang.classList.add('selected')
+    : languageOptions[0].classList.add('selected');
+
+    selectedModel ? selectedModel.classList.add('selected')
+    : modelOptions.find(opt => opt.dataset.value === 'medium').classList.add('selected');
+
     if(previousModel){
-      $('#model').val(previousModel);
+      document.querySelector('#model').dataset.value = previousModel;
     } else {
-      $('#model').val('medium');
+      document.querySelector('#model').dataset.value = 'medium';
     }
-    if(previousLanguage){
-      $('#language').val(previousLanguage);
+    if (previousModelName) {
+      document.querySelector('#model').textContent = previousModelName;
     } else {
-      $('#language').val('auto-detect');
+      document.querySelector('#model').textContent = 'Medium';
     }
+
+    if (!previousLanguage || previousLanguage === 'Auto-Detect') {
+      document.querySelector('#language').dataset.value = 'auto-detect';
+      document.querySelector('#language').textContent = 'Auto-Detect';
+    } else {
+      document.querySelector('#language').dataset.value = previousLanguage;
+      document.querySelector('#language').textContent = previousLanguage;
+    }
+
     $('#translate').prop('checked', previousShouldTranslate === 'true');
     // const previousLanguage = localStorage.getItem('language');
 
 
     const ipAndPort = location.host;
-    const randomNumber = Math.round(Math.random() * 1000000000000);
+    const randomNumber = Math.round(Math.random() * 1_000_000_000_000);
 
     // grab elements
     const form = document.getElementById("form");
@@ -362,6 +151,98 @@ block content
     const latestData = document.getElementById('latestData');
     const file = document.getElementById("file");
     const body = document.querySelector('body');
+
+    // helper functions
+    const updateSelection = option => {
+      const selectedValueEl = option.closest('.wrapper').querySelector('.select-value');
+      selectedValueEl.textContent = option.textContent;
+      selectedValueEl.dataset.value = option.dataset.value;
+    }
+
+    const filterOptions = (options, q) => {
+      const regex = new RegExp(`^${q}`, 'i');
+      return options.filter(opt => !!opt.name.match(regex))
+    };
+
+    const handleSelectionShortcuts = (evt, key) => {
+      (key === 'ArrowDown' || key === 'ArrowUp') && evt.preventDefault();
+      const selectionContent = evt.target.closest('form .content');
+      const focusedOption = document.activeElement.closest('.option');
+
+      if (key === 'ArrowDown') {
+        // if there is a current focused option, focus the next one, else focus the first one
+        // optional chaining is used to prevent error on going past the last element
+        focusedOption ? focusedOption.nextSibling?.focus()
+        : selectionContent.querySelector('.option').focus();
+      } else if (key === 'ArrowUp') {
+        // optional chaining is used to prevent error on going past the first element
+        focusedOption.previousSibling?.focus();
+      } else if (key === 'Enter') {
+        focusedOption?.click();
+      }
+    }
+
+    // Handle clicks with event delegation
+    document.body.addEventListener('click', evt => {
+      const clicked = evt.target;
+      const selectWrappers = document.querySelectorAll('#form .wrapper');
+
+      // On selection button click
+      const selectionBtn = clicked.closest('.select-btn');
+      if (selectionBtn) {
+        const selectWrapper = selectionBtn.closest('.wrapper');
+        const input = selectWrapper.querySelector('.search input');
+        selectWrapper.classList.toggle('active');
+        input.focus();
+      }
+
+      // On option click
+      const option = clicked.closest('.option');
+      if (option) {
+        console.log('before update');
+        updateSelection(option);
+        selectWrappers.forEach(wrapper => wrapper.classList.remove('active'));
+      }
+
+      // On outside form click
+      const formElement = clicked.closest('.form');
+      if (!formElement) {
+        selectWrappers.forEach(wrapper => wrapper.classList.remove('active'));
+      }
+    });
+
+    // handle input with event delegation
+    document.body.addEventListener('input', evt => {
+      // Elements
+      const pressed = evt.target;
+      const selectWrapper = pressed.closest('form .wrapper');
+      if (!selectWrapper) return;
+      const selectBtn = selectWrapper.querySelector('.select-btn');
+      const optionsEl = selectWrapper.querySelector('.options');
+      const selectedValue = selectWrapper.querySelector('.select-value').textContent;
+
+      // assign options dynamically
+      const optionsArray = selectBtn.id === 'languageSelect' ? languagesArray : selectBtn.id === 'modelSelect' ? modelsArray : [];
+
+      // filter options
+      const filteredOptions = filterOptions(optionsArray, pressed.value);
+
+      // render filtered options
+      optionsEl.innerHTML = selectBtn.id === 'languageSelect' ? `<li class='option ${selectedValue === 'Auto-Detect' ? 'selected' : ''}' data-value='auto-detect' tabindex='0'>Auto-Detect</li>` : '';
+
+      optionsEl.innerHTML += filteredOptions.map(opt => `<li class='option ${selectedValue === opt.name ? 'selected' : ''}' data-value=${opt.value} tabindex='0'>${opt.name}</li>`).join('');
+    });
+
+    // handle key press with event delegation
+    document.body.addEventListener('keydown', evt => {
+      const pressed = evt.target;
+      const key = evt.key;
+      const selectionContent = pressed.closest('form .content');
+
+      if (selectionContent) {
+        handleSelectionShortcuts(evt, key);
+      }
+    });
 
 
     form.addEventListener("submit", submitForm);
@@ -393,8 +274,11 @@ block content
     async function submitForm(e) {
       e.preventDefault();
 
-      let language = document.getElementById("language").value;
-      const model = document.getElementById("model").value;
+      let language = document.querySelector('#language').dataset.value;
+      const modelEl = document.querySelector('#model');
+
+      const model = modelEl.dataset.value;
+      const modelName = modelEl.textContent;
 
       const formData = new FormData();
 
@@ -475,35 +359,6 @@ block content
         }
       }
 
-      function capitalize(s) {
-        return s[0].toUpperCase() + s.slice(1);
-      }
-
-      // capitalize for people who can't follow specs
-      language = language && capitalize(language);
-
-      const existsAndNotValidLanguage = language && !languages.includes(language)
-
-      if(existsAndNotValidLanguage){
-        return Swal.fire({
-          title: 'Can only use one of the following languages',
-          text: languages,
-          icon: 'error',
-          confirmButtonText: 'Cool'
-        })
-      }
-
-      const modelExistsAndNotValid = model && !models.includes(model);
-
-      if (modelExistsAndNotValid) {
-        return Swal.fire({
-          title: 'Can only use one of the following models',
-          text: models,
-          icon: 'error',
-          confirmButtonText: 'Cool'
-        })
-      }
-
       const translateIsChecked = $('#translate').is(':checked');
 
       formData.append("file", passedFile);
@@ -513,7 +368,8 @@ block content
       formData.append('shouldTranslate', translateIsChecked);
 
       localStorage.setItem('model', model);
-      localStorage.setItem('language', language);
+      localStorage.setItem('modelName', modelName);
+      localStorage.setItem('language', language === 'auto-detect' ? 'Auto-Detect' : language);
       localStorage.setItem('shouldTranslate', translateIsChecked);
 
       // Display the key/value pairs
@@ -679,7 +535,6 @@ block content
         timeRemainingDiv.style.display = 'none';
 
         header.innerHTML = 'Processing..';
-        document.getElementById('startNewUpload').style.marginTop = '29px';
       }, false);
       // TODO: implement these
       // ajax.addEventListener("event", eventHandler, false);
@@ -724,52 +579,6 @@ block content
     };
 
     let loopStarted, processingData, timeRemaining, formattedProgressData = false;
-
-    function decrementBySecond(timeRemainingValues) {
-      let { secondsRemaining, minutesRemaining, hoursRemaining, string } = timeRemainingValues;
-
-      if(secondsRemaining === 0 || secondsRemaining === '00'){
-        if(minutesRemaining > 0){
-          secondsRemaining = 59;
-          minutesRemaining = minutesRemaining - 1;
-        }
-      } else {
-        secondsRemaining = secondsRemaining - 1;
-      }
-
-
-      if (minutesRemaining === 0 || minutesRemaining === '00') {
-        if(hoursRemaining > 0){
-          minutesRemaining = 59;
-          hoursRemaining = hoursRemaining - 1;
-        } else {
-          // no recharge, leave at zero
-          // minutesRemaining = minutesRemaining - 1;
-        }
-      } else {
-        // minutesRemaining = minutesRemaining - 1;
-      }
-
-      if (minutesRemaining.toString()?.length === 1) {
-        minutesRemaining = '0' + minutesRemaining;
-      }
-
-      if (secondsRemaining.toString()?.length === 1) {
-        secondsRemaining = '0' + secondsRemaining;
-      }
-
-
-      let thingString = `${minutesRemaining}:${secondsRemaining}`;
-      if(hoursRemaining){ thingString = `${hoursRemaining}:${thingString}` }
-
-      timeRemaining = {
-        secondsRemaining,
-        minutesRemaining,
-        hoursRemaining,
-        string: thingString
-      }
-    }
-
 
     websocketConnection.onmessage = function (event) {
       const data = JSON.parse(event.data);
@@ -905,8 +714,10 @@ block content
                   l('time remaining');
                   l(timeRemaining);
 
+                  const decrementBySecond = !{decrementBySecond}
+
                   l('decrementing');
-                  decrementBySecond(timeRemaining)
+                  timeRemaining = decrementBySecond(timeRemaining)
 
                   l('time remaining');
                   l(timeRemaining);
@@ -971,6 +782,13 @@ block content
 
       } else if (data.message === 'error') {
         document.getElementById('processingData').innerHTML = data.text;
+      } else if (data.message === 'starting') {
+        latestData.innerHTML = data.text;
+        document.getElementById('processingData').style.fontSize = '1.6rem';
+        document.getElementById('processingData').style.display = 'none';
+        document.getElementById('secondProcessingData').style.display = 'none';
+        // latestData.css("font-size", "20px");
+
       } else {
         latestData.innerHTML = data;
       }
