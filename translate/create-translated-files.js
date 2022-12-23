@@ -1,7 +1,8 @@
 const translateText = require('./libreTranslateWrapper');
 const fs = require('fs-extra');
-const projectConstants = require('../constants/constants');
-const { languagesToTranscribe, translationLanguages } = projectConstants;
+const { languagesToTranscribe, translationLanguages } = require('../constants/constants');;
+const { stripOutTextAndTimestamps, reformatVtt } = require('./helpers')
+const { simplified } = require('zh-convert');
 
 const convert = require('cyrillic-to-latin');
 
@@ -25,35 +26,6 @@ function getCodeFromLanguageName(languageName){
 
 // l(getCodeFromLanguageName('English'))
 
-
-// TODO: add the 'webvtt' thing and don't need these
-function cleanUpSubtitles(language, text){
-  // l('clean up subtitles');
-  // l(language);
-  if(language === 'Spanish'){
-    // l('Spanish');
-    // l(language);
-    return text.replace(/-- título/g, '-->');
-
-  } else if(language === 'French'){
-    return text.replace(/-- Cancer/g, '-->');
-
-  } else if(language === 'German'){
-    return text.replace(/WEBVAT/g, 'WEBVTT');
-
-  }  else if(language === 'Japanese'){
-    return text.replace(/ウェブサイト/g, 'WEBVTT');
-  } else {
-    // Russian works out of the box
-
-    return text
-  }
-
-  // can't get Chinese to work (seems a bit complicated)
-
-
-}
-
 /** for translation **/
 async function createTranslatedFiles({
     directoryAndFileName,
@@ -63,13 +35,14 @@ async function createTranslatedFiles({
 
   const loopThrough = ['.srt', '.vtt', 'txt'];
 
-  // TODO: translate the rest
-  const srtData = await fs.readFile(`${directoryAndFileName}.vtt`, 'utf-8');
-  l('srtData');
-  l(srtData);
+  const vttPath = `${directoryAndFileName}.vtt`;
 
-  // copy original as copied
-  await fs.copy(`${directoryAndFileName}.vtt`, `${directoryAndFileName}_${language}.vtt`)
+  // TODO: translate the rest
+  const vttData = await fs.readFile(vttPath, 'utf-8');
+  l('vttData');
+  l(vttData);
+
+  const { strippedText, timestampsArray } = await stripOutTextAndTimestamps(vttPath)
 
   for(const languageToConvertTo of languagesToTranscribe){
     l('languageToConvertTo');
@@ -86,26 +59,38 @@ async function createTranslatedFiles({
           message: 'languageUpdate'
         }), function () {});
 
+
+        const sourceLanguageCode = getCodeFromLanguageName(language);
+        const targetLanguageCode = getCodeFromLanguageName(languageToConvertTo);
+
+        // l('sourceLanguageCode');
+        // l(sourceLanguageCode);
+        // l('targetLanguageCode');
+        // l(targetLanguageCode);
+
         // hit LibreTranslate backend
         l(`hitting libretranslate: ${language} -> ${languageToConvertTo}`);
         // TODO: to convert to thing
         let translatedText = await translateText({
-          sourceLanguage: getCodeFromLanguageName(language), // before these were like 'EN', will full language work?
-          targetLanguage: getCodeFromLanguageName(languageToConvertTo),
-          text: srtData,
+          sourceLanguage: sourceLanguageCode, // before these were like 'EN', will full language work?
+          targetLanguage: targetLanguageCode,
+          text: strippedText,
         })
-        // l('translatedText');
-        // l(translatedText);
-        translatedText = cleanUpSubtitles(languageToConvertTo, translatedText);
-
-        translatedText = 'WEBVTT' + translatedText.slice(6);
-
 
         // l('translatedText');
         // l(translatedText);
 
+        if(!translatedText){
+          continue
+        }
 
-        await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, translatedText, 'utf-8');
+        if(languageToConvertTo === 'Chinese'){
+          translatedText = simplified(translatedText);
+        }
+
+        const reformattedVtt = reformatVtt(timestampsArray, translatedText);
+
+        await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, reformattedVtt, 'utf-8');
       }
     } catch (err){
       l(err);
