@@ -10,7 +10,9 @@ const forHumans = require('../helpers/helpers').forHumans;
 const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
-const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
+const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin} = require('../lib/convertText');
+const { sendToWebsocket} = require('../lib/transcribing');
+
 
 l(formatStdErr);
 
@@ -27,10 +29,6 @@ const isProd = nodeEnvironment === 'production';
 const whisperPath = which.sync('whisper')
 
 global.transcriptions = [];
-
-function sendToWebsocket(websocketConnection, data){
-  websocketConnection.send(JSON.stringify(data), function () {});
-}
 
 
 let topLevelValue = 1;
@@ -61,16 +59,7 @@ async function transcribe({
     }
 
     try {
-
       // TODO: fix this
-      // directorySafeFileNameWithoutExtension = fileSafeNameWithDateTimestamp
-      // directorySafeFileNameWithExtension = fileSafeNameWithDateTimestampAndExtension
-
-      // l('directorySafeFileNameWithoutExtension')
-      // l(directorySafeFileNameWithoutExtension);
-      // l('directorySafeFileNameWithExtension')
-      // l(directorySafeFileNameWithExtension)
-
       sendToWebsocket(websocketConnection, {
         message: 'starting',
         text: `Whisper initializing, updates to come...`
@@ -111,10 +100,10 @@ async function transcribe({
       `.replace(/^ +/gm, ''); // remove indentation
 
       // update filedetails
-      websocketConnection.send(JSON.stringify({
+      sendToWebsocket(websocketConnection,{
         message: 'fileDetails',
         fileDetails
-      }), function () {});
+      })
 
       /** INSTANTIATE WHISPER PROCESS **/
       // queue up arguments, path is the first one
@@ -172,7 +161,9 @@ async function transcribe({
 
       //  console output from stdoutt
       whisperProcess.stdout.on('data', data => {
-        websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
+        
+        sendToWebsocket(websocketConnection,`stdout: ${data}`)
+        // websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
         l(`STDOUT: ${data}`);
 
         // TODO: pull this out into own function
@@ -200,10 +191,10 @@ async function transcribe({
           `.replace(/^ +/gm, ''); // remove indentation
 
           // update file details
-          websocketConnection.send(JSON.stringify({
+          sendToWebsocket(websocketConnection,{
             message: 'fileDetails',
             fileDetails
-          }), function () {});
+          })
         }
       });
 
@@ -276,10 +267,6 @@ async function transcribe({
 
           const processFinishedSuccessfully = code === 0
 
-          // directorySafeFileNameWithoutExtension = fileSafeNameWithDateTimestamp
-          // directorySafeFileNameWithExtension = fileSafeNameWithDateTimestampAndExtension
-
-
           // successful output
           if(processFinishedSuccessfully){
             // TODO: pull out all this moving stuff into its own function
@@ -290,7 +277,6 @@ async function transcribe({
 
             await fs.move(originalUpload, `${originalContainingDir}/${directorySafeFileNameWithExtension}`, { overwrite: true })
 
-            // const fileNameWithLanguage = `${directorySafeFileNameWithoutExtension}_${language}`;
 
             // turn this to a loop
             /** COPY TO BETTER NAME, SRT, VTT, TXT **/
@@ -392,6 +378,7 @@ async function transcribe({
               const trimmedLanguagesToTranscribe = languagesToTranscribe.filter(e => e !== language);
               translatedLanguages = trimmedLanguagesToTranscribe
             }
+            
 
             const fileDetailsObject = {
               filename: originalFileNameWithExtension,
