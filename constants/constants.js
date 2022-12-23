@@ -115,5 +115,6 @@ module.exports = {
   translationLanguages,
   getLanguageCodeForAllLanguages,
   newLanguagesMap,
+  languagesToTranslateTo, 
   modelsArray
 }
