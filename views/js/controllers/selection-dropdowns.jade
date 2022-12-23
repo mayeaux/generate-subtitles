@@ -13,14 +13,14 @@ script.
     const keysMap = [
       {command: /ArrowDown/, action: () => {
         // if there is a focused option, focus the next one, else focus the first one
-        (focusedOption?.nextSibling ??
-        selectionContent.querySelector('.option'))
+        (getNextVisibleSibling(focusedOption) ??
+        getFirstVisibleSibling(selectionContent.querySelector('.options')))
         .focus();
       }},
 
       {command: /ArrowUp/, action: () => {
-        (focusedOption.previousSibling ??
-        Array.from(selectionContent.querySelectorAll('.option')).at(-1))
+        (getPreviousVisibleSibling(focusedOption) ??
+        getLastVisibleSibling(selectionContent.querySelector('.options')))
         .focus();
       }},
 
@@ -34,4 +34,18 @@ script.
     ];
 
     keysMap.find(({command}) => command.test(key))?.action();
+  }
+
+  const handleSelectionInput = evt => {
+    const searchInput = evt.target;
+    const options = Array.from(searchInput.closest('.content').querySelectorAll('.option'));
+    const selectButton = searchInput.closest('.wrapper').querySelector('.select-btn');
+    selectButton.id === 'languageSelect' && options.shift();
+    const filteredOptions = filterOptions(options, searchInput.value);
+
+    options.forEach(option => {
+      filteredOptions.includes(option) 
+      ? option.classList.remove('hidden')
+      : option.classList.add('hidden');
+    });
   }

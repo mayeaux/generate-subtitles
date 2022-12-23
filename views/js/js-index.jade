@@ -7,6 +7,17 @@ script.
 
   let circleProgress, fileName, hitTheBackend;
 
+  // grab elements
+  const form = $("#form");
+  l(form);
+  const progressDiv = $('#progress');
+  const timeRemainingDiv = $('#timeEstimator');
+  const header = $('#header')
+  const refreshButton = $('#refreshButton');
+  const latestData = $('#latestData');
+  const file = $("#file");
+  const body = document.querySelector('body');
+
   $(document).ready(function () {
     circleProgress = new CircleProgress('.progress', {
       max: 100,
@@ -85,18 +96,8 @@ script.
   const ipAndPort = location.host;
   const randomNumber = Math.round(Math.random() * 1_000_000_000_000);
 
-  // grab elements
-  const form = document.getElementById("form");
-  const progressDiv = document.getElementById('progress');
-  const timeRemainingDiv = document.getElementById('timeEstimator');
-  const header = document.getElementById('header')
-  const refreshButton = document.getElementById('refreshButton');
-  const latestData = document.getElementById('latestData');
-  const file = document.getElementById("file");
-  const body = document.querySelector('body');
-
   // Handle clicks with event delegation
-  document.body.addEventListener('click', evt => {
+  $('body').on('click', evt => {
     const clicked = evt.target;
     const selectWrappers = document.querySelectorAll('#form .wrapper');
 
@@ -125,29 +126,17 @@ script.
   });
 
   // handle input with event delegation
-  document.body.addEventListener('input', evt => {
+  $('body').on('input', evt => {
     // Elements
     const pressed = evt.target;
     const selectWrapper = pressed.closest('form .wrapper');
-    if (!selectWrapper) return;
-    const selectBtn = selectWrapper.querySelector('.select-btn');
-    const optionsEl = selectWrapper.querySelector('.options');
-    const selectedValue = selectWrapper.querySelector('.select-value').textContent;
-
-    // assign options dynamically
-    const optionsArray = selectBtn.id === 'languageSelect' ? languagesArray : selectBtn.id === 'modelSelect' ? modelsArray : [];
-
-    // filter options
-    const filteredOptions = filterOptions(optionsArray, pressed.value);
-
-    // render filtered options
-    optionsEl.innerHTML = selectBtn.id === 'languageSelect' ? `<li class='option ${selectedValue === 'Auto-Detect' ? 'selected' : ''}' data-value='auto-detect' tabindex='0'>Auto-Detect</li>` : '';
-
-    optionsEl.innerHTML += filteredOptions.map(opt => `<li class='option ${selectedValue === opt.name ? 'selected' : ''}' data-value=${opt.value} tabindex='0'>${opt.name}</li>`).join('');
+    if (selectWrapper) {
+      handleSelectionInput(evt);
+    }
   });
 
   // handle key press with event delegation
-  document.body.addEventListener('keydown', evt => {
+  $('body').on('keydown', evt => {
     const pressed = evt.target;
     const key = evt.key;
     const selectionContent = pressed.closest('form .content');
@@ -158,7 +147,7 @@ script.
   });
 
 
-  form.addEventListener("submit", submitForm);
+  form.on('submit', submitForm);
 
   let uploadStarted = false;
 
@@ -194,7 +183,7 @@ script.
 
     const formData = new FormData();
 
-    const passedFile = file.files[0]
+    const passedFile = file.prop('files')[0];
 
     if(!passedFile){
       return Swal.fire({
@@ -289,7 +278,7 @@ script.
     for (const pair of formData.entries()) {
       console.log(pair[0] + ': ' + pair[1]);
     }
-    fileName = document.getElementById('file').files[0].name;
+    fileName = $('#file').prop('files')[0].name;
     l(`filename: ${fileName}`)
 
     const httpProtocol = window.location.protocol;
@@ -319,8 +308,8 @@ script.
     /** TIME COUNTDOWN FUNCTIONALITY **/
     ajax.upload.addEventListener("progress", function(event){
       l(event);
-      form.style.display = 'none';
-      document.getElementById('startNewUpload').style.display = 'block';
+      form.hide();
+      $('#startNewUpload').show();
 
       alreadyUploadedAmountInMB = _.round(event.loaded / (1000 * 1000), 1);
       let totalFileSizeInMB = _.round(event.total / (1000 * 1000), 1);
@@ -335,7 +324,7 @@ script.
 
       percentUploadDone = percent
 
-      progressDiv.innerHTML = `${percent}% uploaded`;
+      progressDiv.html(`${percent}% uploaded`);
 
       const capitalizedString = `${percent}% Uploaded - ${fileName}`;
 
@@ -396,10 +385,9 @@ script.
           const valueIsValid = !estimatedSecondsIsInfinity && !estimatedSecondsIsNan;
           if(!valueIsValid) return
 
-          timeRemainingDiv.innerHTML =
-                  `[${timeElapsedInSeconds}/${estimatedUploadTimeInSeconds}s] ${forHumans(estimatedSecondsRemaining)} remaining
-                  \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${alreadyUploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
-                  `;
+          timeRemainingDiv.html(`[${timeElapsedInSeconds}/${estimatedUploadTimeInSeconds}s] ${forHumans(estimatedSecondsRemaining)} remaining
+            \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${alreadyUploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
+            `);
         }, 1000)
       }
     }, false);
@@ -441,13 +429,13 @@ script.
     ajax.addEventListener("load", function(res){
       l('hit the backend!');
       hitTheBackend = true;
-      // document.getElementById('processingData').style.display = 'block';
-      document.getElementById('latestData').style.display = 'block';
+      // $('#processingData').show();
+      $('#latestData').show();
       console.log(res)
-      progressDiv.style.display = 'none';
-      timeRemainingDiv.style.display = 'none';
+      progressDiv.hide();
+      timeRemainingDiv.hide();
 
-      header.innerHTML = 'Processing..';
+      header.html('Processing..');
     }, false);
     // TODO: implement these
     // ajax.addEventListener("event", eventHandler, false);
@@ -507,21 +495,21 @@ script.
 
       if(window.decrementInterval) clearInterval(window.decrementInterval)
 
-      latestData.innerHTML = 'Congratulations, you\'re done!';
+      latestData.html('Congratulations, you\'re done!');
 
-      document.getElementById('finishedData').innerHTML = data.detailsString;
+      $('#finishedData').html(data.detailsString);
 
-      header.innerHTML = 'Transcription Completed';
-      document.getElementById('processingData').style.display = 'none';
+      header.html('Transcription Completed');
+      $('#processingData').hide();
 
       // show refresh button
-      refreshButton.style.display = 'block';
+      refreshButton.show();
 
       // TODO: add two more download buttons
 
       l(data.url)
 
-      document.getElementById('startNewUpload').style.display = 'none';
+      $('#startNewUpload').hide();
 
       websocketConnection.close()
 
@@ -533,13 +521,13 @@ script.
       // TODO: pull out into func
       placeInQueue = data.placeInQueue;
       if (placeInQueue === 1) {
-        latestData.innerHTML = `You're next up`;
+        latestData.html(`You're next up`);
       } else if(placeInQueue > 1){
-        latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+        latestData.html(`There are ${placeInQueue} people ahead of you`);
       }
 
       if(placeInQueue === 0){
-        latestData.innerHTML = `Starting now...`;
+        latestData.html(`Starting now...`);
       }
 
       // TODO: likely a bug here
@@ -548,13 +536,13 @@ script.
       placeInQueue = placeInQueue - 1
       // TODO: hate how this is duped, so annoying
       if (placeInQueue === 1) {
-        latestData.innerHTML = `You're next up`;
+        latestData.html(`You're next up`);
       } else if(placeInQueue > 1){
-        latestData.innerHTML = `There are ${placeInQueue} people ahead of you`;
+        latestData.html(`There are ${placeInQueue} people ahead of you`);
       }
 
       if (placeInQueue === 0) {
-        latestData.innerHTML = `Starting now...`;
+        latestData.html(`Starting now...`);
       }
 
     // WEBSOCKET DATA COMING FROM THE BACKEND
@@ -590,10 +578,10 @@ script.
       if(myUpload){
         /** it's your upload **/
         // data is no longer relevant
-        document.getElementById('secondProcessingData').style.display = 'none';
+        $('#secondProcessingData').hide();
         myUploadStarted = true; // force this to true
         textToSay = ``;
-        latestData.style.display = 'none';
+        latestData.hide();
       }
 
       // every second it grabs it from the ether and decrements it and rebuilds the string
@@ -605,7 +593,7 @@ script.
       // TODO: need my upload finished? && !myUploadFinished
       if(eitherProcess && myUpload && hitTheBackend && myUploadStarted){
         l('found my data');
-        document.getElementById('processingData').style.display = 'block';
+        $('#processingData').show();
         // actual process data coming back
         if (Number(percentDone) > 0){
           circleProgress.attr({
@@ -638,7 +626,7 @@ script.
 
                 const stringToUse = `[${formattedProgressData.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgressData.speed}f/s`
 
-                document.getElementById('processingData').innerHTML = `${textToSay}${stringToUse}`;
+                $('#processingData').html(`${textToSay}${stringToUse}`);
               }, 1000)
             }
 
@@ -655,11 +643,11 @@ script.
             //
             //   const stringToUse = `[${formattedProgressData.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgressData.speed}f/s`
             //
-            //   document.getElementById('processingData').innerHTML = `${textToSay}${stringToUse}`;
+            //   $('#processingData').html(`${textToSay}${stringToUse}`);
             // }, 1000)
           }
         } else {
-          document.getElementById('processingData').innerHTML = `${textToSay}Transcription starting soon..`;
+          $('#processingData').html(`${textToSay}Transcription starting soon..`);
         }
       }
 
@@ -667,21 +655,21 @@ script.
       // update the process 2 info if appropriate
       if (processNumber === 1 && !myUpload && !myUploadStarted && hitTheBackend) {
         l('getting process 1 data');
-        document.getElementById('processingData').style.display = 'block';
-        document.getElementById('processingData').innerHTML = `${textToSay}\n${data.processingData}`;
+        $('#processingData').show();
+        $('#processingData').html(`${textToSay}\n${data.processingData}`);
       }
       // update the process 2 info if appropriate
       if (processNumber === 2 && !myUpload && !myUploadStarted && hitTheBackend) {
         l('getting process 2 data');
-        document.getElementById('secondProcessingData').style.display = 'block';
-        document.getElementById('secondProcessingData').innerHTML = `${textToSay}\n${data.processingData}`;
+        $('#secondProcessingData').show();
+        $('#secondProcessingData').html(`${textToSay}\n${data.processingData}`);
       }
 
     } else if (data.message === 'fileDetails') {
       l('file details data');
       const niceDate = new Date().toString().replace(/GMT.*/g,"");
       const niceString = `startedAt: ${niceDate}`;
-      document.getElementById('finishedData').innerHTML = data.fileDetails + niceString;
+      $('#finishedData').html(data.fileDetails + niceString);
     } else if (data.message === 'languageUpdate') {
       // Get a reference to the last interval + 1
       const interval_id = window.setInterval(function () {
@@ -691,19 +679,19 @@ script.
       for (let i = 1; i < interval_id; i++) {
         window.clearInterval(i);
       }
-      document.getElementById('processingData').innerHTML = data.languageUpdate;
+      $('#processingData').html(data.languageUpdate);
 
     } else if (data.message === 'error') {
-      document.getElementById('processingData').innerHTML = data.text;
+      $('#processingData').html(data.text);
     } else if (data.message === 'starting') {
-      latestData.innerHTML = data.text;
-      document.getElementById('processingData').style.fontSize = '1.6rem';
-      document.getElementById('processingData').style.display = 'none';
-      document.getElementById('secondProcessingData').style.display = 'none';
+      latestData.html(data.text);
+      $('#processingData').css({'font-size': '1.6rem'});
+      $('#processingData').hide();
+      $('#secondProcessingData').hide();
       // latestData.css("font-size", "20px");
 
     } else {
-      latestData.innerHTML = data;
+      latestData.html(data);
     }
   };
 
