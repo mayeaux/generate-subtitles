@@ -16,7 +16,7 @@ const moment = require('moment');
 const ffprobe = require("ffprobe");
 const which = require("which");
 const {fr} = require("language-name-map/map");
-const { languagesToTranslateTo, newLanguagesMap, modelsArray, whisperLanguagesHumanReadableArray } = require('../constants/constants');
+const { languagesToTranslateTo, newLanguagesMap, modelsArray, languagesArray } = require('../constants/constants');
 const ffprobePath = which.sync('ffprobe')
 const _ = require('lodash');
 
@@ -213,7 +213,7 @@ router.get('/', function(req, res, next) {
     isFreeSubtitles,
     uploadFileSizeLimitInMB,
     modelsArray,
-    languages: whisperLanguagesHumanReadableArray,
+    languagesArray,
     decrementBySecond
   });
 });

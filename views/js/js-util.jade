@@ -1,0 +1,10 @@
+script.
+  const unescapeHTML = escapedHTML => escapedHTML
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+
+  const filterOptions = (options, q) => {
+    const regex = new RegExp(`^${q}`, 'i');
+    return options.filter(opt => !!opt.name.match(regex));
+  }

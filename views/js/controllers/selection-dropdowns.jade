@@ -1,0 +1,37 @@
+script.
+  const updateSelection = option => {
+    const selectedValueEl = option.closest('.wrapper').querySelector('.select-value');
+    selectedValueEl.textContent = option.textContent;
+    selectedValueEl.dataset.value = option.dataset.value;
+  }
+
+  const handleSelectionShortcuts = (evt, key) => {
+    ['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(key) && evt.preventDefault();
+    const selectionContent = evt.target.closest('form .content');
+    const focusedOption = document.activeElement.closest('.option');
+
+    const keysMap = [
+      {command: /ArrowDown/, action: () => {
+        // if there is a focused option, focus the next one, else focus the first one
+        (focusedOption?.nextSibling ??
+        selectionContent.querySelector('.option'))
+        .focus();
+      }},
+
+      {command: /ArrowUp/, action: () => {
+        (focusedOption.previousSibling ??
+        Array.from(selectionContent.querySelectorAll('.option')).at(-1))
+        .focus();
+      }},
+
+      {command: /Enter/, action: () => focusedOption?.click()},
+      
+      {command: /Escape/, action: () => selectionContent.closest('.wrapper').classList.remove('active')},
+
+      {command: /[a-z]/i, action: () => {
+        selectionContent.querySelector(`input[type='search']`).focus();
+      }},
+    ];
+
+    keysMap.find(({command}) => command.test(key))?.action();
+  }
