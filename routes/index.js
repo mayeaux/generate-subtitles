@@ -17,10 +17,12 @@ const nodeEnv = process.env.NODE_ENV || 'development';
 
 //file router
 router.use(fileRouter);
-//player router
-router.use(playerRouter);
+
 //transcribe router
 router.use(transcribeRouter);
+
+//player router
+router.use(playerRouter);
 
 l('nodeEnv');
 l(nodeEnv);

@@ -24,6 +24,7 @@ const { server , app  } = require('./lib/websockets');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var api = require('./routes/api');
+var player = require('./routes/player');
 var stats = require('./routes/stats');
 const WebSocket = require("ws");
 
@@ -79,10 +80,10 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use('/', routes);
 app.use('/', api);
 app.use('/users', users);
 app.use('/', stats);
+app.use('/', routes);
 
 
 // catch 404 and forward to error handler
