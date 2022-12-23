@@ -30,8 +30,6 @@ l(`CONCURRENT JOBS ALLOWED AMOUNT: ${concurrentJobs} `);
 
 router.post('/file', upload.single('file'), async function (req, res, next) {
   // l(global.ws);
-  l("ahmed 3 saad")
-
   try {
     l(req.file);
     l(req.body);
