@@ -16,11 +16,18 @@ function isTextLine(num) {
 const srtPath = '../examples/dnevnik.srt'
 
 let topLevelValue = 1;
-async function stripOutTextAndTimestamps(filePath){
+async function stripOutTextAndTimestamps(filePath, readableStream) {
   return new Promise(async (resolve, reject) => {
-    const rl = await readline.createInterface({
-      input: fs.createReadStream(filePath, 'utf8')
-    });
+    let rl;
+    if(readableStream){
+      rl = await readline.createInterface({
+        input: filePath
+      });
+    } else {
+      rl = readline.createInterface({
+        input: fs.createReadStream(filePath, 'utf8')
+      });
+    }
 
     let strippedText = '';
     let timestampsArray = [];
@@ -50,6 +57,10 @@ async function stripOutTextAndTimestamps(filePath){
         timestampsArray
       })
     })
+
+    rl.on('error', function (err) {
+      reject(err)
+    });
 
   });
 

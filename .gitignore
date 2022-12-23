@@ -4,6 +4,7 @@ assets
 test
 uploads
 transcriptions
+transcriptions1
 downloads
 
 public/javascripts/ffmpeg-core.wasm

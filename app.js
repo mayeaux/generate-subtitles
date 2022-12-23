@@ -22,6 +22,7 @@ require('dotenv').config();
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var api = require('./routes/api');
+var stats = require('./routes/stats');
 const WebSocket = require("ws");
 
 var app = express();
@@ -183,8 +184,8 @@ app.set('view engine', 'jade');
 
 app.use(favicon(path.join(__dirname,'public','images','favicon.ico')));
 app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 // assumes nginx
@@ -213,6 +214,8 @@ app.use(function(req, res, next){
 app.use('/', routes);
 app.use('/', api);
 app.use('/users', users);
+app.use('/', stats);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

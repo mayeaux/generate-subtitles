@@ -1,0 +1,233 @@
+style.
+
+  main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+
+  video {
+    position: relative;
+    inset: 0;
+    max-height: 100vh;
+    max-width: 100vw;
+    margin: auto;
+    object-fit: contain;
+    height: 100%;
+    width: 100%;
+  }
+
+  .pulled-right {
+    max-width: 500px;
+    margin-right: 0px;
+    width: 200px;
+    position: relative;
+    float: right;
+    top: -6px;
+  }
+
+  .video-title {
+    font-size: 58px;
+    margin-top: 25px;
+  }
+
+  .hide-cursor {
+    cursor: none;
+  }
+
+  .plyr {
+    max-height: 94.6vh;
+  }
+
+  #back-button {
+    font-size: 14px;
+    margin-top: 12px;
+  }
+
+  #download-button {
+    font-size: 14px;
+    margin-top: 5px;
+  }
+
+  .upload-details-holder {
+    /*height: 1300px;*/
+  }
+
+  .upload-details h4:not(.description) {
+    font-size: 35px;
+  }
+
+  .vjs-text-track-display div div {
+    font-size: 40px !important;
+  }
+
+  .video-js {
+    max-height: 400px;
+  }
+
+  .bottomSection {
+    color: #fff;
+    padding-inline: 1.25em;
+    font-size: 1rem;
+  }
+
+  .buttons {
+    width: fit-content;
+    display: flex;
+    gap: 0.5em;
+  }
+
+  .buttons .btn {
+    margin: 0;
+    border: 0;
+    margin-right: 8px;
+    font-size: 14px;
+  }
+
+  .buttons :where(#increaseSize:hover, #increaseLineHeight:hover)  {
+    color: #55ed55;
+  }
+
+  .buttons :where(#decreaseSize:hover, .buttons #decreaseLineHeight:hover) {
+    color: #df2b2b;
+  }
+
+  .downloadLinks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+
+  #translationsHeader {
+    margin-bottom: 1px;
+  }
+
+  .links {
+    display: flex;
+    gap: 1em;
+    margin-top: 5px;
+  }
+
+  .downloadLinks, .fileDetails {
+    font-size: 14px;
+  }
+
+  .startAnotherTranscription {
+    margin: 0 0;
+  }
+
+  @media (min-width: 320px) {
+    /* smartphones, portrait iPhone, portrait 480x320 phones (Android) */
+  }
+
+  @media (min-width: 480px) {
+    /* smartphones, Android phones, landscape iPhone */
+  }
+
+
+
+  /** larger than this size **/
+  @media (min-width: 320px) {
+
+    .plyr__captions  .plyr__caption {
+        font-size: 21px;
+        line-height: 33px;
+    }
+  }
+
+  @media (min-width: 801px) {
+
+    .plyr__captions  .plyr__caption {
+      font-size: 21px;
+      line-height: 33px;
+    }
+    /* tablet, landscape iPad, lo-res laptops ands desktops */
+  }
+
+  @media (min-width: 1025px) {
+    /* big landscape tablets, laptops, and desktops */
+  }
+
+  /* not mobile */
+  @media (min-width: 1281px) {
+    .plyr__captions .plyr__caption {
+      font-size: 21px;
+      line-height: 33px;
+    }
+    /* hi-res laptops and desktops */
+  }
+
+  @media (max-width: 900px) {
+    .plyr__volume {
+      display: none !important;
+    }
+
+    .plyr__time--current, .plyr__time--duration {
+      font-size: 24px !important;
+    }
+
+    body {
+      //- font-size: 28px;
+    }
+
+    .plyr__control svg {
+      width: 53px !important;
+      height: 53px !important;
+    }
+
+
+    button[data-plyr="language"], button[data-plyr="settings"] {
+      font-size: 28px !important;
+    }
+
+    /* hi-res laptops and desktops */
+  }
+
+  .plyr__poster {
+    display: none;
+  }
+
+  .plyr .plyr__captions {
+    display: inline-table !important;
+    text-align: left !important;
+    cursor: pointer;
+    max-width: 99%;
+    z-index: 9999;
+    padding: 0px;
+    width: unset !important;
+    position: absolute;
+    bottom: 68px;
+  }
+
+  .plyr:not(.plyr--hide-controls) .plyr__controls:not(:empty)~.plyr__captions {
+    transform: unset !important;
+  }
+
+  .plyr__caption {
+    text-wrap: balance;
+    display: block;
+  }
+
+  .plyr__controls {
+    flex-wrap: wrap;
+    justify-content: left !important;
+  }
+
+  .plyr__progress__container {
+    flex-basis: 100% !important;
+  }
+
+  .plyr__progress {
+    max-width: 99%;
+    text-align: center;
+    margin: 0 auto;
+    margin-bottom: 5px;
+  }
+
+  button[data-plyr=captions] {
+    margin-left: auto !important;
+  }
+
+  input[data-plyr=seek], input[data-plyr=volume] {
+    cursor: pointer;
+  }
