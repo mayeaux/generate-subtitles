@@ -197,6 +197,7 @@ async function transcribe({
           })
         }
       });
+      
 
       // log output from bash (it all comes through stderr for some reason?)
       whisperProcess.stderr.on('data', data => {
