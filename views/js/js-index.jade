@@ -3,13 +3,19 @@ include controllers/selection-dropdowns.jade
 script.
   l = console.log;
 
-  let processStarted, myUploadStarted, processFailed = false;
-
+  // global variables
+  let processStarted, processFailed, myUploadStarted, uploadFinished = false;
   let circleProgress, fileName, hitTheBackend;
 
+  // passed from server
+  const languagesArray = !{JSON.stringify(languagesArray)}
+  const modelsArray = !{JSON.stringify(modelsArray)}
+  const isFreeSubtitles = #{isFreeSubtitles}
+  const uploadFileSizeLimitInMB = #{uploadFileSizeLimitInMB}
+  const nodeEnvironment = `#{nodeEnv}`
+
   // grab elements
-  const form = $("#form");
-  l(form);
+  const form = $('#form');
   const progressDiv = $('#progress');
   const timeRemainingDiv = $('#timeEstimator');
   const header = $('#header')
@@ -17,8 +23,17 @@ script.
   const latestData = $('#latestData');
   const file = $("#file");
   const body = document.querySelector('body');
+  const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
+  const modelOptions = Array.from(document.querySelectorAll('.options.models .option'));
 
-  $(document).ready(function () {
+  // local storage
+  const previousModel = localStorage.getItem('model');
+  const previousModelName = localStorage.getItem('modelName');
+  const previousLanguage = localStorage.getItem('language');
+  const previousLanguageName = localStorage.getItem('languageName');
+  const previousShouldTranslate = localStorage.getItem('shouldTranslate');
+
+  $(document).ready(() => {
     circleProgress = new CircleProgress('.progress', {
       max: 100,
       value: 100,
@@ -28,7 +43,6 @@ script.
     l('ready now');
   });
 
-  let uploadFinished = false;
 
   const getVideoDuration = file =>
     new Promise((resolve, reject) => {
@@ -61,19 +75,8 @@ script.
 
   // l(forHumans(100));
 
-  const languagesArray = !{JSON.stringify(languagesArray)}
-  const modelsArray = !{JSON.stringify(modelsArray)}
-
-  const previousModel = localStorage.getItem('model');
-  const previousModelName = localStorage.getItem('modelName');
-  const previousLanguage = localStorage.getItem('language');
-  const previousLanguageName = localStorage.getItem('languageName');
-  const previousShouldTranslate = localStorage.getItem('shouldTranslate');
 
   //-  Add selected class to both selected options
-  const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
-  const modelOptions = Array.from(document.querySelectorAll('.options.models .option'));
-
   const selectedLang = languageOptions.find(opt => opt.dataset.value === previousLanguage) || languageOptions[0];
   const selectedModel = modelOptions.find(opt => opt.dataset.value === previousModel) || modelOptions.find(opt => opt.dataset.value === 'medium');
   l({selectedModel})
@@ -100,29 +103,18 @@ script.
   $('body').on('click', evt => {
     const clicked = evt.target;
     const selectWrappers = document.querySelectorAll('#form .wrapper');
-
-    // On selection button click
     const selectionBtn = clicked.closest('.select-btn');
-    if (selectionBtn) {
-      const selectWrapper = selectionBtn.closest('.wrapper');
-      const input = selectWrapper.querySelector('.search input');
-      selectWrapper.classList.toggle('active');
-      input.focus();
-    }
-
-    // On option click
     const option = clicked.closest('.option');
-    if (option) {
-      console.log('before update');
-      updateSelection(option);
-      selectWrappers.forEach(wrapper => wrapper.classList.remove('active'));
-    }
+    const groupElement = clicked.closest('.form .group');
+    
+    const langSelectionBtn = clicked.closest('.select-btn#languageSelect');
+    langSelectionBtn && selectWrappers[1].classList.remove('active');
 
-    // On outside form click
-    const formElement = clicked.closest('.form');
-    if (!formElement) {
-      selectWrappers.forEach(wrapper => wrapper.classList.remove('active'));
-    }
+    selectionBtn && handleSelectionButtonClick(evt); // On selection button click
+
+    option && handleOptionClick(evt); // On option click
+
+    !groupElement && selectWrappers.forEach(wrapper => wrapper.classList.remove('active')); // On outside form group click
   });
 
   // handle input with event delegation
@@ -130,29 +122,21 @@ script.
     // Elements
     const pressed = evt.target;
     const selectWrapper = pressed.closest('form .wrapper');
-    if (selectWrapper) {
-      handleSelectionInput(evt);
-    }
+    selectWrapper && handleSelectionInput(evt);
   });
 
   // handle key press with event delegation
   $('body').on('keydown', evt => {
     const pressed = evt.target;
-    const key = evt.key;
     const selectionContent = pressed.closest('form .content');
 
-    if (selectionContent) {
-      handleSelectionShortcuts(evt, key);
-    }
+    selectionContent && handleSelectionShortcuts(evt);
   });
 
 
   form.on('submit', submitForm);
 
   let uploadStarted = false;
-
-  const nodeEnvironment = `#{nodeEnv}`
-
   const selectElement = document.querySelector('#file');
 
   let videoDurationInSeconds;
@@ -194,14 +178,10 @@ script.
     }
 
     // http or https
-    const protocol = document.location.protocol.slice(0, -1)
-    const servedWithSSL = protocol === 'https'
+    const protocol = document.location.protocol.slice(0, -1);
+    const servedWithSSL = protocol === 'https';
 
-    l('passedFile');
-    l(passedFile)
-
-    const isFreeSubtitles = #{isFreeSubtitles}
-
+    l({passedFile});
 
     if(nodeEnvironment === 'production' && isFreeSubtitles){
 
@@ -210,8 +190,6 @@ script.
       // TODO: change this to onchange
       // TODO: load this from the backend
       const passedFileSizeInMB = Math.round(passedFile.size / 1048576);
-
-      const uploadFileSizeLimitInMB = #{uploadFileSizeLimitInMB};
 
       // swal with the error
       if (passedFileSizeInMB > uploadFileSizeLimitInMB) {
@@ -234,14 +212,11 @@ script.
         // TODO: get here
         // TODO: catch possible errors
         videoDurationInSeconds = await getVideoDuration(passedFile);
-        l(videoDurationInSeconds);
-        l('duration');
-        l(videoDurationInSeconds);
+        l({videoDurationInSeconds});
       } catch (err){
         /// just let them advance if there's an error, happens with .MOV (format error)
         //  and uploads over 500MB (because of Chrome)
-        l('err');
-        l(err);
+        console.error(err);
       }
 
       const oneHourInSeconds = 60 * 60;
@@ -262,7 +237,7 @@ script.
 
     const translateIsChecked = $('#translate').is(':checked');
 
-    formData.append("file", passedFile);
+    formData.append('file', passedFile);
     formData.append('language', language);
     formData.append('model', model);
     formData.append('websocketNumber', randomNumber);
@@ -279,20 +254,15 @@ script.
       console.log(pair[0] + ': ' + pair[1]);
     }
     fileName = $('#file').prop('files')[0].name;
-    l(`filename: ${fileName}`)
+    l({fileName});
 
     const httpProtocol = window.location.protocol;
 
-    let httpPrepend;
-    if (httpProtocol === "https:") {
-      httpPrepend = "https";
-    } else {
-      httpPrepend = "http";
-    }
+    const httpPrepend = httpProtocol === 'https:' ? 'https' : 'http';
 
     const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
 
-    var ajax = new XMLHttpRequest();
+    const ajax = new XMLHttpRequest();
     let originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining, percentUploadDone;
 
     $('.amountsHeader').hide();
@@ -343,15 +313,9 @@ script.
       // time left is difference of estimated time and elapsed time
       estimatedSecondsRemaining = estimatedUploadTimeInSeconds - timeElapsedInSeconds;
 
-      l('estimated seconds remaining');
-      l(estimatedSecondsRemaining);
-
-
-      l('percent');
-      l(percent);
-
-      l('timeElapsedInSeconds')
-      l(timeElapsedInSeconds);
+      l({estimatedSecondsRemaining});
+      l({percent});
+      l({timeElapsedInSeconds});
 
       circleProgress.attr({
         max: 100,
@@ -450,12 +414,7 @@ script.
   /** WEBSOCKET CONNECTION FUNCTIONALITY BEGINS **/
   const httpProtocol = window.location.protocol;
 
-  let wssPrepend;
-  if (httpProtocol === "https:") {
-    wssPrepend = "wss";
-  } else {
-    wssPrepend = "ws";
-  }
+  const wssPrepend = httpProtocol === 'https:' ? 'wss' : 'ws';
 
   const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
 
@@ -547,11 +506,9 @@ script.
 
     // WEBSOCKET DATA COMING FROM THE BACKEND
     } else if (data.message === 'websocketData') {
-      l('data');
-      l(data);
+      l({data});
       const myUpload = data.ownershipPerson === 'you';
-      l('my upload');
-      l(myUpload);
+      l({myUpload});
 
       // disregard any data that isn't yours after your processing has started
       if(!myUpload && myUploadStarted) return
@@ -587,8 +544,7 @@ script.
       // every second it grabs it from the ether and decrements it and rebuilds the string
 
       const eitherProcess = processNumber ===  1 || processNumber === 2;
-      l('either process');
-      l(eitherProcess);
+      l({eitherProcess});
 
       // TODO: need my upload finished? && !myUploadFinished
       if(eitherProcess && myUpload && hitTheBackend && myUploadStarted){
