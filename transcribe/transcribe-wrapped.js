@@ -5,7 +5,7 @@ const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 const path = require('path');
 const projectConstants = require('../constants/constants');
-const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
+const { shouldTranslateFrom, languagesToTranscribe, getLanguageCodeForAllLanguages } = projectConstants;
 const forHumans = require('../helpers/helpers').forHumans;
 const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
@@ -18,7 +18,6 @@ l(formatStdErr);
 
 l = console.log;
 
-const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 const nodeEnvironment = process.env.NODE_ENV;
 const libreTranslateHostPath = process.env.LIBRETRANSLATE;
 
@@ -43,7 +42,6 @@ async function transcribe({
   directorySafeFileNameWithExtension,
   originalFileNameWithExtension,
   fileSafeNameWithDateTimestamp,
-  fileSafeNameWithDateTimestampAndExtension,
   uploadGeneratedFilename,
   shouldTranslate,
   uploadDurationInSeconds,
