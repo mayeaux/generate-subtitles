@@ -11,7 +11,7 @@ const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin} = require('../lib/convertText');
-const { sendToWebsocket , autoDetectLanguage ,generateFileDetailsString} = require('../lib/transcribing');
+const { sendToWebsocket , autoDetectLanguage ,generateFileDetailsString ,passDataToAllOpenSocket} = require('../lib/transcribing');
 
 
 l(formatStdErr);
@@ -235,20 +235,7 @@ async function transcribe({
 
           // TODO: pull into function
           // pass latest data to all the open sockets
-          if (websocketConnection.readyState === WebSocket.OPEN) {
-            /** websocketData message **/
-            websocketConnection.send(JSON.stringify({
-              message: 'websocketData',
-              processingData: processingString,
-              // processingData: data.toString(),
-              ownershipPerson,
-              serverNumber, // on the frontend we'll react different if it it's on server 1 or two
-              formattedProgress,
-              percentDone: percentDoneAsNumber,
-              timeRemaining,
-              speed,
-            }));
-          }
+          passDataToAllOpenSocket (websocketConnection,processingString,ownershipPerson,serverNumber,formattedProgress,percentDoneAsNumber,timeRemaining,speed)
         }
       });
 
