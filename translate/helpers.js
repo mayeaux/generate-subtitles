@@ -51,7 +51,7 @@ async function stripOutTextAndTimestamps(filePath, readableStream) {
     });
 
     rl.on('close', async function () {
-      l(`\n\n`)
+      l('\n\n')
       resolve({
         strippedText,
         timestampsArray
@@ -96,7 +96,7 @@ function reformatVtt(timestampArray, translatedText){
   const splitText = translatedText.split('\n').slice(0, -1);
   l(splitText)
 
-  let formattedVtt = `WEBVTT\n`;
+  let formattedVtt = 'WEBVTT\n';
 
   for (const [index, value] of splitText.entries()) {
     formattedVtt = formattedVtt + `\n${timestampArray[index]}\n${value}\n`

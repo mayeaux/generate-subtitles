@@ -11,7 +11,7 @@ const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin} = require('../lib/convertText');
-const { sendToWebsocket} = require('../lib/transcribing');
+const { sendToWebsocket , autoDetectLanguage ,generateFileDetailsString} = require('../lib/transcribing');
 
 
 l(formatStdErr);
@@ -88,14 +88,18 @@ async function transcribe({
         displayLanguage = language;
       }
 
+
+
+
       // just do JSON, then loop through properties on the frontend
-      let fileDetails = `
-            filename: ${directorySafeFileNameWithExtension}
-            language: ${displayLanguage}
-            model: ${model}
-            uploadDurationInSeconds: ${uploadDurationInSeconds}
-            uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
-      `.replace(/^ +/gm, ''); // remove indentation
+      let fileDetails = generateFileDetailsString(
+        directorySafeFileNameWithExtension,
+        displayLanguage,
+        model,
+        uploadDurationInSeconds,
+        uploadDurationInSecondsHumanReadable
+      );
+
 
       // update filedetails
       sendToWebsocket(websocketConnection,{
@@ -157,22 +161,21 @@ async function transcribe({
       /** FIND AUTO-DETECTED LANGUAGE **/
       let foundLanguage;
 
+  
       //  console output from stdoutt
       whisperProcess.stdout.on('data', data => {
-        
         sendToWebsocket(websocketConnection,`stdout: ${data}`)
-        // websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
         l(`STDOUT: ${data}`);
 
-        // TODO: pull this out into own function
-        // check if language is autodetected)
+        // TODO: pull this out into own function//
+        // check if language is autodetected)//
         const dataAsString = data.toString();
-        if(dataAsString.includes('Detected language:')){
+        const foundLanguage = autoDetectLanguage(dataAsString)
 
-          // parse out the language from the console output
-          foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
-
+        if(foundLanguage){
+          // parse out the lang uage from the console output
           l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`);
+
           if(language === 'auto-detect' && foundLanguage){
             language = foundLanguage
             displayLanguage = `${language} (Auto-Detected)`
@@ -180,13 +183,13 @@ async function transcribe({
 
           // send data to frontend with updated language
           // TODO: when it's JSON, just add the detected language here as a property
-          fileDetails = `
-            filename: ${directorySafeFileNameWithExtension}
-            language: ${displayLanguage}
-            model: ${model}
-            uploadDurationInSeconds: ${uploadDurationInSeconds}
-            uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
-          `.replace(/^ +/gm, ''); // remove indentation
+          fileDetails =  generateFileDetailsString(
+            directorySafeFileNameWithExtension,
+            displayLanguage,
+            model,
+            uploadDurationInSeconds,
+            uploadDurationInSecondsHumanReadable
+          );
 
           // update file details
           sendToWebsocket(websocketConnection,{
@@ -378,7 +381,6 @@ async function transcribe({
               translatedLanguages = trimmedLanguagesToTranscribe
             }
             
-
             const fileDetailsObject = {
               filename: originalFileNameWithExtension,
               processingSeconds,
@@ -414,7 +416,7 @@ async function transcribe({
           l(`child process exited with code ${code}`);
         } catch (err){
           reject(err);
-          sendToWebsocket({
+          sendToWebsocket(websocketConnection,{
             message: 'error',
             text: 'The transcription failed, please try again or try again later'
           })

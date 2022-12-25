@@ -1,24 +1,24 @@
-const path = require("path");
-const express = require("express");
-const axios = require("axios");
-const fs = require("fs-extra");
-const FormData = require("form-data");
+const path = require('path');
+const express = require('express');
+const axios = require('axios');
+const fs = require('fs-extra');
+const FormData = require('form-data');
 
 var router = express.Router();
-const transcribe = require("../transcribe/transcribe-api-wrapped");
+const transcribe = require('../transcribe/transcribe-api-wrapped');
 
-const constants = require("../constants/constants");
-const filenamify = require("filenamify");
+const constants = require('../constants/constants');
+const filenamify = require('filenamify');
 
 const { translationLanguages } = constants;
-const { upload } = require("../lib/transcribing");
+const { upload } = require('../lib/transcribing');
 
 const makeFileNameSafe = function (string) {
-  return filenamify(string, { replacement: "_" })
-    .split("：")  
-    .join(":")
-    .replace(/[&\/\\#,+()$~%.'":*?<>{}!]/g, "")
-    .replace(/\s+/g, "_");
+  return filenamify(string, { replacement: '_' })
+    .split('：')  
+    .join(':')
+    .replace(/[&\/\\#,+()$~%.'":*?<>{}!]/g, '')
+    .replace(/\s+/g, '_');
 };
 
 function getCodeFromLanguageName(languageName) {
@@ -27,7 +27,7 @@ function getCodeFromLanguageName(languageName) {
   }).code;
 }
 
-router.post("/api", upload.single("file"), async function (req, res, next) {
+router.post('/api', upload.single('file'), async function (req, res, next) {
   try {
     const postBodyData = Object.assign({}, req.body);
     const file = req.file;
@@ -45,7 +45,7 @@ router.post("/api", upload.single("file"), async function (req, res, next) {
     if (processingFileExists) {
       const completedProcessingData = await fs.readFile(
         processingDataFile,
-        "utf8"
+        'utf8'
       );
 
       if (completedProcessingData) {
@@ -64,7 +64,7 @@ router.post("/api", upload.single("file"), async function (req, res, next) {
     const originalFileNameWithoutExtension = path.parse(
       originalFileNameWithExtension
     ).name;
-    l("originalFileNameWithoutExtension");
+    l('originalFileNameWithoutExtension');
     l(originalFileNameWithoutExtension);
 
     // something
@@ -72,7 +72,7 @@ router.post("/api", upload.single("file"), async function (req, res, next) {
       originalFileNameWithoutExtension
     );
 
-    l("directorySafeFileNameWithoutExtension");
+    l('directorySafeFileNameWithoutExtension');
     l(directorySafeFileNameWithoutExtension);
 
     l = console.log;
@@ -88,43 +88,43 @@ router.post("/api", upload.single("file"), async function (req, res, next) {
     });
 
     // tell the client it's started
-    if (response === "started") {
+    if (response === 'started') {
       const port = req.socket.localPort;
       let apiPath =
         req.protocol +
-        "://" +
+        '://' +
         req.hostname +
-        (port === 80 || port === 443 ? "" : ":" + port) +
+        (port === 80 || port === 443 ? '' : ':' + port) +
         req.path;
-      if (process.env.NODE_ENV === "production") {
-        apiPath = req.protocol + "://" + req.hostname + req.path;
+      if (process.env.NODE_ENV === 'production') {
+        apiPath = req.protocol + '://' + req.hostname + req.path;
       }
 
       // return res.redirect(`/api/${sixDigitNumber}`)
       res.send({
-        status: "started",
+        status: 'started',
         sdHash,
         url: `${apiPath}/${sdHash}`,
       });
     }
   } catch (err) {
-    l("err");
+    l('err');
     l(err);
     throw err;
   }
 });
 
 // get info about the transcription via api
-router.get("/api/:sdHash", async function (req, res, next) {
+router.get('/api/:sdHash', async function (req, res, next) {
   try {
-    l("Getting info by SDHash");
+    l('Getting info by SDHash');
 
     const sdHash = req.params.sdHash;
 
     const processingData = JSON.parse(
       await fs.readFile(
         `./transcriptions/${sdHash}/processing_data.json`,
-        "utf8"
+        'utf8'
       )
     );
 
@@ -137,8 +137,8 @@ router.get("/api/:sdHash", async function (req, res, next) {
 
     /** transcription successfully completed **/
     if (
-      transcriptionStatus === "processing" ||
-      transcriptionStatus === "translating"
+      transcriptionStatus === 'processing' ||
+      transcriptionStatus === 'translating'
     ) {
       // send current processing data
       return res.send({
@@ -149,13 +149,13 @@ router.get("/api/:sdHash", async function (req, res, next) {
       });
 
       /** transcription successfully completed, attach VTT files **/
-    } else if (transcriptionStatus === "completed") {
+    } else if (transcriptionStatus === 'completed') {
       let subtitles = [];
 
       // add original vtt
       const originalVtt = await fs.readFile(
         `./transcriptions/${sdHash}/${sdHash}.vtt`,
-        "utf8"
+        'utf8'
       );
       subtitles.push({
         language,
@@ -166,7 +166,7 @@ router.get("/api/:sdHash", async function (req, res, next) {
       for (const translatedLanguage of translatedLanguages) {
         const originalVtt = await fs.readFile(
           `./transcriptions/${sdHash}/${sdHash}_${translatedLanguage}.vtt`,
-          "utf8"
+          'utf8'
         );
         subtitles.push({
           language: translatedLanguage,
@@ -176,7 +176,7 @@ router.get("/api/:sdHash", async function (req, res, next) {
       }
 
       const responseObject = {
-        status: "completed",
+        status: 'completed',
         sdHash,
         processingData,
         subtitles,
@@ -191,32 +191,32 @@ router.get("/api/:sdHash", async function (req, res, next) {
 
     // res.send('ok');
   } catch (err) {
-    l("err");
+    l('err');
     l(err);
   }
 });
 
 /** UNFINISHED FUNCTIONALITY **/
 // post file from backend
-router.post("/post", async function (req, res, next) {
+router.post('/post', async function (req, res, next) {
   try {
     l(req.body);
     l(req.params);
 
-    const endpointToHit = "http:localhost:3000";
+    const endpointToHit = 'http:localhost:3000';
 
     // Create a new form instance
     const form = new FormData();
 
-    const file = await fs.readFile("./ljubav.srt");
-    l("file");
+    const file = await fs.readFile('./ljubav.srt');
+    l('file');
     l(file);
 
-    form.append("subtitles", file, "subtitles");
+    form.append('subtitles', file, 'subtitles');
 
-    form.append("filename", "ljubav.srt");
+    form.append('filename', 'ljubav.srt');
 
-    l("form headers");
+    l('form headers');
     l(form.getHeaders());
 
     const response = await axios.post(endpointToHit, form, {
@@ -224,7 +224,7 @@ router.post("/post", async function (req, res, next) {
         ...form.getHeaders(),
       },
       data: {
-        foo: "bar", // This is the body part
+        foo: 'bar', // This is the body part
       },
     });
 
@@ -233,7 +233,7 @@ router.post("/post", async function (req, res, next) {
 
     // res.send('ok');
   } catch (err) {
-    l("err");
+    l('err');
     l(err);
   }
 });

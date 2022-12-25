@@ -26,7 +26,7 @@ var users = require('./routes/users');
 var api = require('./routes/api');
 var player = require('./routes/player');
 var stats = require('./routes/stats');
-const WebSocket = require("ws");
+const WebSocket = require('ws');
 
 
 const isProd = process.NODE_ENV === 'production';

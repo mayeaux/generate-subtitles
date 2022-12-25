@@ -7,7 +7,7 @@ const { newLanguagesMap } = require('../constants/constants');
 const { languagesToTranscribe } = require('../constants/constants');
 
 /** PLYR PLAYER **/
-router.get("/player/:filename" , async function(req, res, next){
+router.get('/player/:filename' , async function(req, res, next){
   try {
     const fileNameWithoutExtension = req.params.filename
 
@@ -68,7 +68,7 @@ router.get("/player/:filename" , async function(req, res, next){
   }
 });
 
-router.get("/player/:filename/add" , async function(req, res, next){
+router.get('/player/:filename/add' , async function(req, res, next){
   try {
 
     const fileNameWithoutExtension = req.params.filename
@@ -101,7 +101,7 @@ const { Readable } = require('stream');
 
 
 /** PLYR PLAYER **/
-router.post("/player/:filename/add" , async function(req, res, next){
+router.post('/player/:filename/add' , async function(req, res, next){
   try {
 
     const { language } = req.body;
