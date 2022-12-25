@@ -1,10 +1,11 @@
 include js-util.jade
 include controllers/selection-dropdowns.jade
+include controllers/drag-n-drop.jade
 script.
   l = console.log;
 
   // global variables
-  let processStarted, processFailed, myUploadStarted, uploadFinished = false;
+  let processStarted, processFailed, myUploadStarted, uploadFinished, loopStarted, processingData, timeRemaining, formattedProgressData = false;
   let circleProgress, fileName, hitTheBackend;
 
   // passed from server
@@ -34,11 +35,20 @@ script.
   const previousShouldTranslate = localStorage.getItem('shouldTranslate');
 
   $(document).ready(() => {
+    l('ready')
     circleProgress = new CircleProgress('.progress', {
       max: 100,
       value: 100,
       textFormat: 'vertical',
     });
+
+    //-  Add selected class to both selected options
+    const selectedLang = languageOptions.find(opt => opt.dataset.value === previousLanguage) || languageOptions[0];
+    const selectedModel = modelOptions.find(opt => opt.dataset.value === previousModel) || modelOptions.find(opt => opt.dataset.value === 'medium');
+    l({selectedModel})
+
+    selectedLang.classList.add('selected');
+    selectedModel.classList.add('selected');
 
     l('ready now');
   });
@@ -52,7 +62,7 @@ script.
       reader.onload = e => {
         l({e});
         l('loading');
-        l(reader);
+        l({reader});
         const media = new Audio(reader.result);
         l(media);
         media.onerror = function(error){
@@ -76,13 +86,6 @@ script.
   // l(forHumans(100));
 
 
-  //-  Add selected class to both selected options
-  const selectedLang = languageOptions.find(opt => opt.dataset.value === previousLanguage) || languageOptions[0];
-  const selectedModel = modelOptions.find(opt => opt.dataset.value === previousModel) || modelOptions.find(opt => opt.dataset.value === 'medium');
-  l({selectedModel})
-
-  selectedLang.classList.add('selected');
-  selectedModel.classList.add('selected');
   
   //- Populate previous values from local storage
   //- jquery doesn't work here for some reason, strange bug
@@ -98,6 +101,9 @@ script.
 
   const ipAndPort = location.host;
   const randomNumber = Math.round(Math.random() * 1_000_000_000_000);
+  const httpProtocol = window.location.protocol;
+  const wssPrepend = httpProtocol === 'https:' ? 'wss' : 'ws';
+  const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
 
   // Handle clicks with event delegation
   $('body').on('click', evt => {
@@ -284,11 +290,9 @@ script.
       alreadyUploadedAmountInMB = _.round(event.loaded / (1000 * 1000), 1);
       let totalFileSizeInMB = _.round(event.total / (1000 * 1000), 1);
 
-      l('totalFileSizeInMB');
-      l(totalFileSizeInMB);
+      l({totalFileSizeInMB});
 
-      l('alreadyUploadedAmountInMB');
-      l(alreadyUploadedAmountInMB);
+      l({alreadyUploadedAmountInMB});
 
       var percent = Math.round((alreadyUploadedAmountInMB / totalFileSizeInMB) * 100);
 
@@ -412,12 +416,6 @@ script.
   let placeInQueue = 0;
 
   /** WEBSOCKET CONNECTION FUNCTIONALITY BEGINS **/
-  const httpProtocol = window.location.protocol;
-
-  const wssPrepend = httpProtocol === 'https:' ? 'wss' : 'ws';
-
-  const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
-
   websocketConnection.onclose = function (event) {
     processFailed = true;
 
@@ -438,7 +436,6 @@ script.
 
   };
 
-  let loopStarted, processingData, timeRemaining, formattedProgressData = false;
 
   websocketConnection.onmessage = function (event) {
     const data = JSON.parse(event.data);
@@ -660,16 +657,11 @@ script.
 
   body.ondrop = function (evt) {
     evt.preventDefault();
-
     // only add the first file
-    let list = new DataTransfer();
-    let firstPassedFile = evt.dataTransfer.files[0];
-    list.items.add(firstPassedFile);
-
-    if(evt?.dataTransfer?.files){
-      file.files = list.files;
-
+    getFirstFile(evt);
+    if (evt?.dataTransfer?.files) {
+      file.files = list.files; // bug in file input
     } else {
       l('no files found');
     }
-  };
+  }
