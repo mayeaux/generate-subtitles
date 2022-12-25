@@ -648,20 +648,14 @@ script.
     }
   };
 
-
-
   /** DRAG AND DROP FILES **/
-  body.ondragover = file.ondragenter = function (evt) {
-    evt.preventDefault();
-  };
+  $('body').bind('dragover dragenter', evt => evt.preventDefault());
 
-  body.ondrop = function (evt) {
+  document.body.ondrop = evt => {
     evt.preventDefault();
     // only add the first file
-    getFirstFile(evt);
-    if (evt?.dataTransfer?.files) {
-      file.files = list.files; // bug in file input
-    } else {
-      l('no files found');
-    }
+    const list = getFirstFile(evt);
+    evt?.dataTransfer?.files
+    ? file.prop('files', list.files)
+    : l('no files found');
   }
