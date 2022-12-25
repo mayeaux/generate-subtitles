@@ -11,7 +11,7 @@ const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin} = require('../lib/convertText');
-const { sendToWebsocket , autoDetectLanguage ,generateFileDetailsString ,passDataToAllOpenSocket} = require('../lib/transcribing');
+const { sendToWebsocket , autoDetectLanguage ,generateFileDetailsString ,passDataToAllOpenSocket,sendFileInfoToClient} = require('../lib/transcribing');
 
 
 l(formatStdErr);
@@ -336,19 +336,17 @@ async function transcribe({
 
             // TODO: just have a function called "sendFileInfoToClient(fileInfoJSON)"
 
-            const outputText = `
-            filename: ${originalFileNameWithExtension}
-            processingSeconds: ${processingSeconds}
-            processingSecondsHumanReadable: ${forHumans(processingSeconds)}
-            language: ${language}
-            model: ${model}
-            upload: ${uploadFolderFileName}
-            uploadDurationInSeconds: ${uploadDurationInSeconds}
-            uploadDurationInSecondsHumanReadable: ${forHumans(uploadDurationInSeconds)}
-            processingRatio: ${processingRatio}
-            startedAt: ${startingDate.toUTCString()}
-            finishedAT: ${new Date().toUTCString()}
-          `.replace(/^ +/gm, ''); // remove indentation
+            const outputText = sendFileInfoToClient(
+              originalFileNameWithExtension,
+              processingSeconds,
+              language,
+              model,
+              uploadFolderFileName,
+              uploadDurationInSeconds,
+              uploadDurationInSeconds,
+              processingRatio,
+              startingDate
+            );
 
             // tell frontend upload is done
             websocketConnection.send(JSON.stringify({
