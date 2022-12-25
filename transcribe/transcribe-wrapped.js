@@ -60,7 +60,7 @@ async function transcribe({
       // TODO: fix this
       sendToWebsocket(websocketConnection, {
         message: 'starting',
-        text: `Whisper initializing, updates to come...`
+        text: 'Whisper initializing, updates to come...'
       })
 
       const osSpecificPathSeparator = path.sep;
