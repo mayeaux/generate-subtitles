@@ -1,12 +1,14 @@
 include js-util.jade
 include controllers/selection-dropdowns.jade
-include controllers/drag-n-drop.jade
+include controllers/file-handling.jade
+
 script.
   l = console.log;
+  ce = console.error;
 
   // global variables
-  let processStarted, processFailed, myUploadStarted, uploadFinished, loopStarted, processingData, timeRemaining, formattedProgressData = false;
-  let circleProgress, fileName, hitTheBackend;
+  let processStarted, processFailed, myUploadStarted, uploadFinished, loopStarted, processingData, timeRemaining, formattedProgressData, uploadStarted = false;
+  let circleProgress, fileName, hitTheBackend, videoDurationInSeconds;
 
   // passed from server
   const languagesArray = !{JSON.stringify(languagesArray)}
@@ -22,8 +24,7 @@ script.
   const header = $('#header')
   const refreshButton = $('#refreshButton');
   const latestData = $('#latestData');
-  const file = $("#file");
-  const body = document.querySelector('body');
+  const fileInput = $('#file');
   const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
   const modelOptions = Array.from(document.querySelectorAll('.options.models .option'));
 
@@ -35,7 +36,6 @@ script.
   const previousShouldTranslate = localStorage.getItem('shouldTranslate');
 
   $(document).ready(() => {
-    l('ready')
     circleProgress = new CircleProgress('.progress', {
       max: 100,
       value: 100,
@@ -52,32 +52,6 @@ script.
 
     l('ready now');
   });
-
-
-  const getVideoDuration = file =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      l(file);
-      l(reader);
-      reader.onload = e => {
-        l({e});
-        l('loading');
-        l({reader});
-        const media = new Audio(reader.result);
-        l(media);
-        media.onerror = function(error){
-          l({error});
-          reject(error);
-        }
-        media.onloadedmetadata = () => resolve(media.duration);
-      };
-      l('reading')
-      reader.readAsDataURL(file);
-      reader.onerror = function(error){
-        l({error})
-        reject(error);
-      }
-    });
 
   // had to do this because of the greater than thing (remove backslash)
   // otherwise could do const forHumans = #/{forHumans}
@@ -142,26 +116,17 @@ script.
 
   form.on('submit', submitForm);
 
-  let uploadStarted = false;
-  const selectElement = document.querySelector('#file');
-
-  let videoDurationInSeconds;
-
   // freezes everything up
-  // selectElement.addEventListener('change', async function () {
-  //   l('getting video duration!');
-  //   // l(new Date())
-  //   // videoDuration = getVideoDuration(file.files[0]).then(function(response){
-  //   //   videoDuration = response;
-  //   //   l(new Date())
-  //   //   l('videoDuration');
-  //   //   l(videoDuration);
-  //   //
-  //   // });
-  // });
+  fileInput.on('change', async () => {
+    l('getting video duration!');
+    l(new Date());
+    videoDuration = await getVideoDuration(fileInput.prop('files')[0]);
+    l({videoDuration});
+  });
 
   async function submitForm(e) {
     e.preventDefault();
+    const formData = new FormData();
 
     const languageEl = document.querySelector('#language');
     const modelEl = document.querySelector('#model');
@@ -171,9 +136,8 @@ script.
     const model = modelEl.dataset.value;
     const modelName = modelEl.textContent;
 
-    const formData = new FormData();
+    const [passedFile] = fileInput.prop('files');
 
-    const passedFile = file.prop('files')[0];
 
     if(!passedFile){
       return Swal.fire({
@@ -222,7 +186,7 @@ script.
       } catch (err){
         /// just let them advance if there's an error, happens with .MOV (format error)
         //  and uploads over 500MB (because of Chrome)
-        console.error(err);
+        ce(err);
       }
 
       const oneHourInSeconds = 60 * 60;
@@ -259,7 +223,7 @@ script.
     for (const pair of formData.entries()) {
       console.log(pair[0] + ': ' + pair[1]);
     }
-    fileName = $('#file').prop('files')[0].name;
+    fileName = fileInput.prop('files')[0].name;
     l({fileName});
 
     const httpProtocol = window.location.protocol;
@@ -361,8 +325,7 @@ script.
     }, false);
 
     ajax.addEventListener("error", function (error) {
-      l('err');
-      console.log(error)
+      ce({error})
     }, false);
 
     ajax.addEventListener('readystatechange', function (e) {
@@ -656,6 +619,6 @@ script.
     // only add the first file
     const list = getFirstFile(evt);
     evt?.dataTransfer?.files
-    ? file.prop('files', list.files)
+    ? fileInput.prop('files', list.files)
     : l('no files found');
   }

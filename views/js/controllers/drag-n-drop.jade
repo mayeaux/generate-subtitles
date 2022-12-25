@@ -1,7 +1,0 @@
-script.
-  const getFirstFile = evt => {
-    let list = new DataTransfer();
-    let firstPassedFile = evt.dataTransfer.files[0];
-    list.items.add(firstPassedFile);
-    return list;
-  }
