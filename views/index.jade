@@ -30,6 +30,11 @@ block content
 
     let circleProgress, fileName, hitTheBackend;
 
+    let ytdlp = !{ytdlp || false};
+
+    l('ytdlp', ytdlp);
+    l(ytdlp)
+
     $(document).ready(function () {
       circleProgress = new CircleProgress('.progress', {
         max: 100,
@@ -304,7 +309,7 @@ block content
       const isFreeSubtitles = #{isFreeSubtitles}
 
       // whether to do frontend file validation for duration and size
-      if(nodeEnvironment === 'production' && isFreeSubtitles){
+      if(nodeEnvironment === 'production' && isFreeSubtitles && !ytdlp){
 
       // force upload testing
       // if(1 === 1){
