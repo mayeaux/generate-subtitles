@@ -32,8 +32,7 @@ Od sad ćete razgovarati sa višim instansama.
 Ko je idejni vođa ovog protesta?
 Ja sam.
 Pa, šta da kažem.
-Možda i nije najpametnije što sam to uradila, ali...
-`
+Možda i nije najpametnije što sam to uradila, ali...`
 
 const maximumStringLength = 5000;
 
@@ -102,8 +101,8 @@ l(resplit.length);
 
 async function translateText({ text, targetLanguageCode }){
   const url = generateRequestUrl(text, { to: targetLanguageCode });
-  l('generated url');
-  l(url);
+  // l('generated url');
+  // l(url);
 
   let response;
   try {
@@ -114,8 +113,8 @@ async function translateText({ text, targetLanguageCode }){
     // l(parsedResponse);
 
     const translatedText = parsedResponse.text;
-    l('translatedText');
-    l(translatedText);
+    // l('translatedText');
+    // l(translatedText);
 
     return translatedText;
   } catch (error) {
@@ -132,25 +131,57 @@ async function splitAndTranslateText({ text, targetLanguageCode }){
   let translatedText = "";
   for(const chunk of chunks) {
     const translatedChunk = await translateText({ text: chunk, targetLanguageCode });
-    translatedText = translatedText + translatedChunk;
+    translatedText = translatedText + translatedChunk + '\n';
   }
 
   return translatedText;
 }
 
+function howManyLines(string){
+  return string.split('\n').length;
+}
+
+const delayPromise = (delayTime) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, delayTime);
+  });
+};
+
 async function newMain(){
+  await delayPromise(1000);
+
   let totalTranslatedText = "";
   for(const chunk of chunks) {
+    l(`\n\n`)
+    l('chunk');
+    l(chunk);
+
     const translated = await translateText({
       text: chunk,
       targetLanguageCode: 'en'
     });
 
-    totalTranslatedText = totalTranslatedText + translated;
+    l('translated');
+    l(translated)
+    l(`\n\n`)
+
+    totalTranslatedText = totalTranslatedText + translated + '\n';
   }
 
-  // l('totalTranslatedText');
-  // l(totalTranslatedText);
+  l('totalTranslatedText');
+  l(totalTranslatedText);
+
+  l('how many lines');
+  l(howManyLines(totalTranslatedText));
+  l(howManyLines(textToTranslate));
+  l(howManyLines(recombined));
+
+  l('totalTranslatedText');
+  l(totalTranslatedText);
+  l('textToTranslate');
+  l(textToTranslate);
 }
 
 // newMain()
