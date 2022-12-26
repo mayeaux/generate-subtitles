@@ -1,0 +1,24 @@
+script.
+  const errorsMap = {
+    'no-file': () => 
+      Swal.fire({
+        title: `You didn't pass a file`,
+        text: 'Please select a file to upload.',
+        icon: 'error',
+        confirmButtonText: 'Cool'
+      }),
+    'too-large-file': (size, sizeLimit) => 
+      Swal.fire({
+        title: `Too large file`,
+        text: `Your file size of ${size}MB is too large. The limit is ${sizeLimit}MB.`,
+        icon: 'error',
+        confirmButtonText: 'Cool'
+      }),
+      'too-long-video': (duration, durationLimit) =>
+      Swal.fire({
+        title: `Too long video`,
+        text: `Your video duration of ${duration / 60} minutes is too long. To share time more evenly 1h+ uploads are not allowed currently.`,
+        icon: 'error',
+        confirmButtonText: 'Cool'
+      }),
+  }

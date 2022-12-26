@@ -1,6 +1,7 @@
 include js-util.jade
 include controllers/selection-dropdowns.jade
 include controllers/file-handling.jade
+include controllers/error-handling.jade
 
 script.
   l = console.log;
@@ -150,13 +151,7 @@ script.
     formData.append('websocketNumber', randomNumber); // this should be generated on the fly, not to be global
 
     /* SUBMIT ERRORS */
-    if(!passedFile){
-      return Swal.fire({
-        title: 'You didn\'t pass a file',
-        icon: 'error',
-        confirmButtonText: 'Cool'
-      })
-    }
+    !passedFile && errorsMap['no-file']();
 
     if(nodeEnvironment === 'production' && isFreeSubtitles){
 
@@ -170,12 +165,7 @@ script.
       if (passedFileSizeInMB > uploadFileSizeLimitInMB) {
         // put back upload button
         $('#upload-button').html('Upload').removeClass('no-pointer-events');
-
-        return Swal.fire({
-          title: `Your file size of ${passedFileSizeInMB}MB is too large. The limit is ${uploadFileSizeLimitInMB}MB`,
-          icon: 'error',
-          confirmButtonText: 'Cool'
-        })
+        return errorsMap['too-large-file'](passedFileSizeInMB, uploadFileSizeLimitInMB);
       }
 
       $('#upload-button').addClass('no-pointer-events');
@@ -199,12 +189,7 @@ script.
       if (videoDurationInSeconds && videoDurationInSeconds > oneHourInSeconds) {
         $('#upload-button').html('Upload').removeClass('no-pointer-events');
         videoDurationInSeconds = 0;
-        return Swal.fire({
-          title: 'The video is too long',
-          text: 'To share time more evenly 1h+ uploads are not allowed currently',
-          icon: 'error',
-          confirmButtonText: 'Cool'
-        })
+        return errorsMap['too-long-video'](videoDurationInSeconds);
       }
     }
 
