@@ -322,9 +322,6 @@ async function transcribe({
             resolve(code);
 
             // TODO: pull out into own function
-            const shouldTranslateFromLanguage = shouldTranslateFrom(language);
-            l(`should translate from language: ${shouldTranslateFromLanguage}`)
-
             l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
             l(`should translate: ${shouldTranslate}`)
@@ -339,7 +336,7 @@ async function transcribe({
 
             let translationStarted, translationFinished = false;
             /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
-            if(libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate){
+            if(libreTranslateHostPath, shouldTranslate){
               // tell frontend that we're translating now
               websocketConnection.send(JSON.stringify({
                 languageUpdate: `Doing translations with LibreTranslate`,

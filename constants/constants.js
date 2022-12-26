@@ -93,10 +93,14 @@ const languagesToTranscribe = [
   'Serbian'
 ]
 
+// function shouldTranslateFrom(languageName){
+//   return translationLanguages.find(function(filteredLanguage){
+//     return languageName === filteredLanguage.name;
+//   })
+// }
+
 function shouldTranslateFrom(languageName){
-  return translationLanguages.find(function(filteredLanguage){
-    return languageName === filteredLanguage.name;
-  })
+  return languagesToTranslateTo.includes(languageName);
 }
 
 let newLanguagesMap = [];

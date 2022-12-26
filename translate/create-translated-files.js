@@ -1,7 +1,8 @@
 // const translateText = require('./libreTranslateWrapper');
 const fs = require('fs-extra');
+// TODO: this is named wrong, should be languagesToTranslateTo
 const { languagesToTranscribe, allLanguages } = require('../constants/constants');;
-const { stripOutTextAndTimestamps, reformatVtt } = require('./helpers')
+const { reformatVtt } = require('./helpers')
 const { simplified } = require('zh-convert');
 const translateText = require('./google-translate-browser')
 
