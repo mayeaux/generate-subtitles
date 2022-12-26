@@ -1,8 +1,9 @@
-const translateText = require('./libreTranslateWrapper');
+// const translateText = require('./libreTranslateWrapper');
 const fs = require('fs-extra');
-const { languagesToTranscribe, translationLanguages } = require('../constants/constants');;
+const { languagesToTranscribe, allLanguages } = require('../constants/constants');;
 const { stripOutTextAndTimestamps, reformatVtt } = require('./helpers')
 const { simplified } = require('zh-convert');
+const translateText = require('./google-translate-browser')
 
 const convert = require("cyrillic-to-latin");
 
@@ -18,19 +19,24 @@ if(global.debug === 'false'){
 // l('languagesToTranscribe')
 // l(languagesToTranscribe);
 
+// l('all languages');
+// l(allLanguages);
+
 function getCodeFromLanguageName(languageName){
-  return translationLanguages.find(function(filteredLanguage){
+  return allLanguages.find(function(filteredLanguage){
     return languageName === filteredLanguage.name;
   }).code
 }
 
 // l(getCodeFromLanguageName('English'))
-
+// TODO: pass processing path
 /** for translation **/
 async function createTranslatedFiles({
     directoryAndFileName,
     language,
-    websocketConnection
+    websocketConnection,
+    strippedText,
+    timestampsArray,
 }){
 
   const loopThrough = ['.srt', '.vtt', 'txt'];
@@ -42,7 +48,13 @@ async function createTranslatedFiles({
   l('vttData');
   l(vttData);
 
-  const { strippedText, timestampsArray } = await stripOutTextAndTimestamps(vttPath)
+  // TODO: pass this in from controller?
+  // const { strippedText, timestampsArray } = await stripOutTextAndTimestamps(vttPath)
+
+  // save stripped and timestamps to processing data
+
+  l({languagesToTranscribe})
+
 
   for(const languageToConvertTo of languagesToTranscribe){
     l('languageToConvertTo');
@@ -71,12 +83,16 @@ async function createTranslatedFiles({
         // hit LibreTranslate backend
         l(`hitting libretranslate: ${language} -> ${languageToConvertTo}`);
         // TODO: to convert to thing
-        let translatedText = await translateText({
-          sourceLanguage: sourceLanguageCode, // before these were like 'EN', will full language work?
-          targetLanguage: targetLanguageCode,
-          text: strippedText,
-        })
+        // let translatedText = await translateText({
+        //   sourceLanguage: sourceLanguageCode, // before these were like 'EN', will full language work?
+        //   targetLanguage: targetLanguageCode,
+        //   text: strippedText,
+        // })
 
+        let translatedText = await translateText({
+          text: strippedText,
+          targetLanguageCode, // before these were like 'EN', will full language work?
+        })
         // l('translatedText');
         // l(translatedText);
 
@@ -86,6 +102,10 @@ async function createTranslatedFiles({
 
         if(languageToConvertTo === 'Chinese'){
           translatedText = simplified(translatedText);
+        }
+
+        if(languageToConvertTo === 'Serbian'){
+          translatedText = convert(translatedText);
         }
 
         const reformattedVtt = reformatVtt(timestampsArray, translatedText);

@@ -11,6 +11,7 @@ const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
+const { stripOutTextAndTimestamps } = require('../translate/helpers')
 
 l(formatStdErr);
 
@@ -328,12 +329,13 @@ async function transcribe({
 
             l(`should translate: ${shouldTranslate}`)
 
-            if(shouldTranslate){
-              const vttPath = `${originalDirectoryAndNewFileName}.vtt`;
+            const vttPath = `${originalDirectoryAndNewFileName}.vtt`;
 
-              // copy original as copied
-              await fs.copy(vttPath, `${originalDirectoryAndNewFileName}_${language}.vtt`)
-            }
+            // copy original as copied
+            await fs.copy(vttPath, `${originalDirectoryAndNewFileName}_${language}.vtt`)
+
+            const { strippedText, timestampsArray } = await stripOutTextAndTimestamps(vttPath)
+
 
             let translationStarted, translationFinished = false;
             /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
@@ -350,6 +352,8 @@ async function transcribe({
                 directoryAndFileName: originalDirectoryAndNewFileName,
                 language,
                 websocketConnection,
+                strippedText,
+                timestampsArray
               })
               translationFinished = true;
             }
@@ -409,7 +413,9 @@ async function transcribe({
               status: 'completed',
               translatedLanguages,
               fileExtension: path.parse(originalFileNameWithExtension).ext,
-              directoryFileName: directorySafeFileNameWithoutExtension
+              directoryFileName: directorySafeFileNameWithoutExtension,
+              strippedText,
+              timestampsArray
             }
 
             // save data to the file

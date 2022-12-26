@@ -1,5 +1,7 @@
 const languageNameMap = require('language-name-map/map')
 
+l = console.log;
+
 /** STUFF FOR WHISPER **/
 const whisperLanguagesString = 'af,am,ar,as,az,ba,be,bg,bn,bo,br,bs,ca,cs,cy,da,de,el,en,es,et,eu,fa,fi,fo,fr,gl,gu,ha,haw,hi,hr,ht,hu,hy,id,is,it,iw,ja,jw,ka,kk,km,kn,ko,la,lb,ln,lo,lt,lv,mg,mi,mk,ml,mn,mr,ms,mt,my,ne,nl,nn,no,oc,pa,pl,ps,pt,ro,ru,sa,sd,si,sk,sl,sn,so,sq,sr,su,sv,sw,ta,te,tg,th,tk,tl,tr,tt,uk,ur,uz,vi,yi,yo,zh';
 
@@ -88,6 +90,7 @@ const languagesToTranscribe = [
   'Russian',
   'Chinese',
   'Japanese',
+  'Serbian'
 ]
 
 function shouldTranslateFrom(languageName){
@@ -104,6 +107,16 @@ Object.keys(languageNameMap).forEach(languageCode =>{
   })
 });
 
+let allLanguages = [];
+Object.keys(languageNameMap).forEach(languageCode =>{
+  allLanguages.push({
+    code: languageCode,
+    name: languageNameMap[languageCode].name
+  })
+});
+
+// l('newLanguagesMap', newLanguagesMap);
+
 // const languagesToTranscribeFrom =
 
 module.exports = {
@@ -115,5 +128,6 @@ module.exports = {
   translationLanguages,
   getLanguageCodeForAllLanguages,
   newLanguagesMap,
+  allLanguages,
   modelsArray
 }
