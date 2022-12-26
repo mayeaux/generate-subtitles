@@ -90,8 +90,8 @@ const translatedText = 'Good day. I\'m Mirela Vasin, and this is the News of the
 
 
 function reformatVtt(timestampArray, translatedText){
-  l('timestampArray')
-  l(timestampArray);
+  // l('timestampArray')
+  // l(timestampArray);
 
   const splitText = translatedText.split('\n').slice(0, -1);
   l(splitText)

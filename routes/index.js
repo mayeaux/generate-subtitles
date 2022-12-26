@@ -523,6 +523,9 @@ router.get("/player/:filename" , async function(req, res, next){
       return translatedLanguages.includes(language.name)
     });
 
+    delete processingData.strippedText;
+    delete processingData.timestampsArray;
+
     l('processing data');
     l(processingData);
 
