@@ -2,13 +2,14 @@ include js-util.jade
 include controllers/selection-dropdowns.jade
 include controllers/file-handling.jade
 include controllers/error-handling.jade
+include controllers/network-handling.jade
 
 script.
   l = console.log;
   ce = console.error;
 
   // global variables
-  let circleProgress, fileName, hitTheBackend, videoDurationInSeconds, originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining, percentUploadDone, uploadedAmountInMB;
+  let circleProgress, hitTheBackend, videoDurationInSeconds;
   let processStarted, processFailed, myUploadStarted, uploadFinished, loopStarted, processingData, timeRemaining, formattedProgressData, uploadStarted = false;
   let placeInQueue = 0;
   const oneHourInSeconds = 60 * 60;
@@ -22,15 +23,11 @@ script.
   const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
 
   // passed from server
-  const languagesArray = !{JSON.stringify(languagesArray)}
-  const modelsArray = !{JSON.stringify(modelsArray)}
   const isFreeSubtitles = #{isFreeSubtitles}
   const uploadFileSizeLimitInMB = #{uploadFileSizeLimitInMB}
   const nodeEnvironment = `#{nodeEnv}`
 
   // grab elements
-  const form = $('#form');
-  const progressDiv = $('#progress');
   const timeRemainingDiv = $('#timeEstimator');
   const refreshButton = $('#refreshButton');
   const latestData = $('#latestData');
@@ -114,7 +111,7 @@ script.
     selectionContent && handleSelectionShortcuts(evt);
   });
 
-  form.on('submit', submitForm);
+  $('#form').on('submit', submitForm);
 
   // freezes everything up
   fileInput.on('change', async () => {
@@ -130,12 +127,12 @@ script.
     /* DATA */
     const formData = new FormData();
     const [passedFile] = fileInput.prop('files');
+    const fileName = passedFile.name;
     let language = $('#language').data('value');
     let languageName = $('#language').text();
     const model = document.querySelector('#model').dataset.value;
     const modelName = document.querySelector('#model').textContent;
     const translateIsChecked = $('#translate').is(':checked');
-    l(passedFile);
 
     //- set local storage
     localStorage.setItem('model', model);
@@ -144,6 +141,7 @@ script.
     localStorage.setItem('languageName', languageName);
     localStorage.setItem('shouldTranslate', translateIsChecked);
 
+    //- gather data
     formData.append('file', passedFile);
     formData.append('language', language);
     formData.append('model', model);
@@ -197,10 +195,6 @@ script.
     for (const pair of formData.entries()) {
       console.log(pair[0] + ': ' + pair[1]);
     }
-    fileName = fileInput.prop('files')[0].name;
-    l({fileName});
-
-    const ajax = new XMLHttpRequest();
 
     $('.amountsHeader').hide();
 
@@ -211,89 +205,17 @@ script.
       }
     });
 
+    /** AJAX **/
+    const ajax = new XMLHttpRequest();
+    const submitDate = new Date();
+
     /** TIME COUNTDOWN FUNCTIONALITY **/
-    ajax.upload.addEventListener('progress', evt => {
-      l(evt);
-      form.hide();
-      $('#startNewUpload').show();
+    ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, uploadStarted, circleProgress, fileName), false);
 
-      uploadedAmountInMB = _.round(evt.loaded / (1000 * 1000), 1);
-      let totalFileSizeInMB = _.round(evt.total / (1000 * 1000), 1);
+    ajax.addEventListener('error', err => ce(err), false);
 
-      l({totalFileSizeInMB});
-
-      l({uploadedAmountInMB});
-
-      var percent = Math.round((uploadedAmountInMB / totalFileSizeInMB) * 100);
-      percentUploadDone = percent;
-
-      progressDiv.html(`${percent}% uploaded`);
-
-      const capitalizedString = `${percent}% Uploaded - ${fileName}`;
-
-      const currentTitle = document.title;
-      if(currentTitle !== capitalizedString){
-        document.title = capitalizedString;
-      }
-
-      const currentTime = new Date();
-      // get time in seconds between upload start time and now
-      timeElapsedInSeconds = Math.round((currentTime - originalDate) / 1000);
-
-      // estimate how many seconds remaining based on percent
-      estimatedUploadTimeInSeconds = Math.round(timeElapsedInSeconds * (100/percent));
-
-      // time left is difference of estimated time and elapsed time
-      estimatedSecondsRemaining = estimatedUploadTimeInSeconds - timeElapsedInSeconds;
-
-      l({estimatedSecondsRemaining});
-      l({percent});
-      l({timeElapsedInSeconds});
-
-      circleProgress.attr({
-        max: 100,
-        value: Number(percentUploadDone),
-      });
-      if(percent === 100){
-        circleProgress.attr({
-          max: 100,
-          value: 0,
-        });
-        $('.progress').hide();
-      } else {
-        $('.progress').show();
-      }
-
-
-      // start up functionality to update estimate every second
-      if(!uploadStarted){
-        uploadStarted = true;
-        originalDate = new Date();
-        setInterval(function(){
-
-          const estimatedSecondsIsInfinity = estimatedSecondsRemaining === Infinity;
-          const estimatedSecondsIsNan = isNaN(estimatedSecondsRemaining);
-
-
-          Math.round(uploadedAmountInMB / timeElapsedInSeconds * 10) / 10
-
-          const uploadSpeedInMBs = _.round((uploadedAmountInMB / timeElapsedInSeconds), 1);
-
-          const valueIsValid = !estimatedSecondsIsInfinity && !estimatedSecondsIsNan;
-          if(!valueIsValid) return;
-
-          timeRemainingDiv.html(`[${timeElapsedInSeconds}/${estimatedUploadTimeInSeconds}s] ${forHumans(estimatedSecondsRemaining)} remaining
-            \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${uploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
-            `);
-        }, 1000)
-      }
-    }, false);
-
-    ajax.addEventListener("error", function (error) {
-      ce({error})
-    }, false);
-
-    ajax.addEventListener('readystatechange', function (e) {
+    ajax.addEventListener('readystatechange', () => {
+      l('ready state change');
       if (ajax.readyState === XMLHttpRequest.DONE) {
         if (ajax.status === 200) {
           // Request has completed successfully, do something
@@ -308,21 +230,11 @@ script.
     });
 
     /** response from endpoint? **/
-    ajax.addEventListener("load", function(res){
-      l('hit the backend!');
-      hitTheBackend = true;
-      // $('#processingData').show();
-      $('#latestData').show();
-      console.log(res)
-      progressDiv.hide();
-      timeRemainingDiv.hide();
-
-      $('#header').html('Processing..');
-    }, false);
+    ajax.addEventListener('load', res => loadAjax(res, hitTheBackend), false);
     // TODO: implement these
     // ajax.addEventListener("event", eventHandler, false);
     // ajax.addEventListener("abort", abortHandler, false);
-    ajax.open("POST", uploadUrl); //
+    ajax.open('POST', uploadUrl); //
     ajax.send(formData);
   }
 
@@ -415,11 +327,12 @@ script.
       processingData = data.processingData;
       formattedProgressData = data.formattedProgress;
 
+      const fileName = $('#file').prop('files')[0].name;
       const processingString = `${percentDone}% Transcribed - ${fileName}`;
 
       const currentTitle = document.title;
 
-      if(percentDone && currentTitle !== processingString){
+      if (percentDone && currentTitle !== processingString) {
         document.title = processingString;
       }
 

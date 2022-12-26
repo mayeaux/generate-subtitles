@@ -1,0 +1,66 @@
+script.
+  const progressUpload = (evt, startDate, uploadStarted, circleProgress, fileName) => {
+    l(evt);
+    $('#form').hide();
+    $('#startNewUpload').show();
+
+    const uploadedAmountInMB = _.round(evt.loaded / (1024 * 1024), 1);
+    const totalFileSizeInMB = _.round(evt.total / (1024 * 1024), 1);
+    const percentUpload = Math.round((uploadedAmountInMB / totalFileSizeInMB) * 100);
+    // get time in seconds between upload start time and now
+    const timeElapsedInSeconds = Math.round((new Date() - startDate) / 1000);
+    // estimate how many seconds remaining based on percentage
+    const estUploadTimeInSeconds = Math.round(timeElapsedInSeconds * (100 / percentUpload));
+    // time left is difference of estimated time and elapsed time
+    const estSecondsRemaining = estUploadTimeInSeconds - timeElapsedInSeconds;
+
+    l({percentUpload});
+    l({timeElapsedInSeconds});
+    l({estSecondsRemaining});
+
+    $('#progress').html(`${percentUpload}% uploaded`);
+    document.title = `${percentUpload}% Uploaded - ${fileName}`;
+
+    circleProgress.attr({
+      max: 100,
+      value: Number(percentUpload),
+    });
+
+    if (percentUpload === 100) {
+      circleProgress.attr({
+        max: 100,
+        value: 0,
+      });
+      $('.progress').hide();
+    } else {
+      $('.progress').show();
+    }
+
+    // start up functionality to update estimate every second
+    if (!uploadStarted) {
+      uploadStarted = true;
+      setInterval(() => {
+        const estSecondsIsInfinity = estSecondsRemaining === Infinity;
+        const estSecondsIsNan = isNaN(estSecondsRemaining);
+        const uploadSpeedInMBs = _.round((uploadedAmountInMB / timeElapsedInSeconds), 1);
+
+        const valueIsValid = !estSecondsIsInfinity && !estSecondsIsNan;
+        if (!valueIsValid) return;
+
+        $('#timeEstimator').html(`[${timeElapsedInSeconds}/${estUploadTimeInSeconds}s] ${forHumans(estSecondsRemaining)} remaining
+          \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${uploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
+          `);
+      }, 1000)
+    }
+  }
+
+  const loadAjax = (res, hitTheBackend) => {
+    l('hit the backend!');
+    hitTheBackend = true;
+    $('#processingData').show();
+    $('#latestData').show();
+    console.log(res)
+    $('#progress').hide();
+    $('#timeEstimator').hide();
+    $('#header').html('Processing..');
+  }
