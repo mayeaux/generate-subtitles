@@ -20,6 +20,7 @@ const { languagesToTranslateTo, newLanguagesMap, modelsArray, whisperLanguagesHu
 const ffprobePath = which.sync('ffprobe')
 const _ = require('lodash');
 const { downloadFile, getFilename } = require('../downloading/yt-dlp-download.js');
+const url = require('url');
 
 // const languageNameMap = require('language-name-map/map')
 // l('language name map');
@@ -289,6 +290,14 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l(req.file);
     l(req.body);
 
+    const referer = req.headers.referer;
+    const urlObject = url.parse(referer);
+    const pathname = urlObject.pathname;
+    const isYtdlp = pathname === '/ytdlp';
+
+    l('isYtdlp');
+    l(isYtdlp);
+
     const language = req.body.language;
     let model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
@@ -346,7 +355,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const domainName = req.hostname;
 
     const isFreeSubtitles = domainName === 'freesubtitles.ai';
-    if(isFreeSubtitles){
+    if(isFreeSubtitles && !isYtdlp){
       const fileSizeInMB = Math.round(req.file.size / 1048576);
 
       if(uploadDurationInSeconds > amountOfSecondsInHour){
