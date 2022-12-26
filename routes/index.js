@@ -329,13 +329,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
       uploadGeneratedFilename = baseName;
 
-      function delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-      }
-
-      await delay(3000);
-
     } else {
+      throw new Error('No file or download link provided');
       // ERROR
     }
 
