@@ -369,7 +369,7 @@ block content
       formData.append('model', model);
       formData.append('websocketNumber', randomNumber);
       formData.append('shouldTranslate', translateIsChecked);
-      formData.append('downloadLink', downloadLink);
+      if(downloadLink) formData.append('downloadLink', downloadLink);
 
       localStorage.setItem('model', model);
       localStorage.setItem('modelName', modelName);
@@ -552,6 +552,8 @@ block content
 
       // start post process
       ajax.open("POST", uploadUrl); //
+      l('form data');
+      l(formData)
       ajax.send(formData);
     }
 
