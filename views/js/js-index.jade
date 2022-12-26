@@ -7,8 +7,18 @@ script.
   ce = console.error;
 
   // global variables
+  let circleProgress, fileName, hitTheBackend, videoDurationInSeconds, originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining, percentUploadDone, uploadedAmountInMB;
   let processStarted, processFailed, myUploadStarted, uploadFinished, loopStarted, processingData, timeRemaining, formattedProgressData, uploadStarted = false;
-  let circleProgress, fileName, hitTheBackend, videoDurationInSeconds;
+  let placeInQueue = 0;
+  const oneHourInSeconds = 60 * 60;
+  const ipAndPort = location.host;
+  const randomNumber = Math.round(Math.random() * 1_000_000_000_000);
+  const protocol = window.location.protocol;
+  const servedWithSSL = protocol.slice(0, -1) === 'https';
+  const httpPrepend = protocol === 'https:' ? 'https' : 'http';
+  const wssPrepend = protocol === 'https:' ? 'wss' : 'ws';
+  const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
+  const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
 
   // passed from server
   const languagesArray = !{JSON.stringify(languagesArray)}
@@ -21,7 +31,6 @@ script.
   const form = $('#form');
   const progressDiv = $('#progress');
   const timeRemainingDiv = $('#timeEstimator');
-  const header = $('#header')
   const refreshButton = $('#refreshButton');
   const latestData = $('#latestData');
   const fileInput = $('#file');
@@ -50,6 +59,17 @@ script.
     selectedLang.classList.add('selected');
     selectedModel.classList.add('selected');
 
+    //- Populate previous values from local storage
+    //- jquery doesn't work here for some reason, strange bug
+    //- $('#model').data('value', (previousModel || 'medium'));
+    //- $('#language').data('value', (previousLanguage || 'auto-detect'));
+    document.querySelector('#model').dataset.value = previousModel || 'medium';
+    document.querySelector('#language').dataset.value = previousLanguage || 'auto-detect';
+
+    $('#model').text(previousModelName || 'Medium');
+    $('#language').text(previousLanguageName || 'Auto-Detect');
+    $('#translate').prop('checked', previousShouldTranslate === 'true');
+
     l('ready now');
   });
 
@@ -58,26 +78,6 @@ script.
   eval(unescapeHTML(`#{forHumans}`));
 
   // l(forHumans(100));
-
-
-  
-  //- Populate previous values from local storage
-  //- jquery doesn't work here for some reason, strange bug
-  //- $('#model').data('value', (previousModel || 'medium'));
-  //- $('#language').data('value', (previousLanguage || 'auto-detect'));
-  document.querySelector('#model').dataset.value = previousModel || 'medium';
-  document.querySelector('#language').dataset.value = previousLanguage || 'auto-detect';
-
-  $('#model').text(previousModelName || 'Medium');
-  $('#language').text(previousLanguageName || 'Auto-Detect');
-
-  $('#translate').prop('checked', previousShouldTranslate === 'true');
-
-  const ipAndPort = location.host;
-  const randomNumber = Math.round(Math.random() * 1_000_000_000_000);
-  const httpProtocol = window.location.protocol;
-  const wssPrepend = httpProtocol === 'https:' ? 'wss' : 'ws';
-  const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
 
   // Handle clicks with event delegation
   $('body').on('click', evt => {
@@ -113,7 +113,6 @@ script.
     selectionContent && handleSelectionShortcuts(evt);
   });
 
-
   form.on('submit', submitForm);
 
   // freezes everything up
@@ -124,21 +123,33 @@ script.
     l({videoDuration});
   });
 
-  async function submitForm(e) {
-    e.preventDefault();
+  async function submitForm(evt) {
+    evt.preventDefault();
+
+    /* DATA */
     const formData = new FormData();
-
-    const languageEl = document.querySelector('#language');
-    const modelEl = document.querySelector('#model');
-
-    let language = languageEl.dataset.value;
-    let languageName = languageEl.textContent;
-    const model = modelEl.dataset.value;
-    const modelName = modelEl.textContent;
-
     const [passedFile] = fileInput.prop('files');
+    let language = $('#language').data('value');
+    let languageName = $('#language').text();
+    const model = document.querySelector('#model').dataset.value;
+    const modelName = document.querySelector('#model').textContent;
+    const translateIsChecked = $('#translate').is(':checked');
+    l(passedFile);
 
+    //- set local storage
+    localStorage.setItem('model', model);
+    localStorage.setItem('modelName', modelName);
+    localStorage.setItem('language', language);
+    localStorage.setItem('languageName', languageName);
+    localStorage.setItem('shouldTranslate', translateIsChecked);
 
+    formData.append('file', passedFile);
+    formData.append('language', language);
+    formData.append('model', model);
+    formData.append('shouldTranslate', translateIsChecked);
+    formData.append('websocketNumber', randomNumber); // this should be generated on the fly, not to be global
+
+    /* SUBMIT ERRORS */
     if(!passedFile){
       return Swal.fire({
         title: 'You didn\'t pass a file',
@@ -146,12 +157,6 @@ script.
         confirmButtonText: 'Cool'
       })
     }
-
-    // http or https
-    const protocol = document.location.protocol.slice(0, -1);
-    const servedWithSSL = protocol === 'https';
-
-    l({passedFile});
 
     if(nodeEnvironment === 'production' && isFreeSubtitles){
 
@@ -189,8 +194,6 @@ script.
         ce(err);
       }
 
-      const oneHourInSeconds = 60 * 60;
-
       // 3600
       // TODO: pass from the backend
       if (videoDurationInSeconds && videoDurationInSeconds > oneHourInSeconds) {
@@ -205,20 +208,6 @@ script.
       }
     }
 
-    const translateIsChecked = $('#translate').is(':checked');
-
-    formData.append('file', passedFile);
-    formData.append('language', language);
-    formData.append('model', model);
-    formData.append('websocketNumber', randomNumber);
-    formData.append('shouldTranslate', translateIsChecked);
-
-    localStorage.setItem('model', model);
-    localStorage.setItem('modelName', modelName);
-    localStorage.setItem('language', language);
-    localStorage.setItem('languageName', languageName);
-    localStorage.setItem('shouldTranslate', translateIsChecked);
-
     // Display the key/value pairs
     for (const pair of formData.entries()) {
       console.log(pair[0] + ': ' + pair[1]);
@@ -226,14 +215,7 @@ script.
     fileName = fileInput.prop('files')[0].name;
     l({fileName});
 
-    const httpProtocol = window.location.protocol;
-
-    const httpPrepend = httpProtocol === 'https:' ? 'https' : 'http';
-
-    const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
-
     const ajax = new XMLHttpRequest();
-    let originalDate, timeElapsedInSeconds, estimatedUploadTimeInSeconds, estimatedSecondsRemaining, percentUploadDone;
 
     $('.amountsHeader').hide();
 
@@ -244,23 +226,21 @@ script.
       }
     });
 
-    let alreadyUploadedAmountInMB;
     /** TIME COUNTDOWN FUNCTIONALITY **/
     ajax.upload.addEventListener("progress", function(event){
       l(event);
       form.hide();
       $('#startNewUpload').show();
 
-      alreadyUploadedAmountInMB = _.round(event.loaded / (1000 * 1000), 1);
+      uploadedAmountInMB = _.round(event.loaded / (1000 * 1000), 1);
       let totalFileSizeInMB = _.round(event.total / (1000 * 1000), 1);
 
       l({totalFileSizeInMB});
 
-      l({alreadyUploadedAmountInMB});
+      l({uploadedAmountInMB});
 
-      var percent = Math.round((alreadyUploadedAmountInMB / totalFileSizeInMB) * 100);
-
-      percentUploadDone = percent
+      var percent = Math.round((uploadedAmountInMB / totalFileSizeInMB) * 100);
+      percentUploadDone = percent;
 
       progressDiv.html(`${percent}% uploaded`);
 
@@ -310,15 +290,15 @@ script.
           const estimatedSecondsIsNan = isNaN(estimatedSecondsRemaining);
 
 
-          Math.round(alreadyUploadedAmountInMB / timeElapsedInSeconds * 10) / 10
+          Math.round(uploadedAmountInMB / timeElapsedInSeconds * 10) / 10
 
-          const uploadSpeedInMBs = _.round((alreadyUploadedAmountInMB / timeElapsedInSeconds), 1);
+          const uploadSpeedInMBs = _.round((uploadedAmountInMB / timeElapsedInSeconds), 1);
 
           const valueIsValid = !estimatedSecondsIsInfinity && !estimatedSecondsIsNan;
-          if(!valueIsValid) return
+          if(!valueIsValid) return;
 
           timeRemainingDiv.html(`[${timeElapsedInSeconds}/${estimatedUploadTimeInSeconds}s] ${forHumans(estimatedSecondsRemaining)} remaining
-            \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${alreadyUploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
+            \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${uploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
             `);
         }, 1000)
       }
@@ -366,7 +346,7 @@ script.
       progressDiv.hide();
       timeRemainingDiv.hide();
 
-      header.html('Processing..');
+      $('#header').html('Processing..');
     }, false);
     // TODO: implement these
     // ajax.addEventListener("event", eventHandler, false);
@@ -374,9 +354,6 @@ script.
     ajax.open("POST", uploadUrl); //
     ajax.send(formData);
   }
-
-
-  let placeInQueue = 0;
 
   /** WEBSOCKET CONNECTION FUNCTIONALITY BEGINS **/
   websocketConnection.onclose = function (event) {
@@ -396,9 +373,7 @@ script.
         window.location.reload();
       }
     })
-
   };
-
 
   websocketConnection.onmessage = function (event) {
     const data = JSON.parse(event.data);
@@ -411,14 +386,13 @@ script.
       // the upload isn't finished but rather the process
       uploadFinished = true;
 
-
       if(window.decrementInterval) clearInterval(window.decrementInterval)
 
       latestData.html('Congratulations, you\'re done!');
 
       $('#finishedData').html(data.detailsString);
 
-      header.html('Transcription Completed');
+      $('#header').html('Transcription Completed');
       $('#processingData').hide();
 
       // show refresh button

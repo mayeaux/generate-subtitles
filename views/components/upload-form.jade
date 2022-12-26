@@ -1,12 +1,12 @@
 form.form#form
   .group
     label(for='file') Select (or drop) file
-    input#file(type='file')
+    input#file(type='file' name='file' accept='video/*')
   .group
     label(for='languageSelect')#languageLabel Language (#{languagesArray.length} Options)
     .wrapper
       button#languageSelect.select-btn(type='button')
-        span#language.select-value(data-value='auto-detect') Auto-Detect
+        span#language.select-value(data-value='auto-detect' name='language') Auto-Detect
         i.fa-solid.fa-angle-down
       .content
         .search
@@ -19,7 +19,7 @@ form.form#form
     label(for='modelSelect')#modelLabel Model (#{modelsArray.length} Options)
     .wrapper
       button#modelSelect.select-btn(type='button')
-        span#model.select-value= modelsArray[0].name
+        span#model.select-value(name='model')= modelsArray[0].name
         i.fa-solid.fa-angle-down
       .content
         .search
@@ -30,5 +30,5 @@ form.form#form
             li.option(data-value= model.value tabindex='0')= model.name
   .group.translateHolder
     label#translateLabel(for='translate') Translate to different languages
-    input#translate(type='checkbox')
+    input#translate(type='checkbox' name='translate')
   button#upload-button.submit-btn(type='submit') Upload
