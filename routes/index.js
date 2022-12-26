@@ -19,6 +19,7 @@ const {fr} = require("language-name-map/map");
 const { languagesToTranslateTo, newLanguagesMap, modelsArray, whisperLanguagesHumanReadableArray } = require('../constants/constants');
 const ffprobePath = which.sync('ffprobe')
 const _ = require('lodash');
+const { downloadFile, getFilename } = require('../downloading/yt-dlp-download.js');
 
 // const languageNameMap = require('language-name-map/map')
 // l('language name map');
@@ -220,7 +221,7 @@ router.get('/', function(req, res, next) {
 
 global.queueData = [];
 
-router.post('/file', upload.single('file'), async function (req, res, next) {
+router.post('/file', upload.fields([{ name: 'file', maxCount: 1 }]), async function (req, res, next) {
   // l(global.ws);
 
   try {
@@ -230,9 +231,55 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const language = req.body.language;
     let model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
-    const uploadedFilePath = req.file.path;
-    const uploadGeneratedFilename = req.file.filename;
     const shouldTranslate = req.body.shouldTranslate === 'true';
+    const downloadLink = req.body.downloadLink;
+    const passedFile = req.file;
+
+    let filename;
+
+    l(downloadLink);
+
+    let originalFileNameWithExtension, uploadedFilePath, uploadGeneratedFilename;
+    if(passedFile){
+      originalFileNameWithExtension = req.file.originalname;
+      uploadedFilePath = req.file.path;
+      uploadGeneratedFilename = req.file.filename;
+      l('uploadedFilePath');
+      l(uploadedFilePath);
+    } else if (downloadLink){
+      function generateRandomNumber() {
+        return Math.floor(Math.random() * 10000000000).toString();
+      }
+
+      const randomNumber = generateRandomNumber();
+
+      filename =  await getFilename(downloadLink);
+      filename = filename.replace(/\r?\n|\r/g, '');
+      l('filename');
+      l(filename);
+      uploadGeneratedFilename = filename;
+      originalFileNameWithExtension = filename;
+      const baseName = path.parse(filename).name;
+      const extension = path.parse(filename).ext;
+      uploadedFilePath = `uploads/${randomNumber}${extension}`;
+
+
+      await downloadFile({ videoUrl: downloadLink, filepath: uploadedFilePath, randomNumber });
+
+      uploadGeneratedFilename = baseName;
+
+      function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      await delay(3000);
+
+    } else {
+      // ERROR
+    }
+
+    l('uploadedFilePath');
+    l(uploadedFilePath);
 
     const ffprobeResponse = await ffprobe(uploadedFilePath, { path: ffprobePath });
 
@@ -242,10 +289,10 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const amountOfSecondsInHour = 60 * 60;
     const domainName = req.hostname;
 
-    const fileSizeInMB = Math.round(req.file.size / 1048576);
-
     const isFreeSubtitles = domainName === 'freesubtitles.ai';
     if(isFreeSubtitles){
+      const fileSizeInMB = Math.round(req.file.size / 1048576);
+
       if(uploadDurationInSeconds > amountOfSecondsInHour){
         const uploadLengthErrorMessage = `Your upload length is ${forHumansNoSeconds(uploadDurationInSeconds)}, but currently the maximum length allowed is only 1 hour`;
         return res.status(400).send(uploadLengthErrorMessage);
@@ -261,8 +308,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     let logFileNames = true;
     // something.mp4
-    let originalFileNameWithExtension = decode_utf8(req.file.originalname);
-
     // .mp4 (includes leading period)
     const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
 

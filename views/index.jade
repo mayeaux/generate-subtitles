@@ -276,6 +276,7 @@ block content
 
       let language = document.querySelector('#language').dataset.value;
       const modelEl = document.querySelector('#model');
+      const downloadLink = $('#downloadLink').val()
 
       const model = modelEl.dataset.value;
       const modelName = modelEl.textContent;
@@ -284,7 +285,8 @@ block content
 
       const passedFile = file.files[0]
 
-      if(!passedFile){
+      // TODO: and no link
+      if(!passedFile && !downloadLink) {
         return Swal.fire({
           title: 'You didn\'t pass a file',
           icon: 'error',
@@ -301,7 +303,7 @@ block content
 
       const isFreeSubtitles = #{isFreeSubtitles}
 
-
+      // whether to do frontend file validation for duration and size
       if(nodeEnvironment === 'production' && isFreeSubtitles){
 
       // force upload testing
@@ -361,11 +363,13 @@ block content
 
       const translateIsChecked = $('#translate').is(':checked');
 
-      formData.append("file", passedFile);
+      if(passedFile) formData.append("file", passedFile);
+      // TODO: if form data, pass it
       formData.append('language', language);
       formData.append('model', model);
       formData.append('websocketNumber', randomNumber);
       formData.append('shouldTranslate', translateIsChecked);
+      formData.append('downloadLink', downloadLink);
 
       localStorage.setItem('model', model);
       localStorage.setItem('modelName', modelName);
@@ -376,8 +380,11 @@ block content
       for (const pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
       }
-      fileName = document.getElementById('file').files[0].name;
-      l(`filename: ${fileName}`)
+
+      if(passedFile){
+        fileName = document.getElementById('file').files[0].name;
+        l(`filename: ${fileName}`)
+      }
 
       const httpProtocol = window.location.protocol;
 
@@ -405,6 +412,7 @@ block content
       let alreadyUploadedAmountInMB;
       /** TIME COUNTDOWN FUNCTIONALITY **/
       ajax.upload.addEventListener("progress", function(event){
+        if(!passedFile) return;
         l(event);
         form.style.display = 'none';
         document.getElementById('startNewUpload').style.display = 'block';
@@ -536,9 +544,13 @@ block content
 
         header.innerHTML = 'Processing..';
       }, false);
+
+
       // TODO: implement these
       // ajax.addEventListener("event", eventHandler, false);
       // ajax.addEventListener("abort", abortHandler, false);
+
+      // start post process
       ajax.open("POST", uploadUrl); //
       ajax.send(formData);
     }
