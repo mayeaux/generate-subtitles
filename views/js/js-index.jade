@@ -212,13 +212,13 @@ script.
     });
 
     /** TIME COUNTDOWN FUNCTIONALITY **/
-    ajax.upload.addEventListener("progress", function(event){
-      l(event);
+    ajax.upload.addEventListener('progress', evt => {
+      l(evt);
       form.hide();
       $('#startNewUpload').show();
 
-      uploadedAmountInMB = _.round(event.loaded / (1000 * 1000), 1);
-      let totalFileSizeInMB = _.round(event.total / (1000 * 1000), 1);
+      uploadedAmountInMB = _.round(evt.loaded / (1000 * 1000), 1);
+      let totalFileSizeInMB = _.round(evt.total / (1000 * 1000), 1);
 
       l({totalFileSizeInMB});
 
@@ -298,25 +298,11 @@ script.
         if (ajax.status === 200) {
           // Request has completed successfully, do something
         } else {
-
           processFailed = true;
-
-          return Swal.fire({
-            title: 'Transcription failed',
-            text: ajax.responseText,
-            icon: 'error',
-            showCancelButton: true,
-            confirmButtonText: 'Try Again',
-          }).then((result) => {
-            /* Read more about isConfirmed, isDenied below */
-            if (result.isConfirmed) {
-              window.location.reload();
-            }
-          })
-
           l('failed request');
           l(ajax.responseText);
           // Request has failed, do something
+          return errorsMap['transcription-error'](ajax.responseText);
         }
       }
     });
@@ -345,19 +331,8 @@ script.
     processFailed = true;
 
     // dont show popup if websocket closed because finished
-    if(uploadFinished) return
-    return Swal.fire({
-      title: 'Websocket disconnected',
-      text: 'Your websocket connection was disconnected, please refresh to start a new upload',
-      icon: 'error',
-      showCancelButton: true,
-      confirmButtonText: 'Refresh now',
-    }).then((result) => {
-      /* Read more about isConfirmed, isDenied below */
-      if (result.isConfirmed) {
-        window.location.reload();
-      }
-    })
+    if (uploadFinished) return;
+    return errorsMap['interrupted-connection']();
   };
 
   websocketConnection.onmessage = function (event) {
