@@ -13,6 +13,7 @@ const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin} = require('../lib/convertText');
 const { sendToWebsocket , autoDetectLanguage ,generateFileDetailsString ,passDataToAllOpenSocket,sendFileInfoToClient} = require('../lib/transcribing');
 
+const { stripOutTextAndTimestamps } = require('../translate/helpers')
 
 l(formatStdErr);
 
@@ -296,23 +297,21 @@ async function transcribe({
             resolve(code);
 
             // TODO: pull out into own function
-            const shouldTranslateFromLanguage = shouldTranslateFrom(language);
-            l(`should translate from language: ${shouldTranslateFromLanguage}`)
-
             l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
             l(`should translate: ${shouldTranslate}`)
 
-            if(shouldTranslate){
-              const vttPath = `${originalDirectoryAndNewFileName}.vtt`;
+            const vttPath = `${originalDirectoryAndNewFileName}.vtt`;
 
-              // copy original as copied
-              await fs.copy(vttPath, `${originalDirectoryAndNewFileName}_${language}.vtt`)
-            }
+            // copy original as copied
+            await fs.copy(vttPath, `${originalDirectoryAndNewFileName}_${language}.vtt`)
+
+            const { strippedText, timestampsArray } = await stripOutTextAndTimestamps(vttPath)
+
 
             let translationStarted, translationFinished = false;
             /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
-            if(libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate){
+            if(libreTranslateHostPath, shouldTranslate){
               // tell frontend that we're translating now
               websocketConnection.send(JSON.stringify({
                 languageUpdate: 'Doing translations with LibreTranslate',
@@ -325,6 +324,8 @@ async function transcribe({
                 directoryAndFileName: originalDirectoryAndNewFileName,
                 language,
                 websocketConnection,
+                strippedText,
+                timestampsArray
               })
               translationFinished = true;
             }
@@ -382,7 +383,9 @@ async function transcribe({
               status: 'completed',
               translatedLanguages,
               fileExtension: path.parse(originalFileNameWithExtension).ext,
-              directoryFileName: directorySafeFileNameWithoutExtension
+              directoryFileName: directorySafeFileNameWithoutExtension,
+              strippedText,
+              timestampsArray
             }
 
             // save data to the file
