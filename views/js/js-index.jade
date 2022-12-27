@@ -9,7 +9,7 @@ script.
   ce = console.error;
 
   // global variables
-  let circleProgress, hitTheBackend, videoDurationInSeconds;
+  let circleProgress, hitTheBackend, videoDurationInSeconds, filename;
   let processStarted, processFailed, myUploadStarted, uploadFinished, processingData, timeRemaining, uploadStarted = false;
   let placeInQueue = 0;
   const oneHourInSeconds = 60 * 60;
@@ -160,9 +160,7 @@ script.
       $('#upload-button').html('Checking your upload length..')
 
       try {
-        l('geting duration');
-        // TODO: get here
-        // TODO: catch possible errors
+        l('getting duration');
         videoDurationInSeconds = await getVideoDuration(passedFile);
         l({videoDurationInSeconds});
       } catch (err){
@@ -171,8 +169,7 @@ script.
         ce(err);
       }
 
-      // 3600
-      // TODO: pass from the backend
+      // TODO: pass time limit from backend
       if (videoDurationInSeconds && videoDurationInSeconds > oneHourInSeconds) {
         $('#upload-button').html('Upload').removeClass('no-pointer-events');
         videoDurationInSeconds = 0;
@@ -187,9 +184,10 @@ script.
 
     $('.amountsHeader').hide();
 
+    // warn user about leaving if they're still processing
     window.addEventListener('beforeunload', (event) => {
       if(!uploadFinished && !processFailed){
-        // BUG: this text doesnt actually show up
+        // per modern browsers text doesnt actually show up just a generic message
         event.returnValue = `You have an ongoing transcription and if you leave you have to start over. Are you sure you want to leave?`;
       }
     });
@@ -198,11 +196,12 @@ script.
     const ajax = new XMLHttpRequest();
     const submitDate = new Date();
 
-    /** TIME COUNTDOWN FUNCTIONALITY **/
+    /** upload progress / countdown functionality **/
     ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, uploadStarted, circleProgress, fileName), false);
 
     ajax.addEventListener('error', err => ce(err), false);
 
+    // handle request to backend failing
     ajax.addEventListener('readystatechange', () => {
       l('ready state change');
       if (ajax.readyState === XMLHttpRequest.DONE) {
@@ -233,7 +232,7 @@ script.
     ajax.send(formData);
   }
 
-  /** WEBSOCKET CONNECTION FUNCTIONALITY BEGINS **/
+  // prompt user to refresh if websocket dies
   websocketConnection.onclose = evt => {
     processFailed = true;
     // dont show popup if websocket closed because finished
@@ -241,6 +240,7 @@ script.
     return errorsMap['interrupted-connection']();
   };
 
+  /** handling websocket messages **/
   websocketConnection.onmessage = evt => {
     const data = JSON.parse(evt.data);
     l({data});
