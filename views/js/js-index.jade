@@ -75,7 +75,7 @@ script.
     const selectionBtn = clicked.closest('.select-btn');
     const option = clicked.closest('.option');
     const groupElement = clicked.closest('.form .group');
-    
+
     const langSelectionBtn = clicked.closest('.select-btn#languageSelect');
     langSelectionBtn && selectWrappers[1].classList.remove('active');
 
@@ -140,12 +140,12 @@ script.
     /* SUBMIT ERRORS */
     !passedFile && errorsMap['no-file']();
 
+    // frontend validation of file size and file length
     if (nodeEnvironment === 'production' && isFreeSubtitles) {
 
     // force upload testing
-    // if(1 === 1){
-      // TODO: change this to onchange
-      // TODO: load this from the backend
+    // if(true){
+      // TODO: pass max file size from server
       const passedFileSizeInMB = Math.round(passedFile.size / 1048576);
 
       // swal with the error
@@ -155,8 +155,8 @@ script.
         return errorsMap['too-large-file'](passedFileSizeInMB, uploadLimitInMB);
       }
 
+      // checking the upload duration
       $('#upload-button').addClass('no-pointer-events');
-
       $('#upload-button').html('Checking your upload length..')
 
       try {
@@ -218,16 +218,18 @@ script.
       }
     });
 
-    /** response from endpoint? **/
+    // once backend is hit
     ajax.addEventListener('load', res => {
       l('hit the backend!');
       hitTheBackend = true;
       loadAjax(res);
     }, false);
+
     // TODO: implement these
-    // ajax.addEventListener("event", eventHandler, false);
     // ajax.addEventListener("abort", abortHandler, false);
-    ajax.open('POST', uploadUrl); //
+
+    // hit the backend
+    ajax.open('POST', uploadUrl);
     ajax.send(formData);
   }
 
@@ -243,9 +245,25 @@ script.
     const data = JSON.parse(evt.data);
     l({data});
 
+    // queue related (first info and decrementing)
+    // TODO: queue implementation is actually off, because if someone behind you leaves
+    // it decrements the queue number though you didn't actually move up a position
+    const sendingQueueInformation = data.message === 'queue';
+    const differentUserHasFinishedProcessing = data === 'finishedProcessing';
+
+    const transcriptionIsStarting = data.message === 'starting';
+
+    const isFileDetailsMessage = data.message === 'fileDetails';
+
+    const isTranslationUpdate = data.message === 'languageUpdate';
+
+    const transcriptionHasCompleted = data.status === 'Completed';
+
+    const isErrorMessage = data.message === 'error';
+
     /** WHEN WEBSOCKET SAYS COMPLETED **/
     // TODO: move to bottom of conditional blocks
-    if (data.status === 'Completed') {
+    if (transcriptionHasCompleted) {
       l('completed data');
       // the upload isn't finished but rather the process
       uploadFinished = true;
@@ -253,18 +271,17 @@ script.
       if (window.decrementInterval) clearInterval(window.decrementInterval);
       renderCompletionFeedback(data);
 
-      // TODO: add two more download buttons
-
       websocketConnection.close();
-      // redirect to the player page -osb910
+      // redirect to the player page
+      // 2 seconds to let the user see the completion message
       setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
-    } else if (data.message === 'queue') {
-      l('queue data');
+    } else if (sendingQueueInformation) {
+      l('initial queue data');
       // TODO: pull out into func // DONE -osb910
       placeInQueue = data.placeInQueue;
       renderQueue(placeInQueue);
       // TODO: likely a bug here
-    } else if (data === 'finishedProcessing' && uploadStarted) {
+    } else if (differentUserHasFinishedProcessing && uploadStarted) {
       l('finished processing');
       placeInQueue--;
       // TODO: hate how this is duped, so annoying // FIXED -osb910
@@ -274,7 +291,14 @@ script.
       l('websocket data');
       let loopStarted = false;
       //- destructure the data object -osb910
-      let {ownershipPerson, serverNumber: processNumber, percentDone, timeRemaining, processingData, formattedProgress} = data;
+      let {
+        ownershipPerson,
+        serverNumber: processNumber,
+        percentDone,
+        timeRemaining,
+        processingData,
+        formattedProgress
+      } = data;
       const myUpload = ownershipPerson === 'you';
       l({myUpload});
 
@@ -287,7 +311,7 @@ script.
       }
 
       // by default let to 'latest processing'
-      // TODO: this is misnamed // FIXED -osb910
+      // TODO: this is misnamed, it's not the upload that's started but the processing
       let processFeedback = `Latest processing data (process ${processNumber})\n`;
       if (myUpload) {
         /** it's your upload **/
@@ -298,13 +322,16 @@ script.
         $('#latestData').hide();
       }
 
+      // TODO: what does this eitherProcess check actually accomplish?
       // every second it grabs it from the ether and decrements it and rebuilds the string
       const eitherProcess = processNumber ===  1 || processNumber === 2;
       l({eitherProcess});
 
+      const myUploadProcessing = myUpload && hitTheBackend && myUploadStarted
+
       // TODO: need my upload finished? && !myUploadFinished
       l({eitherProcess, myUpload, hitTheBackend, myUploadStarted});
-      if (eitherProcess && myUpload && hitTheBackend && myUploadStarted) {
+      if (eitherProcess && myUploadProcessing) {
         l('found my data');
         $('#processingData').show();
         // actual process data coming back
@@ -347,12 +374,15 @@ script.
         $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
         $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
       }
-    } else if (data.message === 'fileDetails') {
+    } else if (isFileDetailsMessage) {
       l('file details data');
       const niceDate = new Date().toString().replace(/GMT.*/g, '');
       const niceString = `startedAt: ${niceDate}`;
       $('#finishedData').html(data.fileDetails + niceString);
-    } else if (data.message === 'languageUpdate') {
+
+
+      // updates about translations on backend
+    } else if (isTranslationUpdate) {
       l('language update data');
       // Get a reference to the last interval + 1
       const interval_id = window.setInterval(() => {
@@ -364,10 +394,10 @@ script.
       }
 
       $('#processingData').html(data.languageUpdate);
-    } else if (data.message === 'error') {
+    } else if (isErrorMessage) {
       l('error data');
       $('#processingData').html(data.text);
-    } else if (data.message === 'starting') {
+    } else if (transcriptionIsStarting) {
       l('starting data');
       $('#latestData').html(data.text);
       $('#processingData').css({'font-size': '1.6rem'});
@@ -375,15 +405,16 @@ script.
       $('#secondProcessingData').hide();
       // $('#latestData').css("font-size", "20px");
     } else {
+      // TODO: try and deprecate this use eventually from backend
       l('else data');
       $('#latestData').html(data);
     }
   };
 
   /** DRAG AND DROP FILES **/
-  $('body').bind('dragover dragenter', evt => evt.preventDefault());
+  $('html').bind('dragover dragenter', evt => evt.preventDefault());
 
-  document.body.ondrop = evt => {
+  document.documentElement.ondrop = evt => {
     evt.preventDefault();
     // only add the first file
     const list = getFirstFile(evt);
