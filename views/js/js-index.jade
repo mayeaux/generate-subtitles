@@ -261,6 +261,8 @@ script.
 
     const isErrorMessage = data.message === 'error';
 
+    const isProcessingInfo = data.message === 'websocketData'
+
     /** WHEN WEBSOCKET SAYS COMPLETED **/
     // TODO: move to bottom of conditional blocks
     if (transcriptionHasCompleted) {
@@ -287,7 +289,7 @@ script.
       // TODO: hate how this is duped, so annoying // FIXED -osb910
       renderQueue(placeInQueue);
     // WEBSOCKET DATA COMING FROM THE BACKEND
-    } else if (data.message === 'websocketData') {
+    } else if (isProcessingInfo) {
       l('websocket data');
       let loopStarted = false;
       //- destructure the data object -osb910
