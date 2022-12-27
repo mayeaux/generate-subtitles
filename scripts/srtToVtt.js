@@ -52,7 +52,7 @@ async function main(){
     if (err) throw new Error(err);
     l(data);
 
-    fs.writeFileSync(`./public/redone.vtt`, vttData);
+    fs.writeFileSync('./public/redone.vtt', vttData);
   });
 
   // l(data);

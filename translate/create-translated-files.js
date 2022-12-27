@@ -6,7 +6,7 @@ const { reformatVtt } = require('./helpers')
 const { simplified } = require('zh-convert');
 const translateText = require('./google-translate-browser')
 
-const convert = require("cyrillic-to-latin");
+const convert = require('cyrillic-to-latin');
 
 let l = console.log;
 

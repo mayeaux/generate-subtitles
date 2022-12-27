@@ -1,7 +1,7 @@
 const express = require('express');
 const moment = require('moment');
 const _ = require('lodash');
-const fs = require("fs-extra");
+const fs = require('fs-extra');
 const { forHumans } = require('../helpers/helpers')
 
 
@@ -41,7 +41,7 @@ router.get('/stats', async function (req, res, next) {
           newFiles.push({
             name: file.name,
             processingData,
-            formattedDate: moment(processingData.startedAt).format("D MMM YYYY"),
+            formattedDate: moment(processingData.startedAt).format('D MMM YYYY'),
             timestamp: processingData.startedAt && new Date(processingData.startedAt).getTime()
           });
         }

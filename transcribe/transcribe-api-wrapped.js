@@ -1,4 +1,4 @@
-const which = require("which");
+const which = require('which');
 const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
@@ -8,7 +8,7 @@ const projectConstants = require('../constants/constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
 const forHumans = require('../helpers/helpers').forHumans;
 const createTranslatedFiles = require('../translate/translate-files-api');
-const {formatStdErr} = require("../helpers/formatStdErr");
+const {formatStdErr} = require('../helpers/formatStdErr');
 const LTHost = process.env.LIBRETRANSLATE;
 
 function getCodeFromLanguageName(languageName){
@@ -24,7 +24,8 @@ const {
   moveAndRenameFilesAndFolder,
   saveTranscriptionCompletedInformation,
   writeToProcessingDataFile,
-} = require('./transcribing');
+  translateIfNeeded
+} = require('../lib/transcribing');
 
 l = console.log;
 

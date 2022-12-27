@@ -39,45 +39,45 @@ const modelsArray = [
 
 // available models in Libretranslate
 const translationLanguages = [
-  {"code":"ar","name":"Arabic"},
-  {"code":"az","name":"Azerbaijani"},
-  {"code":"zh","name":"Chinese"},
-  {"code":"cs","name":"Czech"},
-  {"code":"da","name":"Danish"},
-  {"code":"nl","name":"Dutch"},
-  {"code":"en","name":"English"},
-  {"code":"fi","name":"Finnish"},
-  {"code":"fr","name":"French"},
-  {"code":"de","name":"German"},
-  {"code":"el","name":"Greek"},
-  {"code":"he","name":"Hebrew"},
-  {"code":"hi","name":"Hindi"},
-  {"code":"hu","name":"Hungarian"},
-  {"code":"id","name":"Indonesian"},
-  {"code":"ga","name":"Irish"},
-  {"code":"it","name":"Italian"},
-  {"code":"ja","name":"Japanese"},
-  {"code":"ko","name":"Korean"},
-  {"code":"fa","name":"Persian"},
-  {"code":"pl","name":"Polish"},
-  {"code":"pt","name":"Portuguese"},
-  {"code":"ru","name":"Russian"},
-  {"code":"sk","name":"Slovak"},
-  {"code":"es","name":"Spanish"},
-  {"code":"sv","name":"Swedish"},
-  {"code":"tr","name":"Turkish"},
-  {"code":"uk","name":"Ukranian"}
+  {'code':'ar','name':'Arabic'},
+  {'code':'az','name':'Azerbaijani'},
+  {'code':'zh','name':'Chinese'},
+  {'code':'cs','name':'Czech'},
+  {'code':'da','name':'Danish'},
+  {'code':'nl','name':'Dutch'},
+  {'code':'en','name':'English'},
+  {'code':'fi','name':'Finnish'},
+  {'code':'fr','name':'French'},
+  {'code':'de','name':'German'},
+  {'code':'el','name':'Greek'},
+  {'code':'he','name':'Hebrew'},
+  {'code':'hi','name':'Hindi'},
+  {'code':'hu','name':'Hungarian'},
+  {'code':'id','name':'Indonesian'},
+  {'code':'ga','name':'Irish'},
+  {'code':'it','name':'Italian'},
+  {'code':'ja','name':'Japanese'},
+  {'code':'ko','name':'Korean'},
+  {'code':'fa','name':'Persian'},
+  {'code':'pl','name':'Polish'},
+  {'code':'pt','name':'Portuguese'},
+  {'code':'ru','name':'Russian'},
+  {'code':'sk','name':'Slovak'},
+  {'code':'es','name':'Spanish'},
+  {'code':'sv','name':'Swedish'},
+  {'code':'tr','name':'Turkish'},
+  {'code':'uk','name':'Ukranian'}
 ];
 
 const languagesToTranslateTo = [
   // {"code":"ar","name":"Arabic"}, // haven't got these two to work
   // {"code":"zh","name":"Chinese"}, // webvtt format is too broken after translate
-  {"code":"en","name":"English"},
-  {"code":"fr","name":"French"},
-  {"code":"de","name":"German"},
-  {"code":"es","name":"Spanish"},
-  {"code":"ru","name":"Russian"},
-  {"code":"ja","name":"Japanese"},
+  {'code':'en','name':'English'},
+  {'code':'fr','name':'French'},
+  {'code':'de','name':'German'},
+  {'code':'es','name':'Spanish'},
+  {'code':'ru','name':'Russian'},
+  {'code':'ja','name':'Japanese'},
 ];
 
 // if the human readable name matches thing (or the 'en' version, transcribe
@@ -133,5 +133,6 @@ module.exports = {
   getLanguageCodeForAllLanguages,
   newLanguagesMap,
   allLanguages,
+  languagesToTranslateTo, 
   modelsArray
 }

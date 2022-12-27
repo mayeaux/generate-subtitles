@@ -1,23 +1,24 @@
-const which = require("which");
+const which = require('which');
 const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 const path = require('path');
 const projectConstants = require('../constants/constants');
-const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
+const { shouldTranslateFrom, languagesToTranscribe, getLanguageCodeForAllLanguages } = projectConstants;
 const forHumans = require('../helpers/helpers').forHumans;
 const createTranslatedFiles = require('../translate/create-translated-files');
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
-const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
+const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin} = require('../lib/convertText');
+const { sendToWebsocket , autoDetectLanguage ,generateFileDetailsString ,passDataToAllOpenSocket,sendFileInfoToClient} = require('../lib/transcribing');
+
 const { stripOutTextAndTimestamps } = require('../translate/helpers')
 
 l(formatStdErr);
 
 l = console.log;
 
-const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 const nodeEnvironment = process.env.NODE_ENV;
 const libreTranslateHostPath = process.env.LIBRETRANSLATE;
 
@@ -28,10 +29,6 @@ const isProd = nodeEnvironment === 'production';
 const whisperPath = which.sync('whisper')
 
 global.transcriptions = [];
-
-function sendToWebsocket(websocketConnection, data){
-  websocketConnection.send(JSON.stringify(data), function () {});
-}
 
 
 let topLevelValue = 1;
@@ -46,7 +43,6 @@ async function transcribe({
   directorySafeFileNameWithExtension,
   originalFileNameWithExtension,
   fileSafeNameWithDateTimestamp,
-  fileSafeNameWithDateTimestampAndExtension,
   uploadGeneratedFilename,
   shouldTranslate,
   uploadDurationInSeconds,
@@ -62,19 +58,10 @@ async function transcribe({
     }
 
     try {
-
       // TODO: fix this
-      // directorySafeFileNameWithoutExtension = fileSafeNameWithDateTimestamp
-      // directorySafeFileNameWithExtension = fileSafeNameWithDateTimestampAndExtension
-
-      // l('directorySafeFileNameWithoutExtension')
-      // l(directorySafeFileNameWithoutExtension);
-      // l('directorySafeFileNameWithExtension')
-      // l(directorySafeFileNameWithExtension)
-
       sendToWebsocket(websocketConnection, {
         message: 'starting',
-        text: `Whisper initializing, updates to come...`
+        text: 'Whisper initializing, updates to come...'
       })
 
       const osSpecificPathSeparator = path.sep;
@@ -102,20 +89,24 @@ async function transcribe({
         displayLanguage = language;
       }
 
+
+
+
       // just do JSON, then loop through properties on the frontend
-      let fileDetails = `
-            filename: ${directorySafeFileNameWithExtension}
-            language: ${displayLanguage}
-            model: ${model}
-            uploadDurationInSeconds: ${uploadDurationInSeconds}
-            uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
-      `.replace(/^ +/gm, ''); // remove indentation
+      let fileDetails = generateFileDetailsString(
+        directorySafeFileNameWithExtension,
+        displayLanguage,
+        model,
+        uploadDurationInSeconds,
+        uploadDurationInSecondsHumanReadable
+      );
+
 
       // update filedetails
-      websocketConnection.send(JSON.stringify({
+      sendToWebsocket(websocketConnection,{
         message: 'fileDetails',
         fileDetails
-      }), function () {});
+      })
 
       /** INSTANTIATE WHISPER PROCESS **/
       // queue up arguments, path is the first one
@@ -145,7 +136,7 @@ async function transcribe({
       arguments.push('--verbose', 'False');
 
       // folder to save .txt, .vtt and .srt
-      arguments.push('-o', "transcriptions/" + uploadGeneratedFilename);
+      arguments.push('-o', 'transcriptions/' + uploadGeneratedFilename);
 
       l('transcribe arguments');
       l(arguments);
@@ -171,20 +162,21 @@ async function transcribe({
       /** FIND AUTO-DETECTED LANGUAGE **/
       let foundLanguage;
 
+  
       //  console output from stdoutt
       whisperProcess.stdout.on('data', data => {
-        websocketConnection.send(JSON.stringify(`stdout: ${data}`), function () {});
+        sendToWebsocket(websocketConnection,`stdout: ${data}`)
         l(`STDOUT: ${data}`);
 
-        // TODO: pull this out into own function
-        // check if language is autodetected)
+        // TODO: pull this out into own function//
+        // check if language is autodetected)//
         const dataAsString = data.toString();
-        if(dataAsString.includes('Detected language:')){
+        const foundLanguage = autoDetectLanguage(dataAsString)
 
-          // parse out the language from the console output
-          foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
-
+        if(foundLanguage){
+          // parse out the lang uage from the console output
           l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`);
+
           if(language === 'auto-detect' && foundLanguage){
             language = foundLanguage
             displayLanguage = `${language} (Auto-Detected)`
@@ -192,21 +184,22 @@ async function transcribe({
 
           // send data to frontend with updated language
           // TODO: when it's JSON, just add the detected language here as a property
-          fileDetails = `
-            filename: ${directorySafeFileNameWithExtension}
-            language: ${displayLanguage}
-            model: ${model}
-            uploadDurationInSeconds: ${uploadDurationInSeconds}
-            uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
-          `.replace(/^ +/gm, ''); // remove indentation
+          fileDetails =  generateFileDetailsString(
+            directorySafeFileNameWithExtension,
+            displayLanguage,
+            model,
+            uploadDurationInSeconds,
+            uploadDurationInSecondsHumanReadable
+          );
 
           // update file details
-          websocketConnection.send(JSON.stringify({
+          sendToWebsocket(websocketConnection,{
             message: 'fileDetails',
             fileDetails
-          }), function () {});
+          })
         }
       });
+      
 
       // log output from bash (it all comes through stderr for some reason?)
       whisperProcess.stderr.on('data', data => {
@@ -243,20 +236,7 @@ async function transcribe({
 
           // TODO: pull into function
           // pass latest data to all the open sockets
-          if (websocketConnection.readyState === WebSocket.OPEN) {
-            /** websocketData message **/
-            websocketConnection.send(JSON.stringify({
-              message: 'websocketData',
-              processingData: processingString,
-              // processingData: data.toString(),
-              ownershipPerson,
-              serverNumber, // on the frontend we'll react different if it it's on server 1 or two
-              formattedProgress,
-              percentDone: percentDoneAsNumber,
-              timeRemaining,
-              speed,
-            }));
-          }
+          passDataToAllOpenSocket (websocketConnection,processingString,ownershipPerson,serverNumber,formattedProgress,percentDoneAsNumber,timeRemaining,speed)
         }
       });
 
@@ -277,10 +257,6 @@ async function transcribe({
 
           const processFinishedSuccessfully = code === 0
 
-          // directorySafeFileNameWithoutExtension = fileSafeNameWithDateTimestamp
-          // directorySafeFileNameWithExtension = fileSafeNameWithDateTimestampAndExtension
-
-
           // successful output
           if(processFinishedSuccessfully){
             // TODO: pull out all this moving stuff into its own function
@@ -291,7 +267,6 @@ async function transcribe({
 
             await fs.move(originalUpload, `${originalContainingDir}/${directorySafeFileNameWithExtension}`, { overwrite: true })
 
-            // const fileNameWithLanguage = `${directorySafeFileNameWithoutExtension}_${language}`;
 
             // turn this to a loop
             /** COPY TO BETTER NAME, SRT, VTT, TXT **/
@@ -339,7 +314,7 @@ async function transcribe({
             if(libreTranslateHostPath, shouldTranslate){
               // tell frontend that we're translating now
               websocketConnection.send(JSON.stringify({
-                languageUpdate: `Doing translations with LibreTranslate`,
+                languageUpdate: 'Doing translations with LibreTranslate',
                 message: 'languageUpdate'
               }), function () {});
               l('hitting LibreTranslate');
@@ -362,19 +337,17 @@ async function transcribe({
 
             // TODO: just have a function called "sendFileInfoToClient(fileInfoJSON)"
 
-            const outputText = `
-            filename: ${originalFileNameWithExtension}
-            processingSeconds: ${processingSeconds}
-            processingSecondsHumanReadable: ${forHumans(processingSeconds)}
-            language: ${language}
-            model: ${model}
-            upload: ${uploadFolderFileName}
-            uploadDurationInSeconds: ${uploadDurationInSeconds}
-            uploadDurationInSecondsHumanReadable: ${forHumans(uploadDurationInSeconds)}
-            processingRatio: ${processingRatio}
-            startedAt: ${startingDate.toUTCString()}
-            finishedAT: ${new Date().toUTCString()}
-          `.replace(/^ +/gm, ''); // remove indentation
+            const outputText = sendFileInfoToClient(
+              originalFileNameWithExtension,
+              processingSeconds,
+              language,
+              model,
+              uploadFolderFileName,
+              uploadDurationInSeconds,
+              uploadDurationInSeconds,
+              processingRatio,
+              startingDate
+            );
 
             // tell frontend upload is done
             websocketConnection.send(JSON.stringify({
@@ -393,7 +366,7 @@ async function transcribe({
               const trimmedLanguagesToTranscribe = languagesToTranscribe.filter(e => e !== language);
               translatedLanguages = trimmedLanguagesToTranscribe
             }
-
+            
             const fileDetailsObject = {
               filename: originalFileNameWithExtension,
               processingSeconds,
@@ -431,7 +404,7 @@ async function transcribe({
           l(`child process exited with code ${code}`);
         } catch (err){
           reject(err);
-          sendToWebsocket({
+          sendToWebsocket(websocketConnection,{
             message: 'error',
             text: 'The transcription failed, please try again or try again later'
           })

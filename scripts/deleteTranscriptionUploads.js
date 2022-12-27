@@ -1,4 +1,4 @@
-const {tr} = require("language-name-map/map");
+const {tr} = require('language-name-map/map');
 let l = console.log;
 const fs = require('fs-extra');
 const path = require('path');

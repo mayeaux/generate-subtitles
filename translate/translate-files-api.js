@@ -51,7 +51,7 @@ async function createTranslatedFiles({
         })
 
         // do the regexp here
-        translatedText.replace(/^(\d[\d:.]+\d) .*?( \d[\d:.]+\d)$/gm, "$1 -->$2");
+        translatedText.replace(/^(\d[\d:.]+\d) .*?( \d[\d:.]+\d)$/gm, '$1 -->$2');
 
         translatedText = 'WEBVTT' + translatedText.slice(6);
 
