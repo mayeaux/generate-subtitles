@@ -29,7 +29,7 @@ script.
           showCancelButton: true,
           confirmButtonText: 'Try Again',
         }).then(result => result.isConfirmed && window.location.reload()),
-      'interrupted-connetion': () => 
+      'interrupted-connection': () => 
         Swal.fire({
           title: 'Websocket Disconnected',
           text: 'Your websocket connection was disconnected, please refresh to start a new upload',
