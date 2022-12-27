@@ -54,13 +54,25 @@ script.
     }
   }
 
-  const loadAjax = (res, hitTheBackend) => {
-    l('hit the backend!');
-    hitTheBackend = true;
+  const loadAjax = res => {
+    l({res});
     $('#processingData').show();
     $('#latestData').show();
-    console.log(res)
     $('#progress').hide();
     $('#timeEstimator').hide();
     $('#header').html('Processing..');
+  }
+
+  const renderQueue = place => {
+    $('#latestData').html(place === 0 ? `Starting now...` : place === 1 ? `You're next up` : `There are ${place} people ahead of you.`);
+  }
+
+  const renderCompletionFeedback = data => {
+    $('#latestData').html(`Congratulations, you're done!`);
+    $('#finishedData').html(data.detailsString);
+    $('#header').html('Transcription Completed');
+    $('#processingData').hide();
+    // show refresh button
+    $('#refreshButton').show();
+    $('#startNewUpload').hide();
   }

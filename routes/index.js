@@ -10,7 +10,7 @@ const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 const Queue = require("promise-queue");
 const {languagesToTranscribe} = require("../constants/constants");
 const filenamify = require("filenamify");
-const { forHumans, forHumansNoSeconds } = require('../helpers/helpers')
+const {forHumans, forHumansNoSeconds, decrementBySecond} = require('../helpers/helpers')
 const path = require('path');
 const moment = require('moment');
 const ffprobe = require("ffprobe");
@@ -117,12 +117,9 @@ const makeFileNameSafe = function(string){
     .split('：').join(':');
 }
 
-let concurrentJobs = process.env.CONCURRENT_AMOUNT;
-if(process.NODE_ENV === 'development'){
-  concurrentJobs = 1;
-}
+const concurrentJobs = process.NODE_ENV === 'development' ? 1 : process.env.CONCURRENT_AMOUNT;
 
-l(`CONCURRENT JOBS ALLOWED AMOUNT: ${concurrentJobs} `)
+l(`CONCURRENT JOBS ALLOWED AMOUNT: ${concurrentJobs}`);
 
 // todo: on dif node-env change it to 2
 var maxConcurrent = ( concurrentJobs && Number(concurrentJobs) ) || 1;
@@ -148,60 +145,14 @@ function decode_utf8(s) {
 }
 
 const nodeEnv = process.env.NODE_ENV || 'development';
-l('nodeEnv');
-l(nodeEnv);
+l({nodeEnv});
 
-let uploadFileSizeLimitInMB = 3000;
-if(nodeEnv === 'production'){
-  uploadFileSizeLimitInMB = process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB;
-}
-l('uploadFileSizeLimitInMB');
-l(uploadFileSizeLimitInMB);
+const uploadLimitInMB = nodeEnv === 'production' ? process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB : 3000;
+l({uploadLimitInMB});
 
 // home page
 router.get('/', function(req, res, next) {
-  const domainName = req.hostname;
-
-  const isFreeSubtitles = domainName === 'freesubtitles.ai';
-
-  function decrementBySecond(timeRemainingValues) {
-    let { secondsRemaining, minutesRemaining, hoursRemaining } = timeRemainingValues;
-
-    if(secondsRemaining === 0 || secondsRemaining === '00'){
-      if(minutesRemaining > 0){
-        secondsRemaining = 59;
-        minutesRemaining = minutesRemaining - 1;
-      }
-    } else {
-      secondsRemaining = secondsRemaining - 1;
-    }
-
-    if (minutesRemaining === 0 || minutesRemaining === '00') {
-      if(hoursRemaining > 0){
-        minutesRemaining = 59;
-        hoursRemaining = hoursRemaining - 1;
-      }
-    }
-
-    if (minutesRemaining.toString()?.length === 1) {
-      minutesRemaining = '0' + minutesRemaining;
-    }
-
-    if (secondsRemaining.toString()?.length === 1) {
-      secondsRemaining = '0' + secondsRemaining;
-    }
-
-
-    let thingString = `${minutesRemaining}:${secondsRemaining}`;
-    if(hoursRemaining){ thingString = `${hoursRemaining}:${thingString}` }
-
-    return {
-      secondsRemaining,
-      minutesRemaining,
-      hoursRemaining,
-      string: thingString
-    }
-  }
+  const isFreeSubtitles = req.hostname === 'freesubtitles.ai';
 
   // transcribe frontend page
   res.render('index', {
@@ -211,7 +162,7 @@ router.get('/', function(req, res, next) {
     nodeEnv,
     siteStats: global.siteStats,
     isFreeSubtitles,
-    uploadFileSizeLimitInMB,
+    uploadLimitInMB,
     modelsArray,
     languagesArray,
     decrementBySecond
@@ -240,18 +191,17 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const uploadDurationInSeconds = Math.round(audioStream.duration);
 
     const amountOfSecondsInHour = 60 * 60;
-    const domainName = req.hostname;
 
     const fileSizeInMB = Math.round(req.file.size / 1048576);
 
-    const isFreeSubtitles = domainName === 'freesubtitles.ai';
+    const isFreeSubtitles = req.hostname === 'freesubtitles.ai';
     if(isFreeSubtitles){
       if(uploadDurationInSeconds > amountOfSecondsInHour){
         const uploadLengthErrorMessage = `Your upload length is ${forHumansNoSeconds(uploadDurationInSeconds)}, but currently the maximum length allowed is only 1 hour`;
         return res.status(400).send(uploadLengthErrorMessage);
       }
-      if(fileSizeInMB > uploadFileSizeLimitInMB){
-        const uploadSizeErrorMessage = `Your upload size is ${fileSizeInMB} MB, but the maximum size currently allowed is ${uploadFileSizeLimitInMB} MB.`;
+      if(fileSizeInMB > uploadLimitInMB){
+        const uploadSizeErrorMessage = `Your upload size is ${fileSizeInMB} MB, but the maximum size currently allowed is ${uploadLimitInMB} MB.`;
         return res.status(400).send(uploadSizeErrorMessage);
       }
     }

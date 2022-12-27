@@ -10,7 +10,7 @@ script.
 
   // global variables
   let circleProgress, hitTheBackend, videoDurationInSeconds;
-  let processStarted, processFailed, myUploadStarted, uploadFinished, loopStarted, processingData, timeRemaining, formattedProgressData, uploadStarted = false;
+  let processStarted, processFailed, myUploadStarted, uploadFinished, processingData, timeRemaining, uploadStarted = false;
   let placeInQueue = 0;
   const oneHourInSeconds = 60 * 60;
   const ipAndPort = location.host;
@@ -23,15 +23,13 @@ script.
   const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
 
   // passed from server
-  const isFreeSubtitles = #{isFreeSubtitles}
-  const uploadFileSizeLimitInMB = #{uploadFileSizeLimitInMB}
-  const nodeEnvironment = `#{nodeEnv}`
+  const isFreeSubtitles = !{isFreeSubtitles};
+  const uploadLimitInMB = !{uploadLimitInMB};
+  const nodeEnvironment = `!{nodeEnv}`;
+  const decrementBySecond = !{decrementBySecond};
+  const forHumans = !{forHumans};
 
   // grab elements
-  const timeRemainingDiv = $('#timeEstimator');
-  const refreshButton = $('#refreshButton');
-  const latestData = $('#latestData');
-  const fileInput = $('#file');
   const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
   const modelOptions = Array.from(document.querySelectorAll('.options.models .option'));
 
@@ -49,16 +47,15 @@ script.
       textFormat: 'vertical',
     });
 
-    //-  Add selected class to both selected options
+    //-  Add selected class to both selected options or default to first option -osb910
     const selectedLang = languageOptions.find(opt => opt.dataset.value === previousLanguage) || languageOptions[0];
     const selectedModel = modelOptions.find(opt => opt.dataset.value === previousModel) || modelOptions.find(opt => opt.dataset.value === 'medium');
-    l({selectedModel})
 
     selectedLang.classList.add('selected');
     selectedModel.classList.add('selected');
 
-    //- Populate previous values from local storage
-    //- jquery doesn't work here for some reason, strange bug
+    //- Populate previous values from local storage -osb910
+    //- jquery doesn't work here for some reason, strange bug -osb910
     //- $('#model').data('value', (previousModel || 'medium'));
     //- $('#language').data('value', (previousLanguage || 'auto-detect'));
     document.querySelector('#model').dataset.value = previousModel || 'medium';
@@ -71,13 +68,7 @@ script.
     l('ready now');
   });
 
-  // had to do this because of the greater than thing (remove backslash)
-  // otherwise could do const forHumans = #/{forHumans}
-  eval(unescapeHTML(`#{forHumans}`));
-
-  // l(forHumans(100));
-
-  // Handle clicks with event delegation
+  // handle clicks with event delegation -osb910
   $('body').on('click', evt => {
     const clicked = evt.target;
     const selectWrappers = document.querySelectorAll('#form .wrapper');
@@ -95,7 +86,7 @@ script.
     !groupElement && selectWrappers.forEach(wrapper => wrapper.classList.remove('active')); // On outside form group click
   });
 
-  // handle input with event delegation
+  // handle input with event delegation -osb910
   $('body').on('input', evt => {
     // Elements
     const pressed = evt.target;
@@ -103,7 +94,7 @@ script.
     selectWrapper && handleSelectionInput(evt);
   });
 
-  // handle key press with event delegation
+  // handle key press with event delegation -osb910
   $('body').on('keydown', evt => {
     const pressed = evt.target;
     const selectionContent = pressed.closest('form .content');
@@ -114,10 +105,8 @@ script.
   $('#form').on('submit', submitForm);
 
   // freezes everything up
-  fileInput.on('change', async () => {
-    l('getting video duration!');
-    l(new Date());
-    videoDuration = await getVideoDuration(fileInput.prop('files')[0]);
+  $('#file').on('change', async () => {
+    videoDuration = await getVideoDuration($('#file').prop('files')[0]);
     l({videoDuration});
   });
 
@@ -126,7 +115,7 @@ script.
 
     /* DATA */
     const formData = new FormData();
-    const [passedFile] = fileInput.prop('files');
+    const [passedFile] = $('#file').prop('files');
     const fileName = passedFile.name;
     let language = $('#language').data('value');
     let languageName = $('#language').text();
@@ -146,12 +135,12 @@ script.
     formData.append('language', language);
     formData.append('model', model);
     formData.append('shouldTranslate', translateIsChecked);
-    formData.append('websocketNumber', randomNumber); // this should be generated on the fly, not to be global
+    formData.append('websocketNumber', randomNumber);
 
     /* SUBMIT ERRORS */
     !passedFile && errorsMap['no-file']();
 
-    if(nodeEnvironment === 'production' && isFreeSubtitles){
+    if (nodeEnvironment === 'production' && isFreeSubtitles) {
 
     // force upload testing
     // if(1 === 1){
@@ -160,10 +149,10 @@ script.
       const passedFileSizeInMB = Math.round(passedFile.size / 1048576);
 
       // swal with the error
-      if (passedFileSizeInMB > uploadFileSizeLimitInMB) {
+      if (passedFileSizeInMB > uploadLimitInMB) {
         // put back upload button
         $('#upload-button').html('Upload').removeClass('no-pointer-events');
-        return errorsMap['too-large-file'](passedFileSizeInMB, uploadFileSizeLimitInMB);
+        return errorsMap['too-large-file'](passedFileSizeInMB, uploadLimitInMB);
       }
 
       $('#upload-button').addClass('no-pointer-events');
@@ -200,7 +189,7 @@ script.
 
     window.addEventListener('beforeunload', (event) => {
       if(!uploadFinished && !processFailed){
-        // this text doesnt actually show up
+        // BUG: this text doesnt actually show up
         event.returnValue = `You have an ongoing transcription and if you leave you have to start over. Are you sure you want to leave?`;
       }
     });
@@ -230,7 +219,11 @@ script.
     });
 
     /** response from endpoint? **/
-    ajax.addEventListener('load', res => loadAjax(res, hitTheBackend), false);
+    ajax.addEventListener('load', res => {
+      l('hit the backend!');
+      hitTheBackend = true;
+      loadAjax(res);
+    }, false);
     // TODO: implement these
     // ajax.addEventListener("event", eventHandler, false);
     // ajax.addEventListener("abort", abortHandler, false);
@@ -239,222 +232,151 @@ script.
   }
 
   /** WEBSOCKET CONNECTION FUNCTIONALITY BEGINS **/
-  websocketConnection.onclose = function (event) {
+  websocketConnection.onclose = evt => {
     processFailed = true;
-
     // dont show popup if websocket closed because finished
     if (uploadFinished) return;
     return errorsMap['interrupted-connection']();
   };
 
-  websocketConnection.onmessage = function (event) {
-    const data = JSON.parse(event.data);
-
-    console.log(event.data);
+  websocketConnection.onmessage = evt => {
+    const data = JSON.parse(evt.data);
+    l({data});
 
     /** WHEN WEBSOCKET SAYS COMPLETED **/
     // TODO: move to bottom of conditional blocks
     if (data.status === 'Completed') {
+      l('completed data');
       // the upload isn't finished but rather the process
       uploadFinished = true;
 
-      if(window.decrementInterval) clearInterval(window.decrementInterval)
-
-      latestData.html('Congratulations, you\'re done!');
-
-      $('#finishedData').html(data.detailsString);
-
-      $('#header').html('Transcription Completed');
-      $('#processingData').hide();
-
-      // show refresh button
-      refreshButton.show();
+      if (window.decrementInterval) clearInterval(window.decrementInterval);
+      renderCompletionFeedback(data);
 
       // TODO: add two more download buttons
 
-      l(data.url)
-
-      $('#startNewUpload').hide();
-
-      websocketConnection.close()
-
-      setTimeout(function(){
-        window.location.href = `/player/${data.filename}`
-      }, 2000)
-
-    } else if (data.message === 'queue'){
-      // TODO: pull out into func
+      websocketConnection.close();
+      // redirect to the player page -osb910
+      setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
+    } else if (data.message === 'queue') {
+      l('queue data');
+      // TODO: pull out into func // DONE -osb910
       placeInQueue = data.placeInQueue;
-      if (placeInQueue === 1) {
-        latestData.html(`You're next up`);
-      } else if(placeInQueue > 1){
-        latestData.html(`There are ${placeInQueue} people ahead of you`);
-      }
-
-      if(placeInQueue === 0){
-        latestData.html(`Starting now...`);
-      }
-
+      renderQueue(placeInQueue);
       // TODO: likely a bug here
     } else if (data === 'finishedProcessing' && uploadStarted) {
-      // placeInQueue = data.placeInQueue;
-      placeInQueue = placeInQueue - 1
-      // TODO: hate how this is duped, so annoying
-      if (placeInQueue === 1) {
-        latestData.html(`You're next up`);
-      } else if(placeInQueue > 1){
-        latestData.html(`There are ${placeInQueue} people ahead of you`);
-      }
-
-      if (placeInQueue === 0) {
-        latestData.html(`Starting now...`);
-      }
-
+      l('finished processing');
+      placeInQueue--;
+      // TODO: hate how this is duped, so annoying // FIXED -osb910
+      renderQueue(placeInQueue);
     // WEBSOCKET DATA COMING FROM THE BACKEND
     } else if (data.message === 'websocketData') {
-      l({data});
-      const myUpload = data.ownershipPerson === 'you';
+      l('websocket data');
+      let loopStarted = false;
+      //- destructure the data object -osb910
+      let {ownershipPerson, serverNumber: processNumber, percentDone, timeRemaining, processingData, formattedProgress} = data;
+      const myUpload = ownershipPerson === 'you';
       l({myUpload});
 
       // disregard any data that isn't yours after your processing has started
-      if(!myUpload && myUploadStarted) return
-
-      const processNumber = data.serverNumber; // 1 || 2, really means process
-      const percentDone = data.percentDone;
-      if(myUpload){
-        timeRemaining = data.timeRemaining;
-      }
-      processingData = data.processingData;
-      formattedProgressData = data.formattedProgress;
+      if(!myUpload && myUploadStarted) return;
 
       const fileName = $('#file').prop('files')[0].name;
-      const processingString = `${percentDone}% Transcribed - ${fileName}`;
-
-      const currentTitle = document.title;
-
-      if (percentDone && currentTitle !== processingString) {
-        document.title = processingString;
+      if (percentDone) {
+        document.title = `${percentDone}% Transcribed - ${fileName}`;
       }
 
       // by default let to 'latest processing'
-      // TODO: this is misnamed
-      let textToSay = `Latest processing data (process ${processNumber})\n`;
-      if(myUpload){
+      // TODO: this is misnamed // FIXED -osb910
+      let processFeedback = `Latest processing data (process ${processNumber})\n`;
+      if (myUpload) {
         /** it's your upload **/
         // data is no longer relevant
         $('#secondProcessingData').hide();
         myUploadStarted = true; // force this to true
-        textToSay = ``;
-        latestData.hide();
+        processFeedback = ``;
+        $('#latestData').hide();
       }
 
       // every second it grabs it from the ether and decrements it and rebuilds the string
-
       const eitherProcess = processNumber ===  1 || processNumber === 2;
       l({eitherProcess});
 
       // TODO: need my upload finished? && !myUploadFinished
-      if(eitherProcess && myUpload && hitTheBackend && myUploadStarted){
+      l({eitherProcess, myUpload, hitTheBackend, myUploadStarted});
+      if (eitherProcess && myUpload && hitTheBackend && myUploadStarted) {
         l('found my data');
         $('#processingData').show();
         // actual process data coming back
-        if (Number(percentDone) > 0){
+        if (percentDone > 0) {
           circleProgress.attr({
             max: 100,
             value: percentDone,
           });
+
           if (percentDone === 100) {
             $('.progress').hide();
           } else {
             $('.progress').show();
           }
 
-
-          if(!loopStarted){
+          if (!loopStarted) {
             loopStarted = true;
 
-            if(!window.decrementInterval){
-              window.decrementInterval = setInterval(function () {
-                l('time remaining');
-                l(timeRemaining);
+            if (!window.decrementInterval) {
+              // BUG: timer reaches 0 early because it's out of sync with the actual progress, maybe calculate it on the backend? -osb910
+              window.decrementInterval = setInterval(() => {
+                timeRemaining = decrementBySecond(timeRemaining);
+                l({timeRemaining});
 
-                const decrementBySecond = !{decrementBySecond}
+                const progressUpdate = `[${formattedProgress.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgress.speed}f/s`;
 
-                l('decrementing');
-                timeRemaining = decrementBySecond(timeRemaining)
-
-                l('time remaining');
-                l(timeRemaining);
-
-
-                const stringToUse = `[${formattedProgressData.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgressData.speed}f/s`
-
-                $('#processingData').html(`${textToSay}${stringToUse}`);
-              }, 1000)
+                $('#processingData').html(`${processFeedback}${progressUpdate}`);
+              }, 1000);
             }
-
-            // window.decrementInterval = setInterval(function(){
-            //   l('time remaining');
-            //   l(timeRemaining);
-            //
-            //   l('decrementing');
-            //   decrementBySecond(timeRemaining)
-            //
-            //   l('time remaining');
-            //   l(timeRemaining);
-            //
-            //
-            //   const stringToUse = `[${formattedProgressData.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgressData.speed}f/s`
-            //
-            //   $('#processingData').html(`${textToSay}${stringToUse}`);
-            // }, 1000)
           }
         } else {
-          $('#processingData').html(`${textToSay}Transcription starting soon..`);
+          $('#processingData').html(`${processFeedback}Transcription starting soon..`);
         }
       }
 
       // TODO: this seems off
       // update the process 2 info if appropriate
-      if (processNumber === 1 && !myUpload && !myUploadStarted && hitTheBackend) {
-        l('getting process 1 data');
-        $('#processingData').show();
-        $('#processingData').html(`${textToSay}\n${data.processingData}`);
+      if (!myUpload && !myUploadStarted && hitTheBackend) {
+        l(`getting process ${processNumber} data`);
+        $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
+        $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
       }
-      // update the process 2 info if appropriate
-      if (processNumber === 2 && !myUpload && !myUploadStarted && hitTheBackend) {
-        l('getting process 2 data');
-        $('#secondProcessingData').show();
-        $('#secondProcessingData').html(`${textToSay}\n${data.processingData}`);
-      }
-
     } else if (data.message === 'fileDetails') {
       l('file details data');
-      const niceDate = new Date().toString().replace(/GMT.*/g,"");
+      const niceDate = new Date().toString().replace(/GMT.*/g, '');
       const niceString = `startedAt: ${niceDate}`;
       $('#finishedData').html(data.fileDetails + niceString);
     } else if (data.message === 'languageUpdate') {
+      l('language update data');
       // Get a reference to the last interval + 1
-      const interval_id = window.setInterval(function () {
+      const interval_id = window.setInterval(() => {
       }, Number.MAX_SAFE_INTEGER);
 
       // Clear any timeout/interval up to that id
       for (let i = 1; i < interval_id; i++) {
         window.clearInterval(i);
       }
-      $('#processingData').html(data.languageUpdate);
 
+      $('#processingData').html(data.languageUpdate);
     } else if (data.message === 'error') {
+      l('error data');
       $('#processingData').html(data.text);
     } else if (data.message === 'starting') {
-      latestData.html(data.text);
+      l('starting data');
+      $('#latestData').html(data.text);
       $('#processingData').css({'font-size': '1.6rem'});
       $('#processingData').hide();
       $('#secondProcessingData').hide();
-      // latestData.css("font-size", "20px");
-
+      // $('#latestData').css("font-size", "20px");
     } else {
-      latestData.html(data);
+      l('else data');
+      $('#latestData').html(data);
     }
   };
 
@@ -466,6 +388,6 @@ script.
     // only add the first file
     const list = getFirstFile(evt);
     evt?.dataTransfer?.files
-    ? fileInput.prop('files', list.files)
+    ? $('#file').prop('files', list.files)
     : l('no files found');
   }
