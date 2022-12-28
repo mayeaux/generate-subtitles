@@ -76,3 +76,91 @@ script.
     $('#refreshButton').show();
     $('#startNewUpload').hide();
   }
+
+  const renderProcessingFeedback = ({data, hitTheBackend}) => {
+    l('websocket data');
+    let loopStarted, myUploadStarted = false;
+    //- destructure the data object -osb910
+    let {
+      ownershipPerson,
+      serverNumber: processNumber,
+      percentDone,
+      timeRemaining,
+      processingData,
+      formattedProgress
+    } = data;
+    const myUpload = ownershipPerson === 'you';
+
+    // disregard any data that isn't yours after your processing has started
+    if (!myUpload && myUploadStarted) return;
+
+    const fileName = $('#file').prop('files')[0].name;
+    if (percentDone) {
+      document.title = `${percentDone}% Transcribed - ${fileName}`;
+    }
+
+    // by default let to 'latest processing'
+    // TODO: this is misnamed, it's not the upload that's started but the processing
+    let processFeedback = `Latest processing data (process ${processNumber})\n`;
+    if (myUpload) {
+      /** it's your upload **/
+      // data is no longer relevant
+      $('#secondProcessingData').hide();
+      myUploadStarted = true; // force this to true
+      processFeedback = ``;
+      $('#latestData').hide();
+    }
+
+    // TODO: what does this eitherProcess check actually accomplish?
+    // every second it grabs it from the ether and decrements it and rebuilds the string
+    const eitherProcess = processNumber ===  1 || processNumber === 2;
+    l({eitherProcess});
+
+    const myUploadProcessing = myUpload && hitTheBackend && myUploadStarted
+
+    // TODO: need my upload finished? && !myUploadFinished
+    l({eitherProcess, myUpload, hitTheBackend, myUploadStarted});
+    if (eitherProcess && myUploadProcessing) {
+      l('found my data');
+      $('#processingData').show();
+      // actual process data coming back
+      if (percentDone > 0) {
+        circleProgress.attr({
+          max: 100,
+          value: percentDone,
+        });
+
+        if (percentDone === 100) {
+          $('.progress').hide();
+        } else {
+          $('.progress').show();
+        }
+
+        if (!loopStarted) {
+          loopStarted = true;
+
+          if (!window.decrementInterval) {
+            // BUG: timer reaches 0 early because it's out of sync with the actual progress, maybe calculate it on the backend? -osb910
+            window.decrementInterval = setInterval(() => {
+              timeRemaining = decrementBySecond(timeRemaining);
+              l({timeRemaining});
+
+              const progressUpdate = `[${formattedProgress.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgress.speed}f/s`;
+
+              $('#processingData').html(`${processFeedback}${progressUpdate}`);
+            }, 1000);
+          }
+        }
+      } else {
+        $('#processingData').html(`${processFeedback}Transcription starting soon..`);
+      }
+    }
+
+    // TODO: this seems off
+    // update the process 2 info if appropriate
+    if (!myUpload && !myUploadStarted && hitTheBackend) {
+      l(`getting process ${processNumber} data`);
+      $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
+      $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
+    }
+  }

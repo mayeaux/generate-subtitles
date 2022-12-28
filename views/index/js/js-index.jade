@@ -4,23 +4,13 @@ include controllers/file-handling.jade
 include controllers/error-handling.jade
 include controllers/network-handling.jade
 
-
 script.
-  /*
-  Also let's organize the files this way:
-  For example for this index.jade file
-  views/index/styles/differentStyle.jade
-  views/index/js/jsfunctionality.jade
-  and then
-  /views/index/index.jade
-  If they're used globally we can put them in the views/js views/styles otherwise let's just put them in the same directory
-  */
   l = console.log;
   ce = console.error;
 
   // global variables
   let circleProgress, hitTheBackend, videoDurationInSeconds, filename;
-  let processStarted, processFailed, myUploadStarted, uploadFinished, processingData, timeRemaining, uploadStarted = false;
+  let processStarted, processFailed, uploadFinished, processingData, timeRemaining, uploadStarted = false;
   let placeInQueue = 0;
   const oneHourInSeconds = 60 * 60;
   const ipAndPort = location.host;
@@ -256,7 +246,7 @@ script.
     l({data});
 
     // processing data is received constantly from backend
-    const isProcessingInfo = data.message === 'websocketData'
+    const isProcessingInfo = data.message === 'websocketData';
 
     // queue related (first info and decrementing)
     const sendingQueueInformation = data.message === 'queue';
@@ -274,6 +264,8 @@ script.
     const transcriptionHasCompleted = data.status === 'Completed';
 
     const isErrorMessage = data.message === 'error';
+
+    isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
     /** WHEN WEBSOCKET SAYS COMPLETED **/
     // TODO: move to bottom of conditional blocks
@@ -302,92 +294,7 @@ script.
       renderQueue(placeInQueue);
     // WEBSOCKET DATA COMING FROM THE BACKEND
     } else if (isProcessingInfo) {
-      l('websocket data');
-      let loopStarted = false;
-      //- destructure the data object -osb910
-      let {
-        ownershipPerson,
-        serverNumber: processNumber,
-        percentDone,
-        timeRemaining,
-        processingData,
-        formattedProgress
-      } = data;
-      const myUpload = ownershipPerson === 'you';
-      l({myUpload});
-
-      // disregard any data that isn't yours after your processing has started
-      if(!myUpload && myUploadStarted) return;
-
-      const fileName = $('#file').prop('files')[0].name;
-      if (percentDone) {
-        document.title = `${percentDone}% Transcribed - ${fileName}`;
-      }
-
-      // by default let to 'latest processing'
-      // TODO: this is misnamed, it's not the upload that's started but the processing
-      let processFeedback = `Latest processing data (process ${processNumber})\n`;
-      if (myUpload) {
-        /** it's your upload **/
-        // data is no longer relevant
-        $('#secondProcessingData').hide();
-        myUploadStarted = true; // force this to true
-        processFeedback = ``;
-        $('#latestData').hide();
-      }
-
-      // TODO: what does this eitherProcess check actually accomplish?
-      // every second it grabs it from the ether and decrements it and rebuilds the string
-      const eitherProcess = processNumber ===  1 || processNumber === 2;
-      l({eitherProcess});
-
-      const myUploadProcessing = myUpload && hitTheBackend && myUploadStarted
-
-      // TODO: need my upload finished? && !myUploadFinished
-      l({eitherProcess, myUpload, hitTheBackend, myUploadStarted});
-      if (eitherProcess && myUploadProcessing) {
-        l('found my data');
-        $('#processingData').show();
-        // actual process data coming back
-        if (percentDone > 0) {
-          circleProgress.attr({
-            max: 100,
-            value: percentDone,
-          });
-
-          if (percentDone === 100) {
-            $('.progress').hide();
-          } else {
-            $('.progress').show();
-          }
-
-          if (!loopStarted) {
-            loopStarted = true;
-
-            if (!window.decrementInterval) {
-              // BUG: timer reaches 0 early because it's out of sync with the actual progress, maybe calculate it on the backend? -osb910
-              window.decrementInterval = setInterval(() => {
-                timeRemaining = decrementBySecond(timeRemaining);
-                l({timeRemaining});
-
-                const progressUpdate = `[${formattedProgress.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgress.speed}f/s`;
-
-                $('#processingData').html(`${processFeedback}${progressUpdate}`);
-              }, 1000);
-            }
-          }
-        } else {
-          $('#processingData').html(`${processFeedback}Transcription starting soon..`);
-        }
-      }
-
-      // TODO: this seems off
-      // update the process 2 info if appropriate
-      if (!myUpload && !myUploadStarted && hitTheBackend) {
-        l(`getting process ${processNumber} data`);
-        $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
-        $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
-      }
+      
     } else if (isFileDetailsMessage) {
       l('file details data');
       const niceDate = new Date().toString().replace(/GMT.*/g, '');
