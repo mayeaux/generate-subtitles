@@ -9,6 +9,8 @@ const fs = require('fs');
 const {createServer} = require("http");
 const sessions = require('express-session');
 const _ = require('lodash');
+// run stats gathering
+require('./lib/stats');
 
 // Check if the .env file exists
 if (!fs.existsSync('.env')) {
@@ -23,6 +25,9 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var api = require('./routes/api');
 var stats = require('./routes/stats');
+var player = require('./routes/player');
+var transcribe = require('./routes/transcribe');
+var files = require('./routes/files');
 
 var app = express();
 const server = createServer(app);
@@ -87,6 +92,9 @@ app.use('/', routes);
 app.use('/', api);
 app.use('/users', users);
 app.use('/', stats);
+app.use('/', transcribe);
+app.use('/', files);
+app.use('/', player);
 
 
 // catch 404 and forward to error handler
