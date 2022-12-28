@@ -243,27 +243,28 @@ script.
   /** handling websocket messages **/
   websocketConnection.onmessage = evt => {
     const data = JSON.parse(evt.data);
+    const {message, status} = data;
     l({data});
 
     // processing data is received constantly from backend
-    const isProcessingInfo = data.message === 'websocketData';
+    const isProcessingInfo = message === 'websocketData';
 
     // queue related (first info and decrementing)
-    const sendingQueueInformation = data.message === 'queue';
+    const sendingQueueInformation = message === 'queue';
 
     // TODO: queue implementation is actually off, because if someone behind you leaves
     // it decrements the queue number though you didn't actually move up a position
     const differentUserHasFinishedProcessing = data === 'finishedProcessing';
 
-    const transcriptionIsStarting = data.message === 'starting';
+    const transcriptionIsStarting = message === 'starting';
 
-    const isFileDetailsMessage = data.message === 'fileDetails';
+    const isFileDetailsMessage = message === 'fileDetails';
 
-    const isTranslationUpdate = data.message === 'languageUpdate';
+    const isTranslationUpdate = message === 'languageUpdate';
 
-    const transcriptionHasCompleted = data.status === 'Completed';
+    const transcriptionHasCompleted = status === 'Completed';
 
-    const isErrorMessage = data.message === 'error';
+    const isErrorMessage = message === 'error';
 
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
