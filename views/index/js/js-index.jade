@@ -15,7 +15,7 @@ script.
 
   // global variables
   let circleProgress, hitTheBackend, videoDurationInSeconds, filename;
-  let processStarted, processFailed, uploadFinished, processingData, timeRemaining, uploadStarted = false;
+  let processStarted, processFailed, uploadFinished, processingData, timeRemaining;
   let placeInQueue = 0;
   const oneHourInSeconds = 60 * 60;
   const ipAndPort = location.host;
@@ -204,7 +204,7 @@ script.
     const submitDate = new Date();
 
     /** upload progress / countdown functionality **/
-    ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, uploadStarted, circleProgress, fileName), false);
+    ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, circleProgress, fileName), false);
 
     ajax.addEventListener('error', err => ce(err), false);
 

@@ -1,5 +1,8 @@
 script.
-  const progressUpload = (evt, startDate, uploadStarted, circleProgress, fileName) => {
+  let uploadStarted = false;
+  let globalEstimatedSecondsRemaining, globalTimeElapsedInSeconds, globalUploadedAmountInMB;
+
+  const progressUpload = (evt, startDate, circleProgress, fileName) => {
     l(evt);
     $('#form').hide();
     $('#startNewUpload').show();
@@ -36,19 +39,23 @@ script.
       $('.progress').show();
     }
 
+    globalEstimatedSecondsRemaining = estSecondsRemaining;
+    globalUploadedAmountInMB = uploadedAmountInMB;
+    globalTimeElapsedInSeconds = timeElapsedInSeconds;
+
     // start up functionality to update estimate every second
     if (!uploadStarted) {
       uploadStarted = true;
       setInterval(() => {
-        const estSecondsIsInfinity = estSecondsRemaining === Infinity;
-        const estSecondsIsNan = isNaN(estSecondsRemaining);
-        const uploadSpeedInMBs = _.round((uploadedAmountInMB / timeElapsedInSeconds), 1);
+        const estSecondsIsInfinity = globalEstimatedSecondsRemaining === Infinity;
+        const estSecondsIsNan = isNaN(globalEstimatedSecondsRemaining);
+        const uploadSpeedInMBs = _.round((globalUploadedAmountInMB / globalTimeElapsedInSeconds), 1);
 
         const valueIsValid = !estSecondsIsInfinity && !estSecondsIsNan;
         if (!valueIsValid) return;
 
-        $('#timeEstimator').html(`[${timeElapsedInSeconds}/${estUploadTimeInSeconds}s] ${forHumans(estSecondsRemaining)} remaining
-          \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${uploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
+        $('#timeEstimator').html(`[${globalTimeElapsedInSeconds}/${globalEstimatedSecondsRemaining}s] ${forHumans(globalEstimatedSecondsRemaining)} remaining
+          \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${globalUploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
           `);
       }, 1000)
     }
@@ -68,6 +75,8 @@ script.
     $('#latestData').html(place === 0 ? `Starting now...` : place === 1 ? `You're next up` : `There are ${place} people ahead of you.`);
   }
 
+  let latestProgress, globalTimeRemaining;
+
   const renderProcessingFeedback = ({data, hitTheBackend}) => {
     l('websocket data');
     let loopStarted, myUploadStarted = false;
@@ -81,6 +90,7 @@ script.
       formattedProgress
     } = data;
     const myUpload = ownershipPerson === 'you';
+    latestProgress = formattedProgress;
 
     // disregard any data that isn't yours after your processing has started
     if (!myUpload && myUploadStarted) return;
@@ -127,21 +137,21 @@ script.
           $('.progress').show();
         }
 
-        if (!loopStarted) {
-          loopStarted = true;
+       globalTimeRemaining = timeRemaining;
 
-          if (!window.decrementInterval) {
-            // BUG: timer reaches 0 early because it's out of sync with the actual progress, maybe calculate it on the backend? -osb910
-            window.decrementInterval = setInterval(() => {
-              timeRemaining = decrementBySecond(timeRemaining);
-              l({timeRemaining});
+        if (!window.decrementInterval) {
+          // BUG: timer reaches 0 early because it's out of sync with the actual progress, maybe calculate it on the backend? -osb910
+          window.decrementInterval = setInterval(() => {
+            globalTimeRemaining = decrementBySecond(globalTimeRemaining);
+            l({globalTimeRemaining});
 
-              const progressUpdate = `[${formattedProgress.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgress.speed}f/s`;
+            const progressUpdate =
+            `[${latestProgress.percentDone}] ${globalTimeRemaining.string} Remaining, Speed ${latestProgress.speed}f/s`;
 
-              $('#processingData').html(`${processFeedback}${progressUpdate}`);
-            }, 1000);
-          }
+            $('#processingData').html(`${processFeedback}${progressUpdate}`);
+          }, 1000);
         }
+
       } else {
         $('#processingData').html(`${processFeedback}Transcription starting soon..`);
       }

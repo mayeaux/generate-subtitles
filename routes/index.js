@@ -54,8 +54,6 @@ router.get('/ytdlp', function (req, res, next) {
   });
 });
 
-global.queueData = [];
-
 // router.get("/transcriptions/:path/:filename" , async function(req, res, next){
 //   console.log(req.params);
 //   res.sendFile(`${process.cwd()}/transcriptions/${req.params.path}/${req.params.filename}`);
