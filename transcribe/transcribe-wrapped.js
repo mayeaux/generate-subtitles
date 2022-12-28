@@ -13,8 +13,6 @@ const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
 const { stripOutTextAndTimestamps } = require('../translate/helpers')
 
-l(formatStdErr);
-
 l = console.log;
 
 const concurrentAmount = process.env.CONCURRENT_AMOUNT;

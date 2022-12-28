@@ -148,7 +148,7 @@ script.
     !passedFile && !downloadLink && errorsMap['no-file']();
 
     // frontend validation of file size and file length
-    if (nodeEnvironment === 'production' && isFreeSubtitles) {
+    if (nodeEnvironment === 'production' && isFreeSubtitles && passedFile) {
 
     // force upload testing
     // if(true){
