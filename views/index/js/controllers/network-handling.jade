@@ -68,16 +68,6 @@ script.
     $('#latestData').html(place === 0 ? `Starting now...` : place === 1 ? `You're next up` : `There are ${place} people ahead of you.`);
   }
 
-  const renderCompletionFeedback = data => {
-    $('#latestData').html(`Congratulations, you're done!`);
-    $('#finishedData').html(data.detailsString);
-    $('#header').html('Transcription Completed');
-    $('#processingData').hide();
-    // show refresh button
-    $('#refreshButton').show();
-    $('#startNewUpload').hide();
-  }
-
   const renderProcessingFeedback = ({data, hitTheBackend}) => {
     l('websocket data');
     let loopStarted, myUploadStarted = false;
@@ -180,4 +170,39 @@ script.
     const niceDate = new Date().toString().replace(/GMT.*/g, '');
     const niceString = `startedAt: ${niceDate}`;
     $('#finishedData').html(data.fileDetails + niceString);
+  }
+
+  const renderTranslationUpdate = data => {
+    l('language update data');
+    // Get a reference to the last interval + 1
+    const interval_id = window.setInterval(() => {
+    }, Number.MAX_SAFE_INTEGER);
+
+    // Clear any timeout/interval up to that id
+    for (let i = 1; i < interval_id; i++) {
+      window.clearInterval(i);
+    }
+
+    $('#processingData').html(data.languageUpdate);
+  }
+
+  const renderCompletionFeedback = ({data, wsConnection}) => {
+    l('completed data');
+    if (window.decrementInterval) clearInterval(window.decrementInterval);
+    $('#latestData').html(`Congratulations, you're done!`);
+    $('#finishedData').html(data.detailsString);
+    $('#header').html('Transcription Completed');
+    $('#processingData').hide();
+    // show refresh button
+    $('#refreshButton').show();
+    $('#startNewUpload').hide();
+    wsConnection.close();
+    // redirect to the player page
+    // 2 seconds to let the user see the completion message
+    setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
+  }
+
+  const renderError = data => {
+    l('error data');
+    $('#processingData').html(data.text);
   }

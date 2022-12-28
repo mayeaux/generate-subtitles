@@ -234,6 +234,7 @@ script.
 
   // prompt user to refresh if websocket dies
   websocketConnection.onclose = evt => {
+    l('websocket closed');
     processFailed = true;
     // dont show popup if websocket closed because finished
     if (uploadFinished) return;
@@ -271,55 +272,25 @@ script.
 
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
 
+    // TODO: likely a bug here
     differentUserHasFinishedProcessing && uploadStarted && renderQueue({place: placeInQueue - 1, log: 'finished processing'});
 
     transcriptionIsStarting && renderStartingFeedback(data);
 
     isFileDetailsMessage && renderFileDetails(data);
-
-    //- isTranslationUpdate && renderTranslationUpdate(data);
-
-    //- transcriptionHasCompleted && renderCompletionFeedback(data);
-
-    //- isErrorMessage && renderError(data);
+    
+    //- updates about translations on backend
+    isTranslationUpdate && renderTranslationUpdate(data);
 
     /** WHEN WEBSOCKET SAYS COMPLETED **/
-    // TODO: move to bottom of conditional blocks
     if (transcriptionHasCompleted) {
-      l('completed data');
-      // the upload isn't finished but rather the process
       uploadFinished = true;
+      renderCompletionFeedback({data, wsConnection: websocketConnection});
+    }
 
-      if (window.decrementInterval) clearInterval(window.decrementInterval);
-      renderCompletionFeedback(data);
+    isErrorMessage && renderError(data);
 
-      websocketConnection.close();
-      // redirect to the player page
-      // 2 seconds to let the user see the completion message
-      setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
-    } else if (sendingQueueInformation) {
-      // TODO: likely a bug here
-    } else if (differentUserHasFinishedProcessing && uploadStarted) {
-    } else if (isProcessingInfo) {
-    } else if (isFileDetailsMessage) {
-      // updates about translations on backend
-    } else if (isTranslationUpdate) {
-      l('language update data');
-      // Get a reference to the last interval + 1
-      const interval_id = window.setInterval(() => {
-      }, Number.MAX_SAFE_INTEGER);
-
-      // Clear any timeout/interval up to that id
-      for (let i = 1; i < interval_id; i++) {
-        window.clearInterval(i);
-      }
-
-      $('#processingData').html(data.languageUpdate);
-    } else if (isErrorMessage) {
-      l('error data');
-      $('#processingData').html(data.text);
-    } else if (transcriptionIsStarting) {
-    } else {
+    if (!transcriptionHasCompleted && !sendingQueueInformation && !differentUserHasFinishedProcessing && !isProcessingInfo && !isFileDetailsMessage && !isTranslationUpdate && !isErrorMessage && !transcriptionIsStarting) {
       // TODO: try and deprecate this use eventually from backend
       l('else data');
       $('#latestData').html(data);
