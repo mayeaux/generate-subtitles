@@ -1,0 +1,31 @@
+script.
+  const getFirstFile = evt => {
+    let list = new DataTransfer();
+    let firstPassedFile = evt.dataTransfer.files[0];
+    list.items.add(firstPassedFile);
+    return list;
+  }
+
+  const getVideoDuration = file =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      l({file});
+      reader.onload = evt => {
+        l({evt});
+        l('loading');
+        l({reader});
+        const media = new Audio(reader.result);
+        l(media);
+        media.onerror = err => {
+          ce({err});
+          reject(err);
+        }
+        media.onloadedmetadata = () => resolve(media.duration);
+      };
+      l('reading')
+      reader.readAsDataURL(file);
+      reader.onerror = function(error){
+        ce({error})
+        reject(error);
+      }
+    });

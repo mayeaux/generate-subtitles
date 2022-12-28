@@ -1,0 +1,208 @@
+script.
+  const progressUpload = (evt, startDate, uploadStarted, circleProgress, fileName) => {
+    l(evt);
+    $('#form').hide();
+    $('#startNewUpload').show();
+
+    const uploadedAmountInMB = _.round(evt.loaded / (1024 * 1024), 1);
+    const totalFileSizeInMB = _.round(evt.total / (1024 * 1024), 1);
+    const percentUpload = Math.round((uploadedAmountInMB / totalFileSizeInMB) * 100);
+    // get time in seconds between upload start time and now
+    const timeElapsedInSeconds = Math.round((new Date() - startDate) / 1000);
+    // estimate how many seconds remaining based on percentage
+    const estUploadTimeInSeconds = Math.round(timeElapsedInSeconds * (100 / percentUpload));
+    // time left is difference of estimated time and elapsed time
+    const estSecondsRemaining = estUploadTimeInSeconds - timeElapsedInSeconds;
+
+    l({percentUpload});
+    l({timeElapsedInSeconds});
+    l({estSecondsRemaining});
+
+    $('#progress').html(`${percentUpload}% uploaded`);
+    document.title = `${percentUpload}% Uploaded - ${fileName}`;
+
+    circleProgress.attr({
+      max: 100,
+      value: Number(percentUpload),
+    });
+
+    if (percentUpload === 100) {
+      circleProgress.attr({
+        max: 100,
+        value: 0,
+      });
+      $('.progress').hide();
+    } else {
+      $('.progress').show();
+    }
+
+    // start up functionality to update estimate every second
+    if (!uploadStarted) {
+      uploadStarted = true;
+      setInterval(() => {
+        const estSecondsIsInfinity = estSecondsRemaining === Infinity;
+        const estSecondsIsNan = isNaN(estSecondsRemaining);
+        const uploadSpeedInMBs = _.round((uploadedAmountInMB / timeElapsedInSeconds), 1);
+
+        const valueIsValid = !estSecondsIsInfinity && !estSecondsIsNan;
+        if (!valueIsValid) return;
+
+        $('#timeEstimator').html(`[${timeElapsedInSeconds}/${estUploadTimeInSeconds}s] ${forHumans(estSecondsRemaining)} remaining
+          \n Total File Size: ${totalFileSizeInMB} MB, \nAlready Uploaded: ${uploadedAmountInMB} MB \nUpload Speed: ${uploadSpeedInMBs} MB/s,
+          `);
+      }, 1000)
+    }
+  }
+
+  const loadAjax = res => {
+    l({res});
+    $('#processingData').show();
+    $('#latestData').show();
+    $('#progress').hide();
+    $('#timeEstimator').hide();
+    $('#header').html('Processing..');
+  }
+
+  const renderQueue = ({place, log}) => {
+    l(log);
+    $('#latestData').html(place === 0 ? `Starting now...` : place === 1 ? `You're next up` : `There are ${place} people ahead of you.`);
+  }
+
+  const renderProcessingFeedback = ({data, hitTheBackend}) => {
+    l('websocket data');
+    let loopStarted, myUploadStarted = false;
+    //- destructure the data object -osb910
+    let {
+      ownershipPerson,
+      serverNumber: processNumber,
+      percentDone,
+      timeRemaining,
+      processingData,
+      formattedProgress
+    } = data;
+    const myUpload = ownershipPerson === 'you';
+
+    // disregard any data that isn't yours after your processing has started
+    if (!myUpload && myUploadStarted) return;
+
+    const fileName = $('#file').prop('files')[0].name;
+    if (percentDone) {
+      document.title = `${percentDone}% Transcribed - ${fileName}`;
+    }
+
+    // by default let to 'latest processing'
+    // TODO: this is misnamed, it's not the upload that's started but the processing
+    let processFeedback = `Latest processing data (process ${processNumber})\n`;
+    if (myUpload) {
+      /** it's your upload **/
+      // data is no longer relevant
+      $('#secondProcessingData').hide();
+      myUploadStarted = true; // force this to true
+      processFeedback = ``;
+      $('#latestData').hide();
+    }
+
+    // TODO: what does this eitherProcess check actually accomplish?
+    // every second it grabs it from the ether and decrements it and rebuilds the string
+    const eitherProcess = processNumber ===  1 || processNumber === 2;
+    l({eitherProcess});
+
+    const myUploadProcessing = myUpload && hitTheBackend && myUploadStarted
+
+    // TODO: need my upload finished? && !myUploadFinished
+    l({eitherProcess, myUpload, hitTheBackend, myUploadStarted});
+    if (eitherProcess && myUploadProcessing) {
+      l('found my data');
+      $('#processingData').show();
+      // actual process data coming back
+      if (percentDone > 0) {
+        circleProgress.attr({
+          max: 100,
+          value: percentDone,
+        });
+
+        if (percentDone === 100) {
+          $('.progress').hide();
+        } else {
+          $('.progress').show();
+        }
+
+        if (!loopStarted) {
+          loopStarted = true;
+
+          if (!window.decrementInterval) {
+            // BUG: timer reaches 0 early because it's out of sync with the actual progress, maybe calculate it on the backend? -osb910
+            window.decrementInterval = setInterval(() => {
+              timeRemaining = decrementBySecond(timeRemaining);
+              l({timeRemaining});
+
+              const progressUpdate = `[${formattedProgress.percentDone}] ${timeRemaining.string} Remaining, Speed ${formattedProgress.speed}f/s`;
+
+              $('#processingData').html(`${processFeedback}${progressUpdate}`);
+            }, 1000);
+          }
+        }
+      } else {
+        $('#processingData').html(`${processFeedback}Transcription starting soon..`);
+      }
+    }
+
+    // TODO: this seems off
+    // update the process 2 info if appropriate
+    if (!myUpload && !myUploadStarted && hitTheBackend) {
+      l(`getting process ${processNumber} data`);
+      $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
+      $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
+    }
+  }
+
+  const renderStartingFeedback = data => {
+    l('starting data');
+    $('#latestData').html(data.text);
+    $('#processingData').css({'font-size': '1.6rem'});
+    $('#processingData').hide();
+    $('#secondProcessingData').hide();
+    // $('#latestData').css("font-size", "20px");
+  }
+
+  const renderFileDetails = data => {
+    l('file details data');
+    const niceDate = new Date().toString().replace(/GMT.*/g, '');
+    const niceString = `startedAt: ${niceDate}`;
+    $('#finishedData').html(data.fileDetails + niceString);
+  }
+
+  const renderTranslationUpdate = data => {
+    l('language update data');
+    // Get a reference to the last interval + 1
+    const interval_id = window.setInterval(() => {
+    }, Number.MAX_SAFE_INTEGER);
+
+    // Clear any timeout/interval up to that id
+    for (let i = 1; i < interval_id; i++) {
+      window.clearInterval(i);
+    }
+
+    $('#processingData').html(data.languageUpdate);
+  }
+
+  const renderCompletionFeedback = ({data, wsConnection}) => {
+    l('completed data');
+    if (window.decrementInterval) clearInterval(window.decrementInterval);
+    $('#latestData').html(`Congratulations, you're done!`);
+    $('#finishedData').html(data.detailsString);
+    $('#header').html('Transcription Completed');
+    $('#processingData').hide();
+    // show refresh button
+    $('#refreshButton').show();
+    $('#startNewUpload').hide();
+    wsConnection.close();
+    // redirect to the player page
+    // 2 seconds to let the user see the completion message
+    setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
+  }
+
+  const renderError = data => {
+    l('error data');
+    $('#processingData').html(data.text);
+  }

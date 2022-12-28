@@ -1,0 +1,317 @@
+include js-util.jade
+include controllers/selection-dropdowns.jade
+include controllers/file-handling.jade
+include controllers/error-handling.jade
+include controllers/network-handling.jade
+
+script.
+  l = console.log;
+  ce = console.error;
+
+  let ytdlp = !{ytdlp || false};
+
+  l('ytdlp', ytdlp);
+  l(ytdlp)
+
+  // global variables
+  let circleProgress, hitTheBackend, videoDurationInSeconds, filename;
+  let processStarted, processFailed, uploadFinished, processingData, timeRemaining, uploadStarted = false;
+  let placeInQueue = 0;
+  const oneHourInSeconds = 60 * 60;
+  const ipAndPort = location.host;
+  const randomNumber = Math.round(Math.random() * 1_000_000_000_000);
+  const protocol = window.location.protocol;
+  const servedWithSSL = protocol.slice(0, -1) === 'https';
+  const httpPrepend = protocol === 'https:' ? 'https' : 'http';
+  const wssPrepend = protocol === 'https:' ? 'wss' : 'ws';
+  const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
+  const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
+
+  // passed from server
+  const isFreeSubtitles = !{isFreeSubtitles};
+  const uploadLimitInMB = !{uploadLimitInMB};
+  const nodeEnvironment = `!{nodeEnv}`;
+  const decrementBySecond = !{decrementBySecond};
+  const forHumans = !{forHumans};
+
+  // grab elements
+  const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
+  const modelOptions = Array.from(document.querySelectorAll('.options.models .option'));
+
+  // local storage
+  const previousModel = localStorage.getItem('model');
+  const previousModelName = localStorage.getItem('modelName');
+  const previousLanguage = localStorage.getItem('language');
+  const previousLanguageName = localStorage.getItem('languageName');
+  const previousShouldTranslate = localStorage.getItem('shouldTranslate');
+
+  $(document).ready(() => {
+    circleProgress = new CircleProgress('.progress', {
+      max: 100,
+      value: 100,
+      textFormat: 'vertical',
+    });
+
+    //-  Add selected class to both selected options or default to first option -osb910
+    const selectedLang = languageOptions.find(opt => opt.dataset.value === previousLanguage) || languageOptions[0];
+    const selectedModel = modelOptions.find(opt => opt.dataset.value === previousModel) || modelOptions.find(opt => opt.dataset.value === 'medium');
+
+    selectedLang.classList.add('selected');
+    selectedModel.classList.add('selected');
+
+    //- Populate previous values from local storage -osb910
+    //- jquery doesn't work here for some reason, strange bug -osb910
+    //- $('#model').data('value', (previousModel || 'medium'));
+    //- $('#language').data('value', (previousLanguage || 'auto-detect'));
+    document.querySelector('#model').dataset.value = previousModel || 'medium';
+    document.querySelector('#language').dataset.value = previousLanguage || 'auto-detect';
+
+    $('#model').text(previousModelName || 'Medium');
+    $('#language').text(previousLanguageName || 'Auto-Detect');
+    $('#translate').prop('checked', previousShouldTranslate === 'true');
+
+    l('ready now');
+  });
+
+  // handle clicks with event delegation -osb910
+  $('body').on('click', evt => {
+    const clicked = evt.target;
+    const selectWrappers = document.querySelectorAll('#form .wrapper');
+    const selectionBtn = clicked.closest('.select-btn');
+    const option = clicked.closest('.option');
+    const groupElement = clicked.closest('.form .group');
+
+    const langSelectionBtn = clicked.closest('.select-btn#languageSelect');
+    langSelectionBtn && selectWrappers[1].classList.remove('active');
+
+    selectionBtn && handleSelectionButtonClick(evt); // On selection button click
+
+    option && handleOptionClick(evt); // On option click
+
+    !groupElement && selectWrappers.forEach(wrapper => wrapper.classList.remove('active')); // On outside form group click
+  });
+
+  // handle input with event delegation -osb910
+  $('body').on('input', evt => {
+    // Elements
+    const pressed = evt.target;
+    const selectWrapper = pressed.closest('form .wrapper');
+    selectWrapper && handleSelectionInput(evt);
+  });
+
+  // handle key press with event delegation -osb910
+  $('body').on('keydown', evt => {
+    const pressed = evt.target;
+    const selectionContent = pressed.closest('form .content');
+
+    selectionContent && handleSelectionShortcuts(evt);
+  });
+
+  $('#form').on('submit', submitForm);
+
+  // freezes everything up
+  $('#file').on('change', async () => {
+    videoDuration = await getVideoDuration($('#file').prop('files')[0]);
+    l({videoDuration});
+  });
+
+  async function submitForm(evt) {
+    evt.preventDefault();
+
+    /* DATA */
+    const formData = new FormData();
+    const [passedFile] = $('#file').prop('files');
+    const fileName = passedFile?.name;
+    let language = $('#language').data('value');
+    let languageName = $('#language').text();
+    const model = document.querySelector('#model').dataset.value;
+    const modelName = document.querySelector('#model').textContent;
+    const translateIsChecked = $('#translate').is(':checked');
+    const downloadLink = $('#downloadLink').val()
+
+    //- set local storage
+    localStorage.setItem('model', model);
+    localStorage.setItem('modelName', modelName);
+    localStorage.setItem('language', language);
+    localStorage.setItem('languageName', languageName);
+    localStorage.setItem('shouldTranslate', translateIsChecked);
+
+    //- gather data
+    if (passedFile) formData.append('file', passedFile);
+    if (downloadLink) formData.append('downloadLink', downloadLink);
+    formData.append('language', language);
+    formData.append('model', model);
+    formData.append('shouldTranslate', translateIsChecked);
+    formData.append('websocketNumber', randomNumber);
+
+    /* SUBMIT ERRORS */
+    !passedFile && !downloadLink && errorsMap['no-file']();
+
+    // frontend validation of file size and file length
+    if (nodeEnvironment === 'production' && isFreeSubtitles) {
+
+    // force upload testing
+    // if(true){
+      // TODO: pass max file size from server
+      const passedFileSizeInMB = Math.round(passedFile.size / 1048576);
+
+      // swal with the error
+      if (passedFileSizeInMB > uploadLimitInMB) {
+        // put back upload button
+        $('#upload-button').html('Upload').removeClass('no-pointer-events');
+        return errorsMap['too-large-file'](passedFileSizeInMB, uploadLimitInMB);
+      }
+
+      // checking the upload duration
+      $('#upload-button').addClass('no-pointer-events');
+      $('#upload-button').html('Checking your upload length..')
+
+      try {
+        l('getting duration');
+        videoDurationInSeconds = await getVideoDuration(passedFile);
+        l({videoDurationInSeconds});
+      } catch (err){
+        /// just let them advance if there's an error, happens with .MOV (format error)
+        //  and uploads over 500MB (because of Chrome)
+        ce(err);
+      }
+
+      // TODO: pass time limit from backend
+      if (videoDurationInSeconds && videoDurationInSeconds > oneHourInSeconds) {
+        $('#upload-button').html('Upload').removeClass('no-pointer-events');
+        videoDurationInSeconds = 0;
+        return errorsMap['too-long-video'](videoDurationInSeconds);
+      }
+    }
+
+    // Display the key/value pairs
+    for (const pair of formData.entries()) {
+      console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    $('.amountsHeader').hide();
+
+    // warn user about leaving if they're still processing
+    window.addEventListener('beforeunload', (event) => {
+      if(!uploadFinished && !processFailed){
+        // per modern browsers text doesnt actually show up just a generic message
+        event.returnValue = `You have an ongoing transcription and if you leave you have to start over. Are you sure you want to leave?`;
+      }
+    });
+
+    /** AJAX **/
+    const ajax = new XMLHttpRequest();
+    const submitDate = new Date();
+
+    /** upload progress / countdown functionality **/
+    ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, uploadStarted, circleProgress, fileName), false);
+
+    ajax.addEventListener('error', err => ce(err), false);
+
+    // handle request to backend failing
+    ajax.addEventListener('readystatechange', () => {
+      l('ready state change');
+      if (ajax.readyState === XMLHttpRequest.DONE) {
+        if (ajax.status === 200) {
+          // Request has completed successfully, do something
+        } else {
+          processFailed = true;
+          l('failed request');
+          l(ajax.responseText);
+          // Request has failed, do something
+          return errorsMap['transcription-error'](ajax.responseText);
+        }
+      }
+    });
+
+    // once backend is hit
+    ajax.addEventListener('load', res => {
+      l('hit the backend!');
+      hitTheBackend = true;
+      loadAjax(res);
+    }, false);
+
+    // TODO: implement these
+    // ajax.addEventListener("abort", abortHandler, false);
+
+    // hit the backend
+    ajax.open('POST', uploadUrl);
+    ajax.send(formData);
+  }
+
+  // prompt user to refresh if websocket dies
+  websocketConnection.onclose = evt => {
+    l('websocket closed');
+    processFailed = true;
+    // dont show popup if websocket closed because finished
+    if (uploadFinished) return;
+    return errorsMap['interrupted-connection']();
+  };
+
+  /** handling websocket messages **/
+  websocketConnection.onmessage = evt => {
+    const data = JSON.parse(evt.data);
+    const {message, status} = data;
+    l({data});
+
+    // processing data is received constantly from backend
+    const isProcessingInfo = message === 'websocketData';
+
+    // queue related (first info and decrementing)
+    const sendingQueueInformation = message === 'queue';
+
+    // TODO: queue implementation is actually off, because if someone behind you leaves
+    // it decrements the queue number though you didn't actually move up a position
+    const differentUserHasFinishedProcessing = data === 'finishedProcessing';
+
+    const transcriptionIsStarting = message === 'starting';
+
+    const isFileDetailsMessage = message === 'fileDetails';
+
+    const isTranslationUpdate = message === 'languageUpdate';
+
+    const transcriptionHasCompleted = status === 'Completed';
+
+    const isErrorMessage = message === 'error';
+
+    // WEBSOCKET DATA COMING FROM THE BACKEND
+    isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
+
+    sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
+
+    // TODO: likely a bug here
+    differentUserHasFinishedProcessing && uploadStarted && renderQueue({place: placeInQueue - 1, log: 'finished processing'});
+
+    transcriptionIsStarting && renderStartingFeedback(data);
+
+    isFileDetailsMessage && renderFileDetails(data);
+
+    //- updates about translations on backend
+    isTranslationUpdate && renderTranslationUpdate(data);
+
+    /** WHEN WEBSOCKET SAYS COMPLETED **/
+    if (transcriptionHasCompleted) {
+      uploadFinished = true;
+      renderCompletionFeedback({data, wsConnection: websocketConnection});
+    }
+
+    isErrorMessage && renderError(data);
+
+    if (!transcriptionHasCompleted && !sendingQueueInformation && !differentUserHasFinishedProcessing && !isProcessingInfo && !isFileDetailsMessage && !isTranslationUpdate && !isErrorMessage && !transcriptionIsStarting) {
+      // TODO: try and deprecate this use eventually from backend
+      l('else data');
+      $('#latestData').html(data);
+    }
+  };
+
+  /** DRAG AND DROP FILES **/
+  $('html').bind('dragover dragenter', evt => evt.preventDefault());
+
+  document.documentElement.ondrop = evt => {
+    evt.preventDefault();
+    // only add the first file
+    const list = getFirstFile(evt);
+    evt?.dataTransfer?.files
+    ? $('#file').prop('files', list.files)
+    : l('no files found');
+  }

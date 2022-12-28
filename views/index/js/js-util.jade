@@ -1,0 +1,25 @@
+script.
+  const unescapeHTML = escapedHTML => escapedHTML
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+
+  const filterOptions = (options, q) => {
+    const regex = new RegExp(`^${q}`, 'i');
+    return options.filter(opt => !!opt.dataset.value.match(regex));
+  }
+
+  //- get next, previous, first, and last visible siblings with recursion
+
+  const getNextVisibleSibling = el => el?.nextSibling?.classList.contains('hidden')
+    ? getNextVisibleSibling(el.nextSibling) : el?.nextSibling;
+
+  const getPreviousVisibleSibling = el => el?.previousSibling?.classList.contains('hidden')
+    ? getPreviousVisibleSibling(el.previousSibling) : el?.previousSibling;
+
+  const getFirstVisibleSibling = el => el?.firstChild?.classList.contains('hidden')
+    ? getNextVisibleSibling(el.firstChild) : el?.firstChild;
+  
+  const getLastVisibleSibling = el => el?.lastChild?.classList.contains('hidden')
+    ? getPreviousVisibleSibling(el.lastChild) : el?.lastChild;
+

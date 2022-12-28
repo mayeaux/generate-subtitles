@@ -24,7 +24,7 @@ async function downloadFile({
         videoUrl,
         '--no-mtime',
         '-f',
-        'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        'bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         '-o',
         `./uploads/${randomNumber}.%(ext)s`
       ]);

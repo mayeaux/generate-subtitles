@@ -7,24 +7,23 @@ form.form#form
       label(for='downloadLink') Enter a link for automatic download (PASTE)
       input#downloadLink(type='text' value="https://www.youtube.com/watch?v=jXVcLVQ4FTg&ab_channel=HighlightHeaven")
   .group
-    label(for='languageSelect')#languageLabel Language (#{languages.length + 1} Options)
+    label(for='languageSelect')#languageLabel Language (#{languagesArray.length} Options)
     .wrapper
       button#languageSelect.select-btn(type='button')
-        span#language.select-value(data-value='auto-detect') Auto-Detect
+        span#language.select-value(data-value='auto-detect' name='language') Auto-Detect
         i.fa-solid.fa-angle-down
       .content
         .search
           i.fa-solid.fa-magnifying-glass
           input(spellcheck='false' type='search' placeholder='Filter...' tabindex='0')
         ul.options.languages
-          li.option(data-value='auto-detect' tabindex='0') Auto-Detect
-          each language in languages
-            li.option(data-value=language tabindex='0')= language
+          each language in languagesArray
+            li.option(data-value=language.value tabindex='0')= language.name
   .group
     label(for='modelSelect')#modelLabel Model (#{modelsArray.length} Options)
     .wrapper
       button#modelSelect.select-btn(type='button')
-        span#model.select-value= modelsArray[0].name
+        span#model.select-value(name='model')= modelsArray[0].name
         i.fa-solid.fa-angle-down
       .content
         .search
@@ -35,5 +34,5 @@ form.form#form
             li.option(data-value= model.value tabindex='0')= model.name
   .group.translateHolder
     label#translateLabel(for='translate') Translate to different languages
-    input#translate(type='checkbox')
+    input#translate(type='checkbox' name='translate')
   button#upload-button.submit-btn(type='submit') Upload

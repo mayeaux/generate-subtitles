@@ -1,0 +1,75 @@
+script.
+  const updateSelection = option => {
+    const selectedValueEl = option.closest('.wrapper').querySelector('.select-value');
+    const selectedOption = option.closest('.wrapper').querySelector('.selected');
+    selectedOption.classList.remove('selected');
+    option.classList.add('selected');
+    selectedValueEl.textContent = option.textContent;
+    selectedValueEl.dataset.value = option.dataset.value;
+  }
+
+  const handleSelectionButtonClick = evt => {
+    const selectWrapper = evt.target.closest('.wrapper');
+    const input = selectWrapper.querySelector('.search input');
+    selectWrapper.classList.toggle('active');
+    selectWrapper.querySelector('.selected').scrollIntoView({block: 'center'}); // scroll to selected option // doesn't work for some reason // TODO
+    input.focus();
+  }
+
+  const handleOptionClick = evt => {
+    const option = evt.target;
+    const selectWrapper = option.closest('.wrapper');
+    updateSelection(option);
+    selectWrapper.classList.remove('active');
+    selectWrapper.querySelector('.select-btn').focus();
+  }
+
+  const handleSelectionShortcuts = evt => {
+    const key = evt.key;
+    ['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(key) && evt.preventDefault();
+
+    const selectionContent = evt.target.closest('form .content');
+    const focusedOption = document.activeElement.closest('.option');
+    const focusedInput = document.activeElement.closest('input[type="search"]');
+
+    const keysMap = [
+      {command: /ArrowDown/, action: () => {
+        //- focusedInput ? getNextVisibleSibling(selectionContent.querySelector('.selected'))?.focus()
+        //- :
+        // if there is a focused option, focus the next one, else focus the first one
+        (getNextVisibleSibling(focusedOption) ??
+        getFirstVisibleSibling(selectionContent.querySelector('.options')))
+        .focus();
+      }},
+
+      {command: /ArrowUp/, action: () => {
+        (getPreviousVisibleSibling(focusedOption) ??
+        getLastVisibleSibling(selectionContent.querySelector('.options')))
+        .focus();
+      }},
+
+      {command: /Enter/, action: () => focusedOption?.click()},
+      
+      {command: /Escape/, action: () => selectionContent.closest('.wrapper').classList.remove('active')},
+
+      {command: /[a-z]/i, action: () => {
+        selectionContent.querySelector(`input[type='search']`).focus();
+      }},
+    ];
+
+    keysMap.find(({command}) => command.test(key))?.action();
+  }
+
+  const handleSelectionInput = evt => {
+    const searchInput = evt.target;
+    const options = Array.from(searchInput.closest('.content').querySelectorAll('.option'));
+    const selectButton = searchInput.closest('.wrapper').querySelector('.select-btn');
+    selectButton.id === 'languageSelect' && options.shift();
+    const filteredOptions = filterOptions(options, searchInput.value);
+
+    options.forEach(option => {
+      filteredOptions.includes(option) 
+      ? option.classList.remove('hidden')
+      : option.classList.add('hidden');
+    });
+  }
