@@ -75,11 +75,11 @@ script.
     $('#latestData').html(place === 0 ? `Starting now...` : place === 1 ? `You're next up` : `There are ${place} people ahead of you.`);
   }
 
-  let latestProgress, globalTimeRemaining;
+  let latestProgress, globalTimeRemaining, myUploadStarted = false;
 
   const renderProcessingFeedback = ({data, hitTheBackend}) => {
     l('websocket data');
-    let loopStarted, myUploadStarted = false;
+    let loopStarted;
     //- destructure the data object -osb910
     let {
       ownershipPerson,
