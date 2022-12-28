@@ -63,7 +63,8 @@ script.
     $('#header').html('Processing..');
   }
 
-  const renderQueue = place => {
+  const renderQueue = ({place, log}) => {
+    l(log);
     $('#latestData').html(place === 0 ? `Starting now...` : place === 1 ? `You're next up` : `There are ${place} people ahead of you.`);
   }
 
@@ -163,4 +164,13 @@ script.
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
     }
+  }
+
+  const renderStartingFeedback = data => {
+    l('starting data');
+    $('#latestData').html(data.text);
+    $('#processingData').css({'font-size': '1.6rem'});
+    $('#processingData').hide();
+    $('#secondProcessingData').hide();
+    // $('#latestData').css("font-size", "20px");
   }

@@ -267,6 +267,12 @@ script.
 
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
+    sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
+
+    differentUserHasFinishedProcessing && uploadStarted && renderQueue({place: placeInQueue - 1, log: 'finished processing'});
+
+    transcriptionIsStarting && renderStartingFeedback(data);
+
     /** WHEN WEBSOCKET SAYS COMPLETED **/
     // TODO: move to bottom of conditional blocks
     if (transcriptionHasCompleted) {
@@ -282,19 +288,10 @@ script.
       // 2 seconds to let the user see the completion message
       setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
     } else if (sendingQueueInformation) {
-      l('initial queue data');
-      // TODO: pull out into func // DONE -osb910
-      placeInQueue = data.placeInQueue;
-      renderQueue(placeInQueue);
       // TODO: likely a bug here
     } else if (differentUserHasFinishedProcessing && uploadStarted) {
-      l('finished processing');
-      placeInQueue--;
-      // TODO: hate how this is duped, so annoying // FIXED -osb910
-      renderQueue(placeInQueue);
     // WEBSOCKET DATA COMING FROM THE BACKEND
     } else if (isProcessingInfo) {
-      
     } else if (isFileDetailsMessage) {
       l('file details data');
       const niceDate = new Date().toString().replace(/GMT.*/g, '');
@@ -319,12 +316,6 @@ script.
       l('error data');
       $('#processingData').html(data.text);
     } else if (transcriptionIsStarting) {
-      l('starting data');
-      $('#latestData').html(data.text);
-      $('#processingData').css({'font-size': '1.6rem'});
-      $('#processingData').hide();
-      $('#secondProcessingData').hide();
-      // $('#latestData').css("font-size", "20px");
     } else {
       // TODO: try and deprecate this use eventually from backend
       l('else data');
