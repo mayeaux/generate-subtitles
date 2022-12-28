@@ -418,7 +418,7 @@ async function transcribe({
             // save data to the file
             await fs.appendFile(`${originalContainingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');
 
-            // TODO: rename directory here
+            // TODO: if no link passed, because if link was passed no need to rename directory
             const renamedDirectory = `./transcriptions/${fileSafeNameWithDateTimestamp}`;
             await fs.rename(originalContainingDir, renamedDirectory)
 

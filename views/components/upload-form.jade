@@ -2,6 +2,10 @@ form.form#form
   .group
     label(for='file') Select (or drop) file
     input#file(type='file')
+  if ytdlp
+    .group
+      label(for='downloadLink') Enter a link for automatic download (PASTE)
+      input#downloadLink(type='text' value="https://www.youtube.com/watch?v=jXVcLVQ4FTg&ab_channel=HighlightHeaven")
   .group
     label(for='languageSelect')#languageLabel Language (#{languages.length + 1} Options)
     .wrapper

@@ -15,6 +15,7 @@ const testUrl = 'https://www.youtube.com/watch?v=jXVcLVQ4FTg&ab_channel=Highligh
 async function downloadFile({
   videoUrl,
   filepath,
+  randomNumber
 }){
   return new Promise(async (resolve, reject) => {
     try {
@@ -25,16 +26,16 @@ async function downloadFile({
         '-f',
         'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         '-o',
-        filepath
+        `./uploads/${randomNumber}.%(ext)s`
       ]);
 
 
       ytdlProcess.stdout.on('data', (data) => {
-        l(`stdout: ${data}`);
+        l(`STDOUT: ${data}`);
       })
 
       ytdlProcess.stderr.on('data', (data) => {
-        l(`stderr: ${data}`);
+        l(`STDERR: ${data}`);
       });
 
       ytdlProcess.on('close', (code) => {
@@ -59,19 +60,24 @@ async function downloadFile({
 
 }
 
-async function getTitle(videoUrl){
+async function getFilename(videoUrl){
   return new Promise(async (resolve, reject) => {
     try {
 
-      const ytdlProcess = spawn('yt-dlp', ['--get-filename', testUrl]);
+      const ytdlProcess = spawn('yt-dlp', [
+        '--get-filename',
+        '-f',
+        'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        videoUrl
+      ]);
 
       ytdlProcess.stdout.on('data', (data) => {
-        l(`stdout: ${data}`);
+        // l(`STDOUTT: ${data}`);
         resolve(data.toString());
       })
 
       ytdlProcess.stderr.on('data', (data) => {
-        l(`stderr: ${data}`);
+        // l(`STDERR: ${data}`);
       });
 
       ytdlProcess.on('close', (code) => {
@@ -97,7 +103,7 @@ async function getTitle(videoUrl){
 }
 
 async function main(){
-  const title = await getTitle(testUrl);
+  const title = await getFilename(testUrl);
   l(title);
   await downloadFile({
     videoUrl: testUrl,
@@ -105,9 +111,9 @@ async function main(){
   })
 }
 
-main()
+// main()
 
 module.exports = {
   downloadFile,
-  getTitle
+  getFilename
 };
