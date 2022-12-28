@@ -2,6 +2,7 @@
 const _ = require("lodash");
 const express = require('express');
 const router = express.Router();
+const { getAllDirectories, getMatchingFiles } = require('../lib/files');
 
 router.get('/files', async function(req, res, next) {
   try {
