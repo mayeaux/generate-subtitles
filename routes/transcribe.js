@@ -15,7 +15,9 @@ const { languagesToTranslateTo } = require("../constants/constants");
 const {forHumansNoSeconds} = require("../helpers/helpers");
 const {makeFileNameSafe} = require("../lib/files");
 
+const nodeEnv = process.env.NODE_ENV || 'development';
 const concurrentJobs = process.NODE_ENV === 'development' ? 1 : process.env.CONCURRENT_AMOUNT;
+const uploadLimitInMB = nodeEnv === 'production' ? process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB : 3000;
 
 l(`CONCURRENT JOBS ALLOWED AMOUNT: ${concurrentJobs}`);
 
