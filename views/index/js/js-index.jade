@@ -123,16 +123,25 @@ script.
     const [passedFile] = $('#file').prop('files');
     const fileName = passedFile?.name;
     let language = $('#language').data('value');
-    let languageName = $('#language').text();
     const model = document.querySelector('#model').dataset.value;
     const modelName = document.querySelector('#model').textContent;
     const translateIsChecked = $('#translate').is(':checked');
     const downloadLink = $('#downloadLink').val()
 
+    function capitalizeFirstLetter(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
     //- set local storage
     localStorage.setItem('model', model);
     localStorage.setItem('modelName', modelName);
     localStorage.setItem('language', language);
+    let languageName;
+    if (language === 'auto-detect') {
+      languageName = 'Auto-Detect';
+    } else {
+      languageName = capitalizeFirstLetter(language);
+    }
     localStorage.setItem('languageName', languageName);
     localStorage.setItem('shouldTranslate', translateIsChecked);
 
