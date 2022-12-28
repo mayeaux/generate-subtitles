@@ -28,8 +28,8 @@ const {
 
 l = console.log;
 
-const libreTranslateHostPath = process.env.LIBRETRANSLATE;
-l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
+// const libreTranslateHostPath = process.env.LIBRETRANSLATE;
+// l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
 const whisperPath = which.sync('whisper')
 
@@ -130,8 +130,8 @@ async function transcribe({
         const directoryAndFileName = `./transcriptions/${sdHash}/${sdHash}`
 
         const shouldTranslate = true;
-        if(shouldTranslate && LTHost){
-          l('hitting LibreTranslate');
+        if(shouldTranslate){
+          l('translating');
           await writeToProcessingDataFile(processingDataPath, {
             status: 'translating'
           })

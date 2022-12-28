@@ -8,8 +8,6 @@ const outputFileExtensions = ['.srt', '.vtt', '.txt']
 const nodeEnvironment = process.env.NODE_ENV;
 const libreTranslateHostPath = process.env.LIBRETRANSLATE;
 
-l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
-
 const isProd = nodeEnvironment === 'production';
 
 function buildArguments({

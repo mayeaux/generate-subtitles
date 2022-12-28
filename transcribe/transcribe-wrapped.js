@@ -21,7 +21,7 @@ const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 const nodeEnvironment = process.env.NODE_ENV;
 const libreTranslateHostPath = process.env.LIBRETRANSLATE;
 
-l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
+// l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
 const isProd = nodeEnvironment === 'production';
 
@@ -320,9 +320,6 @@ async function transcribe({
 
             // return await so queue moves on, don't need to wait for translations
             resolve(code);
-
-            // TODO: pull out into own function
-            l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
             l(`should translate: ${shouldTranslate}`)
 
