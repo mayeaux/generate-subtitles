@@ -266,6 +266,7 @@ script.
 
     const isErrorMessage = message === 'error';
 
+    // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
@@ -273,6 +274,14 @@ script.
     differentUserHasFinishedProcessing && uploadStarted && renderQueue({place: placeInQueue - 1, log: 'finished processing'});
 
     transcriptionIsStarting && renderStartingFeedback(data);
+
+    isFileDetailsMessage && renderFileDetails(data);
+
+    //- isTranslationUpdate && renderTranslationUpdate(data);
+
+    //- transcriptionHasCompleted && renderCompletionFeedback(data);
+
+    //- isErrorMessage && renderError(data);
 
     /** WHEN WEBSOCKET SAYS COMPLETED **/
     // TODO: move to bottom of conditional blocks
@@ -291,15 +300,8 @@ script.
     } else if (sendingQueueInformation) {
       // TODO: likely a bug here
     } else if (differentUserHasFinishedProcessing && uploadStarted) {
-    // WEBSOCKET DATA COMING FROM THE BACKEND
     } else if (isProcessingInfo) {
     } else if (isFileDetailsMessage) {
-      l('file details data');
-      const niceDate = new Date().toString().replace(/GMT.*/g, '');
-      const niceString = `startedAt: ${niceDate}`;
-      $('#finishedData').html(data.fileDetails + niceString);
-
-
       // updates about translations on backend
     } else if (isTranslationUpdate) {
       l('language update data');

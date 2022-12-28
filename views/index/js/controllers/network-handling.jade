@@ -174,3 +174,10 @@ script.
     $('#secondProcessingData').hide();
     // $('#latestData').css("font-size", "20px");
   }
+
+  const renderFileDetails = data => {
+    l('file details data');
+    const niceDate = new Date().toString().replace(/GMT.*/g, '');
+    const niceString = `startedAt: ${niceDate}`;
+    $('#finishedData').html(data.fileDetails + niceString);
+  }
