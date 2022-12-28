@@ -23,6 +23,7 @@ block content
           button.btn#decreaseSize Subtitle Text Size -
           button.btn#increaseLineHeight Subtitle Spacing +
           button.btn#decreaseLineHeight Subtitle Spacing -
+          button.btn#showHideControls Hide Text
         .downloadLinks
           a.btn.startAnotherTranscription(href='/') Start Another Transcription
 
@@ -55,7 +56,10 @@ block content
         .fileDetails
           each property, value in processingData
             p #{value}: #{property}
-            //p Filename: #{processingData.filename}
+        #addTranslation
+          a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
+            p(style="color:rgb(22, 29, 29);") Add Here
+              //p Filename: #{processingData.filename}
 
     script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')
@@ -229,6 +233,26 @@ block content
       let subtitlesFontSize, subtitlesLineHeight;
 
       $(document).ready(function () {
+
+        let bottomTextShown = true;
+        $('#showHideControls').click(function(){
+
+          if(bottomTextShown){
+            $('.downloadLinks').hide()
+            $('.fileDetails').hide()
+            $('#addSubtitles').hide()
+            bottomTextShown = false;
+            $(this).text('Show Text');
+
+          } else {
+            $('.downloadLinks').show()
+            $('.fileDetails').show()
+            $('#addSubtitles').show()
+            bottomTextShown = true;
+            $(this).text('Hide Text');
+          }
+          l('clicked!');
+        })
 
         // make all links open in new tab
         const anchorTags = document.querySelectorAll('a');

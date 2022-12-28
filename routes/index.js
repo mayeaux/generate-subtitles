@@ -19,6 +19,8 @@ const {fr} = require("language-name-map/map");
 const { languagesToTranslateTo, newLanguagesMap, modelsArray, languagesArray } = require('../constants/constants');
 const ffprobePath = which.sync('ffprobe')
 const _ = require('lodash');
+const { downloadFile, getFilename } = require('../downloading/yt-dlp-download.js');
+const url = require('url');
 
 // const languageNameMap = require('language-name-map/map')
 // l('language name map');
@@ -169,6 +171,67 @@ router.get('/', function(req, res, next) {
   });
 });
 
+// home page
+router.get('/ytdlp', function(req, res, next) {
+  const domainName = req.hostname;
+
+  const isFreeSubtitles = domainName === 'freesubtitles.ai';
+
+  function decrementBySecond(timeRemainingValues) {
+    let { secondsRemaining, minutesRemaining, hoursRemaining } = timeRemainingValues;
+
+    if(secondsRemaining === 0 || secondsRemaining === '00'){
+      if(minutesRemaining > 0){
+        secondsRemaining = 59;
+        minutesRemaining = minutesRemaining - 1;
+      }
+    } else {
+      secondsRemaining = secondsRemaining - 1;
+    }
+
+    if (minutesRemaining === 0 || minutesRemaining === '00') {
+      if(hoursRemaining > 0){
+        minutesRemaining = 59;
+        hoursRemaining = hoursRemaining - 1;
+      }
+    }
+
+    if (minutesRemaining.toString()?.length === 1) {
+      minutesRemaining = '0' + minutesRemaining;
+    }
+
+    if (secondsRemaining.toString()?.length === 1) {
+      secondsRemaining = '0' + secondsRemaining;
+    }
+
+
+    let thingString = `${minutesRemaining}:${secondsRemaining}`;
+    if(hoursRemaining){ thingString = `${hoursRemaining}:${thingString}` }
+
+    return {
+      secondsRemaining,
+      minutesRemaining,
+      hoursRemaining,
+      string: thingString
+    }
+  }
+
+  // transcribe frontend page
+  res.render('index', {
+    title: 'Transcribe File',
+    uploadPath,
+    forHumans,
+    nodeEnv,
+    siteStats: global.siteStats,
+    isFreeSubtitles,
+    uploadFileSizeLimitInMB,
+    modelsArray,
+    languages: whisperLanguagesHumanReadableArray,
+    decrementBySecond,
+    ytdlp: true
+  });
+});
+
 global.queueData = [];
 
 router.post('/file', upload.single('file'), async function (req, res, next) {
@@ -178,12 +241,61 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l(req.file);
     l(req.body);
 
+    const referer = req.headers.referer;
+    const urlObject = url.parse(referer);
+    const pathname = urlObject.pathname;
+    const isYtdlp = pathname === '/ytdlp';
+
+    l('isYtdlp');
+    l(isYtdlp);
+
     const language = req.body.language;
     let model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
-    const uploadedFilePath = req.file.path;
-    const uploadGeneratedFilename = req.file.filename;
     const shouldTranslate = req.body.shouldTranslate === 'true';
+    const downloadLink = req.body.downloadLink;
+    const passedFile = req.file;
+
+    let filename;
+
+    l(downloadLink);
+
+    let originalFileNameWithExtension, uploadedFilePath, uploadGeneratedFilename;
+    if(passedFile){
+      originalFileNameWithExtension = req.file.originalname;
+      uploadedFilePath = req.file.path;
+      uploadGeneratedFilename = req.file.filename;
+      l('uploadedFilePath');
+      l(uploadedFilePath);
+    } else if (downloadLink){
+      function generateRandomNumber() {
+        return Math.floor(Math.random() * 10000000000).toString();
+      }
+
+      const randomNumber = generateRandomNumber();
+
+      filename =  await getFilename(downloadLink);
+      filename = filename.replace(/\r?\n|\r/g, '');
+      l('filename');
+      l(filename);
+      uploadGeneratedFilename = filename;
+      originalFileNameWithExtension = filename;
+      const baseName = path.parse(filename).name;
+      const extension = path.parse(filename).ext;
+      uploadedFilePath = `uploads/${randomNumber}${extension}`;
+
+
+      await downloadFile({ videoUrl: downloadLink, filepath: uploadedFilePath, randomNumber });
+
+      uploadGeneratedFilename = baseName;
+
+    } else {
+      throw new Error('No file or download link provided');
+      // ERROR
+    }
+
+    l('uploadedFilePath');
+    l(uploadedFilePath);
 
     const ffprobeResponse = await ffprobe(uploadedFilePath, { path: ffprobePath });
 
@@ -192,10 +304,12 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     const amountOfSecondsInHour = 60 * 60;
 
-    const fileSizeInMB = Math.round(req.file.size / 1048576);
+    const domainName = req.hostname;
 
-    const isFreeSubtitles = req.hostname === 'freesubtitles.ai';
-    if(isFreeSubtitles){
+    const isFreeSubtitles = domainName === 'freesubtitles.ai';
+    if(isFreeSubtitles && !isYtdlp){
+      const fileSizeInMB = Math.round(req.file.size / 1048576);
+
       if(uploadDurationInSeconds > amountOfSecondsInHour){
         const uploadLengthErrorMessage = `Your upload length is ${forHumansNoSeconds(uploadDurationInSeconds)}, but currently the maximum length allowed is only 1 hour`;
         return res.status(400).send(uploadLengthErrorMessage);
@@ -211,8 +325,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     let logFileNames = true;
     // something.mp4
-    let originalFileNameWithExtension = decode_utf8(req.file.originalname);
-
     // .mp4 (includes leading period)
     const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
 
@@ -363,6 +475,9 @@ router.get("/player/:filename" , async function(req, res, next){
       return translatedLanguages.includes(language.name)
     });
 
+    delete processingData.strippedText;
+    delete processingData.timestampsArray;
+
     l('processing data');
     l(processingData);
 
@@ -387,10 +502,114 @@ router.get("/player/:filename" , async function(req, res, next){
       processingData,
       title: processingData.filename,
       languagesToLoop,
-      allLanguages
+      allLanguages,
+      renderedFilename: req.params.filename
       // vttPath,
       // fileSource
     })
+  } catch (err){
+    l('err');
+    l(err);
+    res.send(err);
+  }
+});
+
+const { stripOutTextAndTimestamps, reformatVtt } = require ('../translate/helpers')
+
+/** PLYR PLAYER **/
+router.get("/player/:filename/add" , async function(req, res, next){
+  try {
+
+    const fileNameWithoutExtension = req.params.filename
+
+    const processDirectory = process.cwd();
+
+    const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+
+    const processingDataPath = `${containingFolder}/processing_data.json`;
+
+    const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
+
+    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.directoryFileName}.vtt`, 'utf8');
+
+    res.render('addTranslation/addTranslation', {
+      title: 'Add Translation',
+      renderedFilename: fileNameWithoutExtension,
+      originalVtt
+      // vttPath,
+      // fileSource
+    })
+  } catch (err){
+    l('err');
+    l(err);
+    res.send(err);
+  }
+});
+
+const { Readable } = require('stream');
+
+
+/** PLYR PLAYER **/
+router.post("/player/:filename/add" , async function(req, res, next){
+  try {
+
+    const { language } = req.body;
+
+    const fileNameWithoutExtension = req.params.filename
+
+    const newVtt = req.body.message;
+
+    const processDirectory = process.cwd();
+
+    const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+
+    const processingDataPath = `${containingFolder}/processing_data.json`;
+
+    const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
+
+    const originalVttPath = `${containingFolder}/${processingData.directoryFileName}.vtt`;
+
+    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.directoryFileName}.vtt`, 'utf8');
+
+    const inputStream = new Readable(newVtt);
+
+    inputStream.push(newVtt);
+
+    inputStream.push(null);
+
+    l(inputStream)
+
+    const { strippedText } = await stripOutTextAndTimestamps(inputStream, true);
+
+    l('stripped text');
+    l(strippedText);
+
+    const { timestampsArray } = await stripOutTextAndTimestamps(originalVttPath);
+
+    l('timestamps array');
+    l(timestampsArray);
+
+    const reformatted = reformatVtt(timestampsArray, strippedText);
+
+    l(reformatted);
+    l('refomatted');
+
+    const newVttPath = `${containingFolder}/${processingData.directoryFileName}_${language}.vtt`;
+
+    const originalFileVtt = `${containingFolder}/${processingData.directoryFileName}_${processingData.language}.vtt`;
+
+    await fs.writeFile(newVttPath, reformatted, 'utf-8');
+
+    processingData.translatedLanguages.push(language);
+
+    processingData.keepMedia = true;
+
+    await fs.writeFile(processingDataPath, JSON.stringify(processingData), 'utf-8');
+
+    await fs.writeFile(originalFileVtt, originalVtt, 'utf-8');
+
+    return res.redirect(`/player/${req.params.filename}`)
+
   } catch (err){
     l('err');
     l(err);

@@ -16,11 +16,18 @@ function isTextLine(num) {
 const srtPath = '../examples/dnevnik.srt'
 
 let topLevelValue = 1;
-async function stripOutTextAndTimestamps(filePath){
+async function stripOutTextAndTimestamps(filePath, readableStream) {
   return new Promise(async (resolve, reject) => {
-    const rl = await readline.createInterface({
-      input: fs.createReadStream(filePath, 'utf8')
-    });
+    let rl;
+    if(readableStream){
+      rl = await readline.createInterface({
+        input: filePath
+      });
+    } else {
+      rl = readline.createInterface({
+        input: fs.createReadStream(filePath, 'utf8')
+      });
+    }
 
     let strippedText = '';
     let timestampsArray = [];
@@ -51,6 +58,10 @@ async function stripOutTextAndTimestamps(filePath){
       })
     })
 
+    rl.on('error', function (err) {
+      reject(err)
+    });
+
   });
 
 }
@@ -79,8 +90,8 @@ const translatedText = 'Good day. I\'m Mirela Vasin, and this is the News of the
 
 
 function reformatVtt(timestampArray, translatedText){
-  l('timestampArray')
-  l(timestampArray);
+  // l('timestampArray')
+  // l(timestampArray);
 
   const splitText = translatedText.split('\n').slice(0, -1);
   l(splitText)
