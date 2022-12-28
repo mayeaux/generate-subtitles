@@ -117,6 +117,9 @@ Object.keys(languageNameMap).forEach(languageCode =>{
   })
 });
 
+// l('all languages length');
+// l(allLanguages.length);
+
 // l('newLanguagesMap', newLanguagesMap);
 
 // const languagesToTranscribeFrom =
@@ -131,5 +134,6 @@ module.exports = {
   getLanguageCodeForAllLanguages,
   newLanguagesMap,
   allLanguages,
-  modelsArray
+  modelsArray,
+  languagesToTranslateTo
 }

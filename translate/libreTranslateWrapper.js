@@ -4,13 +4,13 @@ const l = console.log;
 // TODO: replace this with new instance
 const LTHost = process.env.LIBRETRANSLATE;
 
-l('LTHost');
-l(LTHost)
+// l('LTHost');
+// l(LTHost)
 
 const endpoint = LTHost + '/translate';
 
-l('endpoint');
-l(endpoint)
+// l('endpoint');
+// l(endpoint)
 
 
 process.on('unhandledRejection', (reason, promise) => {
