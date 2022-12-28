@@ -4,7 +4,17 @@ include controllers/file-handling.jade
 include controllers/error-handling.jade
 include controllers/network-handling.jade
 
+
 script.
+  /*
+  Also let's organize the files this way:
+  For example for this index.jade file
+  views/index/styles/differentStyle.jade
+  views/index/js/jsfunctionality.jade
+  and then
+  /views/index/index.jade
+  If they're used globally we can put them in the views/js views/styles otherwise let's just put them in the same directory
+  */
   l = console.log;
   ce = console.error;
 
