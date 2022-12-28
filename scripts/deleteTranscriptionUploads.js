@@ -1,4 +1,4 @@
-const {tr} = require("language-name-map/map");
+const {tr} = require('language-name-map/map');
 let l = console.log;
 const fs = require('fs-extra');
 const path = require('path');
@@ -72,22 +72,22 @@ const shouldDeleteFiles = process.argv[2] === 'delete';
 const logDeleteOnly = process.argv[2] === 'toDelete';
 const logKeepOnly = process.argv[2] === 'toKeep';
 
-function logInBlueColor(message) {
+function logInBlueColor (message) {
   console.log(`\x1b[34m${message}\x1b[0m`);
 }
 
-function logInRedColor(message) {
+function logInRedColor (message) {
   console.log(`\x1b[31m${message}\x1b[0m`);
 }
 
-if(logDeleteOnly){
-  logInRedColor = function(){}; // disable logging
+if (logDeleteOnly) {
+  logInRedColor = function () {}; // disable logging
 }
-if(logKeepOnly){
-  logInBlueColor = function(){}; // disable logging
+if (logKeepOnly) {
+  logInBlueColor = function () {}; // disable logging
 }
 
-async function deleteAllMediaFiles({ dirPath }) {
+async function deleteAllMediaFiles ({ dirPath }) {
   // Get an array of all the files in the directory
   const files = await fs.promises.readdir(dirPath);
 
@@ -109,7 +109,7 @@ async function deleteAllMediaFiles({ dirPath }) {
   }
 }
 
-async function findMediaFileInDirectory(directory){
+async function findMediaFileInDirectory (directory) {
   const files = await fs.promises.readdir(directory);
   for (const file of files) {
     // get file extension using path module
@@ -153,7 +153,7 @@ const deleteOldFiles = async function () {
         const mediaFilePath = `${directoryPath}/${mediaFile}`;
 
         // no media to delete, keep going
-        if(!mediaFile){
+        if (!mediaFile) {
           continue;
         }
 
@@ -165,7 +165,7 @@ const deleteOldFiles = async function () {
         const processingDataExists = await fs.pathExists(processingDataPath);
 
         // TODO: only implement when it's ready
-        if(!processingDataExists){
+        if (!processingDataExists) {
           l('deleting media files')
           // await fs.unlink(mediaFilePath);
           continue
@@ -180,10 +180,10 @@ const deleteOldFiles = async function () {
           fileExistsButJsonError = err.toString().includes('SyntaxError');
 
           // delete the media if json error
-          if(fileExistsButJsonError){
+          if (fileExistsButJsonError) {
             l('deleting media files')
             // delete the media files
-            if(shouldDeleteFiles){
+            if (shouldDeleteFiles) {
               await deleteAllMediaFiles({ dirPath: directoryPath });
             }
             continue
@@ -191,7 +191,7 @@ const deleteOldFiles = async function () {
         }
 
         // TODO: could have side effects until data saving lands
-        if(!processingData){
+        if (!processingData) {
           l('no processing data');
           l('deleting media files')
           // await deleteAllMediaFiles({ dirPath: directoryPath });
@@ -202,7 +202,7 @@ const deleteOldFiles = async function () {
         const shouldKeepMedia = processingData.keepMedia;
 
         // if keep media is true, keep going
-        if(shouldKeepMedia){
+        if (shouldKeepMedia) {
           l('should keep');
           continue;
         }
@@ -219,7 +219,7 @@ const deleteOldFiles = async function () {
 
           if (over24Hours) {
             l('deleting media files')
-            if(shouldDeleteFiles && !shouldKeepMedia){
+            if (shouldDeleteFiles && !shouldKeepMedia) {
               // delete mediaFilePath
               await fs.unlink(mediaFilePath);
             }
@@ -230,7 +230,7 @@ const deleteOldFiles = async function () {
         // there is an issue because the current processing_data.json file doesn't have a startedAt property
         } else {
           l('deleting media files')
-          if(shouldDeleteFiles) await deleteAllMediaFiles({ dirPath: directoryPath });
+          if (shouldDeleteFiles) await deleteAllMediaFiles({ dirPath: directoryPath });
         }
       }
 

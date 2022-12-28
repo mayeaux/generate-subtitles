@@ -4,11 +4,11 @@ const readline = require('readline');
 l = console.log;
 
 
-function isTimestampLine(num) {
+function isTimestampLine (num) {
   return (num - 3) % 3 === 0;
 }
 
-function isTextLine(num) {
+function isTextLine (num) {
   return num !== 1 && ((num - 1) % 3 === 0);
 }
 
@@ -16,10 +16,10 @@ function isTextLine(num) {
 const srtPath = '../examples/dnevnik.srt'
 
 let topLevelValue = 1;
-async function stripOutTextAndTimestamps(filePath, readableStream) {
+async function stripOutTextAndTimestamps (filePath, readableStream) {
   return new Promise(async (resolve, reject) => {
     let rl;
-    if(readableStream){
+    if (readableStream) {
       rl = await readline.createInterface({
         input: filePath
       });
@@ -41,17 +41,17 @@ async function stripOutTextAndTimestamps(filePath, readableStream) {
       // l('is timestamp line', timestampLine)
       // l('is text line', textLine)
       // l(`\n\n`)
-      if(textLine) {
+      if (textLine) {
         strippedText = strippedText + `${line}\n`
       }
-      if(timestampLine) {
+      if (timestampLine) {
         timestampsArray.push(line)
       }
       counter++
     });
 
     rl.on('close', async function () {
-      l(`\n\n`)
+      l('\n\n')
       resolve({
         strippedText,
         timestampsArray
@@ -89,14 +89,14 @@ const translatedText = 'Good day. I\'m Mirela Vasin, and this is the News of the
   'Today, two quarter-final matches are being played at the world football championship - Morocco-Portugal and England-France.'
 
 
-function reformatVtt(timestampArray, translatedText){
+function reformatVtt (timestampArray, translatedText) {
   // l('timestampArray')
   // l(timestampArray);
 
   const splitText = translatedText.split('\n').slice(0, -1);
   l(splitText)
 
-  let formattedVtt = `WEBVTT\n`;
+  let formattedVtt = 'WEBVTT\n';
 
   for (const [index, value] of splitText.entries()) {
     formattedVtt = formattedVtt + `\n${timestampArray[index]}\n${value}\n`

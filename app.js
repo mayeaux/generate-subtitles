@@ -1,12 +1,12 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+const express = require('express');
+const path = require('path');
+const favicon = require('serve-favicon');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const { WebSocketServer } = require('ws');
 const fs = require('fs');
-const {createServer} = require("http");
+const {createServer} = require('http');
 const sessions = require('express-session');
 const _ = require('lodash');
 // run stats gathering
@@ -21,20 +21,18 @@ if (!fs.existsSync('.env')) {
 // Load the .env file
 require('dotenv').config();
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
-var api = require('./routes/api');
-var stats = require('./routes/stats');
-var player = require('./routes/player');
-var transcribe = require('./routes/transcribe');
-var files = require('./routes/files');
+const routes = require('./routes/index');
+const users = require('./routes/users');
+const api = require('./routes/api');
+const stats = require('./routes/stats');
+const player = require('./routes/player');
+const transcribe = require('./routes/transcribe');
+const files = require('./routes/files');
 
-var app = express();
+const app = express();
 const server = createServer(app);
 
 require('./lib/websockets')(server);
-
-const isProd = process.NODE_ENV === 'production';
 
 l = console.log;
 
@@ -47,7 +45,7 @@ l = console.log;
 //   var args = [].slice.apply(arguments).concat([stack[1].trim()]);
 //   return console.log(console, args);
 // }
-var port = process.env.PORT || '3000';
+const port = process.env.PORT || '3000';
 app.set('port', port);
 
 // create folders if they don't exist yet
@@ -70,7 +68,6 @@ app.use(express.static(path.join(__dirname, 'public')));
   app.use(express.static(__dirname));
 // }
 
-
 const oneWeek = 1000 * 60 * 60 * 24 * 7;
 
 //session middleware
@@ -81,7 +78,7 @@ app.use(sessions({
   resave: false
 }));
 
-app.use(function(req, res, next){
+app.use(function (req, res, next) {
   const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   l('IP Address')
   l(ipAddress);
@@ -96,10 +93,9 @@ app.use('/', transcribe);
 app.use('/', files);
 app.use('/', player);
 
-
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+app.use(function (req, res, next) {
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
@@ -109,7 +105,7 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
+  app.use(function (err, req, res, next) {
     l(err);
 
     res.status(err.status || 500);
@@ -122,7 +118,7 @@ if (app.get('env') === 'development') {
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   l(err);
   res.status(err.status || 500);
   res.render('error', {

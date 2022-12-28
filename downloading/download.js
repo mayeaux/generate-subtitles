@@ -12,7 +12,7 @@ const ytDlpWrap = new YTDlpWrap(ytDlpBinaryPath);
 
 const testUrl = 'https://www.youtube.com/watch?v=P7ny6-lKoe4';
 
-function download(videoUrl, filename){
+function download (videoUrl, filename) {
   let ytDlpEventEmitter = ytDlpWrap
     .exec([
       videoUrl,
@@ -41,7 +41,7 @@ function download(videoUrl, filename){
   // console.log(ytDlpEventEmitter.ytDlpProcess.pid);
 }
 
-async function download(videoUrl, filename){
+async function download (videoUrl, filename) {
   let stdout = await ytDlpWrap.execPromise([
     videoUrl,
     '-f',
@@ -57,7 +57,7 @@ async function download(videoUrl, filename){
   // console.log(ytDlpEventEmitter.ytDlpProcess.pid);
 }
 
-async function getTitle(videoUrl){
+async function getTitle (videoUrl) {
   let metadata = await ytDlpWrap.getVideoInfo(videoUrl, '--format', 'bestaudio / b');
 
   // l(metadata);
@@ -73,7 +73,7 @@ async function getTitle(videoUrl){
 //
 // l(transcribe);
 
-async function main(videoUrl){
+async function main (videoUrl) {
   const filename = await getTitle(videoUrl);
   // l(filename)
   await download(videoUrl, filename);

@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 const {forHumans, decrementBySecond} = require('../helpers/helpers')
 const { modelsArray, languagesArray } = require('../constants/constants');
 
@@ -14,7 +14,7 @@ const uploadLimitInMB = nodeEnv === 'production' ? process.env.UPLOAD_FILE_SIZE_
 l({uploadLimitInMB});
 
 // home page
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
   const isFreeSubtitles = req.hostname === 'freesubtitles.ai';
 
   // transcribe frontend page
@@ -33,7 +33,7 @@ router.get('/', function(req, res, next) {
 });
 
 // home page
-router.get('/ytdlp', function(req, res, next) {
+router.get('/ytdlp', function (req, res, next) {
   const domainName = req.hostname;
 
   const isFreeSubtitles = domainName === 'freesubtitles.ai';

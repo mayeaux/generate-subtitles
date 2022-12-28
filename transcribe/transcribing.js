@@ -1,6 +1,6 @@
-const fs = require("fs-extra");
-const createTranslatedFiles = require("../translate/create-translated-files");
-const {forHumans} = require("../helpers/helpers");
+const fs = require('fs-extra');
+const createTranslatedFiles = require('../translate/create-translated-files');
+const {forHumans} = require('../helpers/helpers');
 
 // TODO: move to another directory
 const outputFileExtensions = ['.srt', '.vtt', '.txt']
@@ -10,12 +10,12 @@ const libreTranslateHostPath = process.env.LIBRETRANSLATE;
 
 const isProd = nodeEnvironment === 'production';
 
-function buildArguments({
+function buildArguments ({
   uploadedFilePath,
   language,
   model,
   sdHash
-}){
+}) {
   /** INSTANTIATE WHISPER PROCESS **/
     // queue up arguments, path is the first one
   let arguments = [];
@@ -24,14 +24,14 @@ function buildArguments({
   arguments.push(uploadedFilePath);
 
   // these don't have to be defined
-  if(language) arguments.push('--language', language);
-  if(model) arguments.push('--model', model);
+  if (language) arguments.push('--language', language);
+  if (model) arguments.push('--model', model);
 
   // TODO: add the max GPUS thing here
-  if(isProd){
-    if(global.topLevelValue === 1){
+  if (isProd) {
+    if (global.topLevelValue === 1) {
       arguments.push('--device', 'cuda:0');
-    } else if(global.topLevelValue === 2){
+    } else if (global.topLevelValue === 2) {
       arguments.push('--device', 'cuda:1');
     }
     toggleTopLevelValue();
@@ -49,17 +49,17 @@ function buildArguments({
   return arguments
 }
 
-function toggleTopLevelValue(){
-  if(global.topLevelValue === 1){
+function toggleTopLevelValue () {
+  if (global.topLevelValue === 1) {
     global.topLevelValue = 2
-  } else if(global.topLevelValue === 2){
+  } else if (global.topLevelValue === 2) {
     global.topLevelValue = 1
   }
 }
 
-function autoDetectLanguage(dataAsString){
-  if(!dataAsString) return false
-  if(dataAsString.includes('Detected language:')){
+function autoDetectLanguage (dataAsString) {
+  if (!dataAsString) return false
+  if (dataAsString.includes('Detected language:')) {
     // parse out the language from the console output
     return dataAsString.split(':')[1].substring(1).trimEnd();
   }
@@ -67,13 +67,13 @@ function autoDetectLanguage(dataAsString){
 }
 
 /** write output to processing_data.json **/
-async function writeToProcessingDataFile(processingDataPath, dataObject){
+async function writeToProcessingDataFile (processingDataPath, dataObject) {
   // save data to the file
   const processingDataExists = await fs.exists(processingDataPath)
 
   l('processingDataExists')
   l(processingDataExists);
-  if(processingDataExists){
+  if (processingDataExists) {
     const fileData = await fs.readFile(processingDataPath, 'utf8')
     l('fileData');
     l(fileData);
@@ -88,7 +88,7 @@ async function writeToProcessingDataFile(processingDataPath, dataObject){
   }
 }
 
-async function translateIfNeeded({ language, shouldTranslate, processingDataPath, directoryAndFileName}){
+async function translateIfNeeded ({ language, shouldTranslate, processingDataPath, directoryAndFileName}) {
   const shouldTranslateFromLanguage = shouldTranslateFrom(language);
   l(`should translate from language: ${shouldTranslateFromLanguage}`)
   l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
@@ -96,7 +96,7 @@ async function translateIfNeeded({ language, shouldTranslate, processingDataPath
 
   let translationStarted, translationFinished = false;
   /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
-  if(libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate){
+  if (libreTranslateHostPath && shouldTranslateFromLanguage && shouldTranslate) {
     l('hitting LibreTranslate');
     translationStarted = new Date();
     // hit libretranslate
@@ -112,10 +112,10 @@ async function translateIfNeeded({ language, shouldTranslate, processingDataPath
   }
 }
 
-async function saveTranscriptionCompletedInformation({
+async function saveTranscriptionCompletedInformation ({
   startingDate,
   sdHash
-}){
+}) {
   const processingDataPath = `./transcriptions/${sdHash}/processing_data.json`;
 
   // just post-processing, you can return the response
@@ -129,12 +129,12 @@ async function saveTranscriptionCompletedInformation({
   })
 }
 
-async function moveAndRenameFilesAndFolder({
+async function moveAndRenameFilesAndFolder ({
   originalUpload,
   uploadFileName,
   sdHash,
   originalFileExtension,
-}){
+}) {
   const originalUploadPath = originalUpload;
 
   // the directory with the output from whisper
@@ -146,7 +146,7 @@ async function moveAndRenameFilesAndFolder({
   await fs.move(originalUploadPath, newUploadPath)
 
   // move each of the different output files
-  for(const fileExtension of outputFileExtensions){
+  for (const fileExtension of outputFileExtensions) {
     // create the prepend thing to loop over
     const transcribedFilePath = `${currentContainingDir}/${uploadFileName}${fileExtension}`
     const newTranscribedFilePath = `${currentContainingDir}/${sdHash}${fileExtension}`

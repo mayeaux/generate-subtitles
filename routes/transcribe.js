@@ -1,19 +1,19 @@
 const url = require('url');
-const path = require("path");
-const ffprobe = require("ffprobe");
-const moment = require("moment/moment");
-const Queue = require("promise-queue");
-const multer = require("multer");
-var express = require('express');
-var router = express.Router();
+const path = require('path');
+const ffprobe = require('ffprobe');
+const moment = require('moment/moment');
+const Queue = require('promise-queue');
+const multer = require('multer');
+const express = require('express');
+const router = express.Router();
 const which = require('which');
 const ffprobePath = which.sync('ffprobe')
 
-const { downloadFile, getFilename } = require("../downloading/yt-dlp-download");
-const transcribeWrapped = require("../transcribe/transcribe-wrapped");
-const { languagesToTranslateTo } = require("../constants/constants");
-const {forHumansNoSeconds} = require("../helpers/helpers");
-const {makeFileNameSafe} = require("../lib/files");
+const { downloadFile, getFilename } = require('../downloading/yt-dlp-download');
+const transcribeWrapped = require('../transcribe/transcribe-wrapped');
+const { languagesToTranslateTo } = require('../constants/constants');
+const {forHumansNoSeconds} = require('../helpers/helpers');
+const {makeFileNameSafe} = require('../lib/files');
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const concurrentJobs = process.NODE_ENV === 'development' ? 1 : process.env.CONCURRENT_AMOUNT;
@@ -22,19 +22,19 @@ const uploadLimitInMB = nodeEnv === 'production' ? process.env.UPLOAD_FILE_SIZE_
 l(`CONCURRENT JOBS ALLOWED AMOUNT: ${concurrentJobs}`);
 
 // todo: on dif node-env change it to 2
-var maxConcurrent = ( concurrentJobs && Number(concurrentJobs) ) || 1;
-var maxQueue = Infinity;
-var queue = new Queue(maxConcurrent, maxQueue);
+let maxConcurrent = ( concurrentJobs && Number(concurrentJobs) ) || 1;
+let maxQueue = Infinity;
+let queue = new Queue(maxConcurrent, maxQueue);
 
 // l(queue);
 
 const storage = multer.diskStorage({ // notice you are calling the multer.diskStorage() method here, not multer()
-  destination: function(req, file, cb) {
+  destination: function (req, file, cb) {
     cb(null, './uploads/')
   },
 });
 
-var upload = multer({ storage });
+let upload = multer({ storage });
 
 router.post('/file', upload.single('file'), async function (req, res, next) {
   // l(global.ws);
@@ -64,14 +64,14 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l(downloadLink);
 
     let originalFileNameWithExtension, uploadedFilePath, uploadGeneratedFilename;
-    if(passedFile){
+    if (passedFile) {
       originalFileNameWithExtension = req.file.originalname;
       uploadedFilePath = req.file.path;
       uploadGeneratedFilename = req.file.filename;
       l('uploadedFilePath');
       l(uploadedFilePath);
-    } else if (downloadLink){
-      function generateRandomNumber() {
+    } else if (downloadLink) {
+      function generateRandomNumber () {
         return Math.floor(Math.random() * 10000000000).toString();
       }
 
@@ -110,14 +110,14 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const domainName = req.hostname;
 
     const isFreeSubtitles = domainName === 'freesubtitles.ai';
-    if(isFreeSubtitles && !isYtdlp){
+    if (isFreeSubtitles && !isYtdlp) {
       const fileSizeInMB = Math.round(req.file.size / 1048576);
 
-      if(uploadDurationInSeconds > amountOfSecondsInHour){
+      if (uploadDurationInSeconds > amountOfSecondsInHour) {
         const uploadLengthErrorMessage = `Your upload length is ${forHumansNoSeconds(uploadDurationInSeconds)}, but currently the maximum length allowed is only 1 hour`;
         return res.status(400).send(uploadLengthErrorMessage);
       }
-      if(fileSizeInMB > uploadLimitInMB){
+      if (fileSizeInMB > uploadLimitInMB) {
         const uploadSizeErrorMessage = `Your upload size is ${fileSizeInMB} MB, but the maximum size currently allowed is ${uploadLimitInMB} MB.`;
         return res.status(400).send(uploadSizeErrorMessage);
       }
@@ -145,16 +145,16 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     // something.mp4
     const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${originalFileExtension}`
 
-    if(!uploadedFilePath){ res.status(500); res.send('no file')}
+    if (!uploadedFilePath) { res.status(500); res.send('no file')}
 
     // load websocket by passed number
     let websocketConnection;
-    if(global.webSocketData){
+    if (global.webSocketData) {
       // l(global.webSocketData);
-      const websocket = global.webSocketData.find(function(websocket){
+      const websocket = global.webSocketData.find(function (websocket) {
         return websocketNumber === websocket.websocketNumber;
       })
-      if(websocket){
+      if (websocket) {
         websocketConnection = websocket.websocket;
       } else {
         throw new Error('no websocket!');
@@ -182,7 +182,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l(totalOutstanding);
 
     // give frontend their queue position
-    if(amountOfCurrentPending > 0){
+    if (amountOfCurrentPending > 0) {
       websocketConnection.send(JSON.stringify({
         message: 'queue',
         placeInQueue: totalOutstanding
@@ -195,7 +195,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     // l(global.queueData);
 
     // make the model medium by default
-    if(!model){
+    if (!model) {
       model = 'medium';
     }
 
@@ -236,15 +236,15 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     // l(req.files);
 
     // assuming already sent from above
-    if(!downloadedFile){
+    if (!downloadedFile) {
       res.send('ok');
     }
     // req.files is array of uploaded files
     // req.body will contain the text fields, if there were any
-  } catch (err){
+  } catch (err) {
     l('err')
     l(err);
-    throw(err);
+    throw (err);
   }
 });
 

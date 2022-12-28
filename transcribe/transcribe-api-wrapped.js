@@ -1,18 +1,18 @@
-const which = require("which");
+const which = require('which');
 const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
-var convert = require('cyrillic-to-latin')
+let convert = require('cyrillic-to-latin')
 const projectConstants = require('../constants/constants');
 const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
 const forHumans = require('../helpers/helpers').forHumans;
 const createTranslatedFiles = require('../translate/translate-files-api');
-const {formatStdErr} = require("../helpers/formatStdErr");
+const {formatStdErr} = require('../helpers/formatStdErr');
 const LTHost = process.env.LIBRETRANSLATE;
 
-function getCodeFromLanguageName(languageName){
-  return translationLanguages.find(function(filteredLanguage){
+function getCodeFromLanguageName (languageName) {
+  return translationLanguages.find(function (filteredLanguage) {
     return languageName === filteredLanguage.name;
   }).code
 }
@@ -35,14 +35,14 @@ const whisperPath = which.sync('whisper')
 
 global.topLevelValue = 1;
 
-async function transcribe({
+async function transcribe ({
   language,
   model,
   originalFileExtension,
   uploadFileName,
   originalFileName,
   sdHash // standin for claimId or something like that
-}){
+}) {
   return new Promise(async (resolve, reject) => {
     try {
       const originalUpload = `./uploads/${uploadFileName}`;
@@ -69,11 +69,11 @@ async function transcribe({
       // TODO: how to pull these out?
       let foundLanguage, responseSent;
 
-      function holder({
+      function holder ({
         model, language, originalFileName, processingDataPath, resolve
-      }){
-        return function(data){
-          (async function(){
+      }) {
+        return function (data) {
+          (async function () {
             l(`STDERR: ${data}`)
 
             // get value from the whisper output string
@@ -94,7 +94,7 @@ async function transcribe({
             })
 
             // when over 0%, mark as started successfully
-            if(!responseSent){
+            if (!responseSent) {
               responseSent = true;
               resolve('started')
             }
@@ -103,16 +103,16 @@ async function transcribe({
       }
 
       /**  console output from stdoutt **/
-      async function handleStdOut(data){
+      async function handleStdOut (data) {
         l(`STDOUT: ${data}`)
 
         // save auto-detected language
         const parsedLanguage = autoDetectLanguage(data.toString());
-        if(parsedLanguage) foundLanguage = parsedLanguage;
+        if (parsedLanguage) foundLanguage = parsedLanguage;
       }
 
       /** after whisper completes **/
-      async function handleProcessSuccess(){
+      async function handleProcessSuccess () {
         // move to the sixDigitNumber directory
         await moveAndRenameFilesAndFolder({
           originalUpload,
@@ -130,7 +130,7 @@ async function transcribe({
         const directoryAndFileName = `./transcriptions/${sdHash}/${sdHash}`
 
         const shouldTranslate = true;
-        if(shouldTranslate){
+        if (shouldTranslate) {
           l('translating');
           await writeToProcessingDataFile(processingDataPath, {
             status: 'translating'
@@ -152,15 +152,15 @@ async function transcribe({
         })
       }
 
-      async function handleProcessClose(code){
+      async function handleProcessClose (code) {
           const processFinishedSuccessfully = code === 0;
           l(`child process exited with code ${code}`);
 
           // use auto-detected language
-          if(!language) language = foundLanguage;
+          if (!language) language = foundLanguage;
 
           // successful output
-          if(processFinishedSuccessfully){
+          if (processFinishedSuccessfully) {
             await handleProcessSuccess()
           } else {
             // process returned with non-0 response
@@ -179,7 +179,7 @@ async function transcribe({
       whisperProcess.on('close', handleProcessClose)
 
 
-    } catch (err){
+    } catch (err) {
       l('error from transcribe')
       l(err);
 

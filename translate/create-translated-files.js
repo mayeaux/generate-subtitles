@@ -6,12 +6,12 @@ const { reformatVtt } = require('./helpers')
 const { simplified } = require('zh-convert');
 const translateText = require('./google-translate-browser')
 
-const convert = require("cyrillic-to-latin");
+const convert = require('cyrillic-to-latin');
 
 let l = console.log;
 
-if(global.debug === 'false'){
-  l = function(){}
+if (global.debug === 'false') {
+  l = function () {}
 }
 
 // l('translationLanguages')
@@ -23,8 +23,8 @@ if(global.debug === 'false'){
 // l('all languages');
 // l(allLanguages);
 
-function getCodeFromLanguageName(languageName){
-  return allLanguages.find(function(filteredLanguage){
+function getCodeFromLanguageName (languageName) {
+  return allLanguages.find(function (filteredLanguage) {
     return languageName === filteredLanguage.name;
   }).code
 }
@@ -32,13 +32,13 @@ function getCodeFromLanguageName(languageName){
 // l(getCodeFromLanguageName('English'))
 // TODO: pass processing path
 /** for translation **/
-async function createTranslatedFiles({
+async function createTranslatedFiles ({
     directoryAndFileName,
     language,
     websocketConnection,
     strippedText,
     timestampsArray,
-}){
+}) {
 
   const loopThrough = ['.srt', '.vtt', 'txt'];
 
@@ -57,7 +57,7 @@ async function createTranslatedFiles({
   l({languagesToTranscribe})
 
 
-  for(const languageToConvertTo of languagesToTranscribe){
+  for (const languageToConvertTo of languagesToTranscribe) {
     l('languageToConvertTo');
     l(languageToConvertTo);
 
@@ -66,7 +66,7 @@ async function createTranslatedFiles({
 
     try {
       // no need to translate just copy the file
-      if(languageToConvertTo !== language){
+      if (languageToConvertTo !== language) {
         websocketConnection.send(JSON.stringify({
           languageUpdate: `Translating into ${languageToConvertTo}..`,
           message: 'languageUpdate'
@@ -97,15 +97,15 @@ async function createTranslatedFiles({
         // l('translatedText');
         // l(translatedText);
 
-        if(!translatedText){
+        if (!translatedText) {
           continue
         }
 
-        if(languageToConvertTo === 'Chinese'){
+        if (languageToConvertTo === 'Chinese') {
           translatedText = simplified(translatedText);
         }
 
-        if(languageToConvertTo === 'Serbian'){
+        if (languageToConvertTo === 'Serbian') {
           translatedText = convert(translatedText);
         }
 
@@ -113,7 +113,7 @@ async function createTranslatedFiles({
 
         await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, reformattedVtt, 'utf-8');
       }
-    } catch (err){
+    } catch (err) {
       l(err);
       l('error in translation');
       return err

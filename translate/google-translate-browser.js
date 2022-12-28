@@ -3,9 +3,9 @@ const axios = require('axios');
 
 const maximumStringLength = 5000;
 
-function splitString(str) {
+function splitString (str) {
   let splitStrings = [];
-  let currentString = "";
+  let currentString = '';
   const splitString = str.split('\n');
 
   l('total lines')
@@ -14,10 +14,10 @@ function splitString(str) {
   // TODO: if this was smarter it wouldn't go over 5000 characters,
   // TODO: but it seems to be fine for now
   let counter = 0;
-  for(const string of splitString) {
+  for (const string of splitString) {
     counter++
     // we have yet to encounter the maximum string length
-    if(currentString.length < maximumStringLength) {
+    if (currentString.length < maximumStringLength) {
       // l('not too long')
       currentString = `${currentString}${string}\n`
 
@@ -30,13 +30,13 @@ function splitString(str) {
       l('too long')
       currentString = `${currentString}${string}\n`
       splitStrings.push(currentString);
-      currentString = "";
+      currentString = '';
     }
   }
   return splitStrings;
 }
 
-function test(){
+function test () {
   const textToTranslate = `Znači tako.
     Tako.
     Vi znate šta vam sleduje?
@@ -57,8 +57,8 @@ function test(){
   // }
   // l(chunks);
 
-  let recombined = "";
-  for(const chunk of chunks) {
+  let recombined = '';
+  for (const chunk of chunks) {
     recombined = recombined + chunk;
   }
 
@@ -80,7 +80,7 @@ function test(){
 
 
 
-async function translateText({ text, targetLanguageCode }){
+async function translateText ({ text, targetLanguageCode }) {
   const url = generateRequestUrl(text, { to: targetLanguageCode });
   // l('generated url');
   // l(url);
@@ -104,13 +104,13 @@ async function translateText({ text, targetLanguageCode }){
   }
 }
 
-async function splitAndTranslateText({ text, targetLanguageCode }){
+async function splitAndTranslateText ({ text, targetLanguageCode }) {
   const chunks = splitString(text);
   l('chunks');
   l(chunks.length);
 
-  let translatedText = "";
-  for(const chunk of chunks) {
+  let translatedText = '';
+  for (const chunk of chunks) {
     const translatedChunk = await translateText({ text: chunk, targetLanguageCode });
     translatedText = translatedText + translatedChunk + '\n';
   }
@@ -118,7 +118,7 @@ async function splitAndTranslateText({ text, targetLanguageCode }){
   return translatedText;
 }
 
-function howManyLines(string){
+function howManyLines (string) {
   return string.split('\n').length;
 }
 
@@ -130,12 +130,12 @@ const delayPromise = (delayTime) => {
   });
 };
 
-async function newMain(){
+async function newMain () {
   await delayPromise(1000);
 
-  let totalTranslatedText = "";
-  for(const chunk of chunks) {
-    l(`\n\n`)
+  let totalTranslatedText = '';
+  for (const chunk of chunks) {
+    l('\n\n')
     l('chunk');
     l(chunk);
 
@@ -146,7 +146,7 @@ async function newMain(){
 
     l('translated');
     l(translated)
-    l(`\n\n`)
+    l('\n\n')
 
     totalTranslatedText = totalTranslatedText + translated + '\n';
   }
@@ -167,7 +167,7 @@ async function newMain(){
 
 // newMain()
 
-async function main(){
+async function main () {
   try {
     const translated = await translateText({
       text: textToTranslate,
@@ -176,7 +176,7 @@ async function main(){
 
     // l('translated');
     // l(translated);
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
   }

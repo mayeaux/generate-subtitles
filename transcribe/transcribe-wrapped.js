@@ -1,4 +1,4 @@
-const which = require("which");
+const which = require('which');
 const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
@@ -29,13 +29,13 @@ const whisperPath = which.sync('whisper')
 
 global.transcriptions = [];
 
-function sendToWebsocket(websocketConnection, data){
+function sendToWebsocket (websocketConnection, data) {
   websocketConnection.send(JSON.stringify(data), function () {});
 }
 
 
 let topLevelValue = 1;
-async function transcribe({
+async function transcribe ({
   uploadedFilePath,
   language,
   model,
@@ -50,11 +50,11 @@ async function transcribe({
   uploadGeneratedFilename,
   shouldTranslate,
   uploadDurationInSeconds,
-}){
+}) {
   return new Promise(async (resolve, reject) => {
 
     // if the upload was removed from the queue, don't run it
-    if(!global.queueData.includes(websocketNumber)){
+    if (!global.queueData.includes(websocketNumber)) {
       l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
       // if they're not in the queue, cut them off
       // TODO: change to reject?
@@ -74,7 +74,7 @@ async function transcribe({
 
       sendToWebsocket(websocketConnection, {
         message: 'starting',
-        text: `Whisper initializing, updates to come...`
+        text: 'Whisper initializing, updates to come...'
       })
 
       const osSpecificPathSeparator = path.sep;
@@ -96,7 +96,7 @@ async function transcribe({
       }
 
       let displayLanguage;
-      if(language === 'auto-detect'){
+      if (language === 'auto-detect') {
         displayLanguage = 'Auto-Detect';
       } else {
         displayLanguage = language;
@@ -127,16 +127,16 @@ async function transcribe({
       }
 
       // set the language for whisper (if undefined with auto-detect and translate off that)
-      if(model){
+      if (model) {
         arguments.push('--model', model);
       }
 
       // alternate
       // todo: do an 'express' queue and a 'large files' queue
-      if(isProd && multipleGpusEnabled){
-        if(topLevelValue === 1){
+      if (isProd && multipleGpusEnabled) {
+        if (topLevelValue === 1) {
           arguments.push('--device', 'cuda:0');
-        } else if(topLevelValue === 2){
+        } else if (topLevelValue === 2) {
           arguments.push('--device', 'cuda:1');
         }
       }
@@ -145,7 +145,7 @@ async function transcribe({
       arguments.push('--verbose', 'False');
 
       // folder to save .txt, .vtt and .srt
-      arguments.push('-o', "transcriptions/" + uploadGeneratedFilename);
+      arguments.push('-o', 'transcriptions/' + uploadGeneratedFilename);
 
       l('transcribe arguments');
       l(arguments);
@@ -154,9 +154,9 @@ async function transcribe({
 
       let serverNumber = topLevelValue;
 
-      if(serverNumber === 1){
+      if (serverNumber === 1) {
         topLevelValue = 2
-      } else if(serverNumber === 2){
+      } else if (serverNumber === 2) {
         topLevelValue = 1
       }
 
@@ -179,13 +179,13 @@ async function transcribe({
         // TODO: pull this out into own function
         // check if language is autodetected)
         const dataAsString = data.toString();
-        if(dataAsString.includes('Detected language:')){
+        if (dataAsString.includes('Detected language:')) {
 
           // parse out the language from the console output
           foundLanguage = dataAsString.split(':')[1].substring(1).trimEnd();
 
           l(`DETECTED LANGUAGE FOUND: ${foundLanguage}`);
-          if(language === 'auto-detect' && foundLanguage){
+          if (language === 'auto-detect' && foundLanguage) {
             language = foundLanguage
             displayLanguage = `${language} (Auto-Detected)`
           }
@@ -220,13 +220,13 @@ async function transcribe({
          Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language ${language}, Filename: ${directorySafeFileNameWithExtension}, Queue: ${totalOutstanding}, Translating: ${shouldTranslate}  `);
 
         // loop through and do with websockets
-        for(let [, websocket] of global['webSocketData'].entries() ) {
+        for (let [, websocket] of global['webSocketData'].entries() ) {
           const websocketConnection = websocket.websocket;
           const clientWebsocketNumber = websocket.websocketNumber;
           const websocketFromProcess = websocketNumber;
 
           let ownershipPerson = 'others'
-          if(clientWebsocketNumber === websocketFromProcess){
+          if (clientWebsocketNumber === websocketFromProcess) {
             ownershipPerson = 'you'
           }
 
@@ -237,7 +237,7 @@ async function transcribe({
           const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
 
           let processingString = '';
-          if(timeRemaining){
+          if (timeRemaining) {
             processingString = `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s`
           }
 
@@ -271,7 +271,7 @@ async function transcribe({
           l('code');
           l(code);
 
-          if(!language || language === 'auto-detect'){
+          if (!language || language === 'auto-detect') {
             language = foundLanguage;
           }
 
@@ -282,7 +282,7 @@ async function transcribe({
 
 
           // successful output
-          if(processFinishedSuccessfully){
+          if (processFinishedSuccessfully) {
             // TODO: pull out all this moving stuff into its own function
 
             const originalContainingDir = `./transcriptions/${uploadGeneratedFilename}`;
@@ -310,11 +310,11 @@ async function transcribe({
 
             await fs.move(`${originalContainingDir}/${uploadFolderFileName}.txt`, transcribedTxtFilePath, { overwrite: true })
 
-            if(language === 'Serbian'){
+            if (language === 'Serbian') {
               await convertSerbianCyrillicToLatin({ transcribedSrtFilePath, transcribedVttFilePath, transcribedTxtFilePath })
             }
 
-            if(language === 'Chinese'){
+            if (language === 'Chinese') {
               await convertChineseTraditionalToSimplified({ transcribedSrtFilePath, transcribedVttFilePath, transcribedTxtFilePath })
             }
 
@@ -333,10 +333,10 @@ async function transcribe({
 
             let translationStarted, translationFinished = false;
             /** AUTOTRANSLATE WITH LIBRETRANSLATE **/
-            if(libreTranslateHostPath, shouldTranslate){
+            if (libreTranslateHostPath, shouldTranslate) {
               // tell frontend that we're translating now
               websocketConnection.send(JSON.stringify({
-                languageUpdate: `Doing translations with LibreTranslate`,
+                languageUpdate: 'Doing translations with LibreTranslate',
                 message: 'languageUpdate'
               }), function () {});
               l('hitting LibreTranslate');
@@ -386,7 +386,7 @@ async function transcribe({
             const translationStartedAndCompleted = translationStarted && translationFinished;
 
             let translatedLanguages = [];
-            if(translationStartedAndCompleted){
+            if (translationStartedAndCompleted) {
               const trimmedLanguagesToTranscribe = languagesToTranscribe.filter(e => e !== language);
               translatedLanguages = trimmedLanguagesToTranscribe
             }
@@ -426,7 +426,7 @@ async function transcribe({
           }
 
           l(`child process exited with code ${code}`);
-        } catch (err){
+        } catch (err) {
           reject(err);
           sendToWebsocket({
             message: 'error',
@@ -439,7 +439,7 @@ async function transcribe({
           throw new Error(err);
         }
       });
-    } catch (err){
+    } catch (err) {
       l('error from transcribe')
       l(err);
 

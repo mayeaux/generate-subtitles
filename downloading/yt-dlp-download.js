@@ -1,8 +1,8 @@
-const which = require("which");
+const which = require('which');
 const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const projectConstants = require('../constants/constants');
-const {formatStdErr} = require("../helpers/formatStdErr");
+const {formatStdErr} = require('../helpers/formatStdErr');
 
 // yt-dlp --no-mtime -f '\''bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'\''
 
@@ -12,11 +12,11 @@ const ytDlpPath = which.sync('yt-dlp')
 
 const testUrl = 'https://www.youtube.com/watch?v=jXVcLVQ4FTg&ab_channel=HighlightHeaven';
 
-async function downloadFile({
+async function downloadFile ({
   videoUrl,
   filepath,
   randomNumber
-}){
+}) {
   return new Promise(async (resolve, reject) => {
     try {
 
@@ -40,14 +40,14 @@ async function downloadFile({
 
       ytdlProcess.on('close', (code) => {
         l(`child process exited with code ${code}`);
-        if(code === 0){
+        if (code === 0) {
           resolve();
         } else {
           reject();
         }
       });
 
-    } catch (err){
+    } catch (err) {
       l('error from download')
       l(err);
 
@@ -60,7 +60,7 @@ async function downloadFile({
 
 }
 
-async function getFilename(videoUrl){
+async function getFilename (videoUrl) {
   return new Promise(async (resolve, reject) => {
     try {
 
@@ -82,14 +82,14 @@ async function getFilename(videoUrl){
 
       ytdlProcess.on('close', (code) => {
         l(`child process exited with code ${code}`);
-        if(code === 0){
+        if (code === 0) {
           resolve();
         } else {
           reject();
         }
       });
 
-    } catch (err){
+    } catch (err) {
       l('error from download')
       l(err);
 
@@ -102,7 +102,7 @@ async function getFilename(videoUrl){
 
 }
 
-async function main(){
+async function main () {
   const title = await getFilename(testUrl);
   l(title);
   await downloadFile({

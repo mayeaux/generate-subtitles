@@ -1,16 +1,16 @@
 // see files
-const _ = require("lodash");
+const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
 const { getAllDirectories, getMatchingFiles } = require('../lib/files');
 
-router.get('/files', async function(req, res, next) {
+router.get('/files', async function (req, res, next) {
   try {
     const { password, language } = req.query;
 
     const keepMedia = req.query.keepMedia === 'true';
 
-    if(password !== process.env.FILES_PASSWORD){
+    if (password !== process.env.FILES_PASSWORD) {
       res.redirect('/404')
     } else {
       const dir = './transcriptions';
@@ -52,14 +52,14 @@ router.get('/files', async function(req, res, next) {
       })
     }
 
-  } catch(err){
+  } catch (err) {
     l('err');
     l(err);
   }
 });
 
 // see files
-router.get('/learnserbian', async function(req, res, next) {
+router.get('/learnserbian', async function (req, res, next) {
   try {
 
     const dir = './transcriptions';
@@ -76,7 +76,7 @@ router.get('/learnserbian', async function(req, res, next) {
     l(files.length);
     l(files);
 
-    files = files.filter(function(file){
+    files = files.filter(function (file) {
       return file.processingData.translatedLanguages.length;
     });
 
@@ -89,7 +89,7 @@ router.get('/learnserbian', async function(req, res, next) {
       title: 'Files',
     })
 
-  } catch(err){
+  } catch (err) {
     l('err');
     l(err);
   }

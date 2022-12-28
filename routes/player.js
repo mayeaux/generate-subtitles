@@ -1,13 +1,13 @@
 const { stripOutTextAndTimestamps, reformatVtt } = require ('../translate/helpers')
 const { Readable } = require('stream');
-const fs = require("fs-extra");
-const {newLanguagesMap, languagesToTranscribe} = require("../constants/constants");
-const express = require("express");
-var router = express.Router();
+const fs = require('fs-extra');
+const {newLanguagesMap, languagesToTranscribe} = require('../constants/constants');
+const express = require('express');
+let router = express.Router();
 
 
 /** PLYR PLAYER **/
-router.post("/player/:filename/add" , async function(req, res, next){
+router.post('/player/:filename/add' , async function (req, res, next) {
   try {
 
     const { language } = req.body;
@@ -67,7 +67,7 @@ router.post("/player/:filename/add" , async function(req, res, next){
 
     return res.redirect(`/player/${req.params.filename}`)
 
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
     res.send(err);
@@ -75,7 +75,7 @@ router.post("/player/:filename/add" , async function(req, res, next){
 });
 
 /** PLYR PLAYER **/
-router.get("/player/:filename" , async function(req, res, next){
+router.get('/player/:filename' , async function (req, res, next) {
   try {
     const fileNameWithoutExtension = req.params.filename
 
@@ -96,7 +96,7 @@ router.get("/player/:filename" , async function(req, res, next){
     const translatedLanguages = processingData.translatedLanguages;
 
     // TODO: check that it doesn't include the original language? or it never will?
-    const languagesToLoop = newLanguagesMap.filter(function(language){
+    const languagesToLoop = newLanguagesMap.filter(function (language) {
       return translatedLanguages.includes(language.name)
     });
 
@@ -132,7 +132,7 @@ router.get("/player/:filename" , async function(req, res, next){
       // vttPath,
       // fileSource
     })
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
     res.send(err);
