@@ -34,6 +34,13 @@ router.get('/', function (req, res, next) {
 
 // home page
 router.get('/ytdlp', function (req, res, next) {
+
+  const { password } = req.query;
+
+  if (nodeEnv === 'production' && password !== process.env.FILES_PASSWORD) {
+    return res.redirect('/404')
+  }
+
   const domainName = req.hostname;
 
   const isFreeSubtitles = domainName === 'freesubtitles.ai';
