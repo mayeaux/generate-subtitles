@@ -1,5 +1,4 @@
 script.
-  let uploadStarted = false;
   let globalEstimatedSecondsRemaining, globalTimeElapsedInSeconds, globalUploadedAmountInMB;
 
   const progressUpload = (evt, startDate, circleProgress, fileName) => {
@@ -72,7 +71,13 @@ script.
 
   const renderQueue = ({place, log}) => {
     l(log);
-    $('#latestData').html(place === 0 ? `Starting now...` : place === 1 ? `You're next up` : `There are ${place} people ahead of you.`);
+    if(place < 1){
+      $('#latestData').html(`Starting now...`)
+    } else if (place === 1){
+      $('#latestData').html(`You're next up`)
+    } else {
+      $('#latestData').html(`There are ${place} people ahead of you.`)
+    }
   }
 
   let latestProgress, globalTimeRemaining, myUploadStarted = false;

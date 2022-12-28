@@ -14,7 +14,7 @@ script.
   l(ytdlp)
 
   // global variables
-  let circleProgress, hitTheBackend, videoDurationInSeconds, filename;
+  let circleProgress, hitTheBackend, videoDurationInSeconds, filename, uploadStarted;
   let processStarted, processFailed, uploadFinished, processingData, timeRemaining;
   let placeInQueue = 0;
   const oneHourInSeconds = 60 * 60;
@@ -110,10 +110,10 @@ script.
   $('#form').on('submit', submitForm);
 
   // freezes everything up
-  $('#file').on('change', async () => {
-    videoDuration = await getVideoDuration($('#file').prop('files')[0]);
-    l({videoDuration});
-  });
+  // $('#file').on('change', async () => {
+  //   videoDuration = await getVideoDuration($('#file').prop('files')[0]);
+  //   l({videoDuration});
+  // });
 
   async function submitForm(evt) {
     evt.preventDefault();
@@ -147,6 +147,7 @@ script.
     /* SUBMIT ERRORS */
     !passedFile && !downloadLink && errorsMap['no-file']();
 
+    // TODO: pull into its own function
     // frontend validation of file size and file length
     if (nodeEnvironment === 'production' && isFreeSubtitles && passedFile) {
 
@@ -204,7 +205,7 @@ script.
     const submitDate = new Date();
 
     /** upload progress / countdown functionality **/
-    ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, circleProgress, fileName), false);
+    ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, circleProgress, fileName));
 
     ajax.addEventListener('error', err => ce(err), false);
 
@@ -277,9 +278,10 @@ script.
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
+    if(sendingQueueInformation) placeInQueue = data.placeInQueue;
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
 
-    // TODO: likely a bug here
+    // TODO: should use uploadFinished instead of uploadStarted
     differentUserHasFinishedProcessing && uploadStarted && renderQueue({place: placeInQueue - 1, log: 'finished processing'});
 
     transcriptionIsStarting && renderStartingFeedback(data);
