@@ -157,7 +157,7 @@ router.get('/', function(req, res, next) {
   const isFreeSubtitles = req.hostname === 'freesubtitles.ai';
 
   // transcribe frontend page
-  res.render('index', {
+  res.render('index/index', {
     title: 'Transcribe File',
     uploadPath,
     forHumans,
@@ -177,56 +177,17 @@ router.get('/ytdlp', function(req, res, next) {
 
   const isFreeSubtitles = domainName === 'freesubtitles.ai';
 
-  function decrementBySecond(timeRemainingValues) {
-    let { secondsRemaining, minutesRemaining, hoursRemaining } = timeRemainingValues;
-
-    if(secondsRemaining === 0 || secondsRemaining === '00'){
-      if(minutesRemaining > 0){
-        secondsRemaining = 59;
-        minutesRemaining = minutesRemaining - 1;
-      }
-    } else {
-      secondsRemaining = secondsRemaining - 1;
-    }
-
-    if (minutesRemaining === 0 || minutesRemaining === '00') {
-      if(hoursRemaining > 0){
-        minutesRemaining = 59;
-        hoursRemaining = hoursRemaining - 1;
-      }
-    }
-
-    if (minutesRemaining.toString()?.length === 1) {
-      minutesRemaining = '0' + minutesRemaining;
-    }
-
-    if (secondsRemaining.toString()?.length === 1) {
-      secondsRemaining = '0' + secondsRemaining;
-    }
-
-
-    let thingString = `${minutesRemaining}:${secondsRemaining}`;
-    if(hoursRemaining){ thingString = `${hoursRemaining}:${thingString}` }
-
-    return {
-      secondsRemaining,
-      minutesRemaining,
-      hoursRemaining,
-      string: thingString
-    }
-  }
-
   // transcribe frontend page
-  res.render('index', {
+  res.render('index/index', {
     title: 'Transcribe File',
     uploadPath,
     forHumans,
     nodeEnv,
     siteStats: global.siteStats,
     isFreeSubtitles,
-    uploadFileSizeLimitInMB,
+    uploadLimitInMB,
     modelsArray,
-    languages: whisperLanguagesHumanReadableArray,
+    languagesArray,
     decrementBySecond,
     ytdlp: true
   });
@@ -255,6 +216,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const shouldTranslate = req.body.shouldTranslate === 'true';
     const downloadLink = req.body.downloadLink;
     const passedFile = req.file;
+    let downloadedFile = false;
 
     let filename;
 
@@ -284,8 +246,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       const extension = path.parse(filename).ext;
       uploadedFilePath = `uploads/${randomNumber}${extension}`;
 
-
       await downloadFile({ videoUrl: downloadLink, filepath: uploadedFilePath, randomNumber });
+      downloadedFile = true;
 
       uploadGeneratedFilename = baseName;
 
@@ -431,8 +393,11 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l(obj);
 
     // l(req.files);
-    // l(req.body);
-    res.send('ok');
+
+    // assuming already sent from above
+    if(!downloadedFile){
+      res.send('ok');
+    }
     // req.files is array of uploaded files
     // req.body will contain the text fields, if there were any
   } catch (err){

@@ -8,6 +8,11 @@ script.
   l = console.log;
   ce = console.error;
 
+  let ytdlp = !{ytdlp || false};
+
+  l('ytdlp', ytdlp);
+  l(ytdlp)
+
   // global variables
   let circleProgress, hitTheBackend, videoDurationInSeconds, filename;
   let processStarted, processFailed, uploadFinished, processingData, timeRemaining, uploadStarted = false;
@@ -116,12 +121,13 @@ script.
     /* DATA */
     const formData = new FormData();
     const [passedFile] = $('#file').prop('files');
-    const fileName = passedFile.name;
+    const fileName = passedFile?.name;
     let language = $('#language').data('value');
     let languageName = $('#language').text();
     const model = document.querySelector('#model').dataset.value;
     const modelName = document.querySelector('#model').textContent;
     const translateIsChecked = $('#translate').is(':checked');
+    const downloadLink = $('#downloadLink').val()
 
     //- set local storage
     localStorage.setItem('model', model);
@@ -131,6 +137,8 @@ script.
     localStorage.setItem('shouldTranslate', translateIsChecked);
 
     //- gather data
+    if (passedFile) formData.append('file', passedFile);
+    if (downloadLink) formData.append('downloadLink', downloadLink);
     formData.append('file', passedFile);
     formData.append('language', language);
     formData.append('model', model);
@@ -138,7 +146,7 @@ script.
     formData.append('websocketNumber', randomNumber);
 
     /* SUBMIT ERRORS */
-    !passedFile && errorsMap['no-file']();
+    !passedFile && !downloadLink && errorsMap['no-file']();
 
     // frontend validation of file size and file length
     if (nodeEnvironment === 'production' && isFreeSubtitles) {
@@ -278,7 +286,7 @@ script.
     transcriptionIsStarting && renderStartingFeedback(data);
 
     isFileDetailsMessage && renderFileDetails(data);
-    
+
     //- updates about translations on backend
     isTranslationUpdate && renderTranslationUpdate(data);
 
