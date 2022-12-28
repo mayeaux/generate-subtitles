@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix"
   },
   "nodemonConfig": {
     "ignore": [
@@ -41,5 +43,8 @@
     "ws": "^8.10.0",
     "yt-dlp-wrap": "^2.3.11",
     "zh-convert": "^1.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.30.0"
   }
 }
