@@ -215,7 +215,7 @@ async function transcribe ({
         const totalOutstanding = amountOfCurrentPending + amountinQueue;
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
         l(`STDERR: ${data},
-         Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language ${language}, Filename: ${directorySafeFileNameWithExtension}, Queue: ${totalOutstanding}, Translating: ${shouldTranslate}  `);
+         Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language: ${displayLanguage}, Filename: ${directorySafeFileNameWithExtension}, Queue: ${totalOutstanding}, Translating: ${shouldTranslate}  `);
 
         // loop through and do with websockets
         for (let [, websocket] of global['webSocketData'].entries() ) {
