@@ -95,10 +95,11 @@ script.
       formattedProgress
     } = data;
     const myUpload = ownershipPerson === 'you';
-    latestProgress = formattedProgress;
 
     // disregard any data that isn't yours after your processing has started
     if (!myUpload && myUploadStarted) return;
+
+    latestProgress = formattedProgress;
 
     const fileName = $('#file').prop('files')[0]?.name;
     if (percentDone) {
