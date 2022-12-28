@@ -95,7 +95,7 @@ script.
     // disregard any data that isn't yours after your processing has started
     if (!myUpload && myUploadStarted) return;
 
-    const fileName = $('#file').prop('files')[0].name;
+    const fileName = $('#file').prop('files')[0]?.name;
     if (percentDone) {
       document.title = `${percentDone}% Transcribed - ${fileName}`;
     }

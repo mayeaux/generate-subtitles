@@ -87,6 +87,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       const extension = path.parse(filename).ext;
       uploadedFilePath = `uploads/${randomNumber}${extension}`;
 
+      res.send('ok');
+
       await downloadFile({ videoUrl: downloadLink, filepath: uploadedFilePath, randomNumber });
       downloadedFile = true;
 
