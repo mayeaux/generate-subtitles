@@ -12,6 +12,7 @@ const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
 const { stripOutTextAndTimestamps } = require('../translate/helpers')
+const { addItemToQueue } = require('../queue/queue');
 
 l = console.log;
 
@@ -48,6 +49,7 @@ async function transcribe ({
   uploadGeneratedFilename,
   shouldTranslate,
   uploadDurationInSeconds,
+  ip,
 }) {
   return new Promise(async (resolve, reject) => {
 
@@ -58,6 +60,10 @@ async function transcribe ({
       // TODO: change to reject?
       return resolve(true);
     }
+    
+    addItemToQueue({
+      model, language, filename: originalFileNameWithExtension, ip, uploadDurationInSeconds, shouldTranslate
+    })
 
     try {
 
@@ -426,15 +432,18 @@ async function transcribe ({
           l(`child process exited with code ${code}`);
         } catch (err) {
           reject(err);
-          sendToWebsocket({
-            message: 'error',
-            text: 'The transcription failed, please try again or try again later'
-          })
-          websocketConnection.terminate()
+          l('websocket connection');
+          if(websocketConnection.readyState === 1) {
+            sendToWebsocket({
+              message: 'error',
+              text: 'The transcription failed, please try again or try again later'
+            })
+            websocketConnection.terminate()
+          }
           l('err here');
           l(err.stack);
           l(err);
-          throw new Error(err);
+          throw err;
         }
       });
     } catch (err) {
@@ -443,7 +452,7 @@ async function transcribe ({
 
       reject(err);
 
-      throw new Error(err)
+      throw err;
     }
 
   });

@@ -1,0 +1,19 @@
+extends layout
+
+block content
+    style.
+        p {
+            margin: 2px auto;
+        }
+
+
+    div
+        h1 Queue
+
+        each queueItem in queueData
+          each val, key in queueItem
+              p= key + ': ' + val
+          br
+
+
+
