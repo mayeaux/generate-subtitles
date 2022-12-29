@@ -30,11 +30,13 @@ block content
         table#transcriptionAmountTable
             tbody
                 tr
+                    th Last Hour
                     th Last Day
                     th Last Week
                     th Last Month
                     th All-Time
                 tr
+                    td #{stats.lastHour}
                     td #{stats.last24h}
                     td #{stats.lastWeek}
                     td #{stats.lastMonth}
@@ -46,11 +48,13 @@ block content
         table#transcriptionTimeTable
             tbody
                 tr
+                    th Last Hour
                     th Last 24h
                     th Last Week
                     th Last Month
                     th All-Time
                 tr
+                    td #{transcriptionTime.lastHour}
                     td #{transcriptionTime.last24h}
                     td #{transcriptionTime.lastWeek}
                     td #{transcriptionTime.lastMonth}
