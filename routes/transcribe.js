@@ -14,6 +14,7 @@ const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 const { languagesToTranslateTo } = require('../constants/constants');
 const {forHumansNoSeconds} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
+const { addItemToQueue } = require('../queue/queue');
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const concurrentJobs = process.NODE_ENV === 'development' ? 1 : process.env.CONCURRENT_AMOUNT;
@@ -196,6 +197,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       }), function () {});
     }
 
+    // queueData maybe renamed to websocketData? or just redo the queue altogether
     global.queueData.push(websocketNumber)
 
     // l('queue data');
@@ -218,6 +220,10 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       req.socket.remoteAddress ||
       null;
 
+    // allow admin to see items in the queue
+    addItemToQueue({
+      model, language, filename: originalFileNameWithExtension, ip, uploadDurationInSeconds, shouldTranslate
+    })
 
     queue.add(async function () {
       // TODO: catch the error here?
