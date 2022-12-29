@@ -40,8 +40,8 @@ function forHumansNoSeconds ( seconds ) {
 
 function forHumansHoursAndMinutes ( seconds ) {
   let levels = [
-    [Math.floor(((seconds % 31536000) % 86400) / 3600), 'hours'],
-    [Math.floor((((seconds % 31536000) % 86400) % 3600) / 60), 'minutes'],
+    [Math.floor(seconds / 3600), 'hours'],
+    [Math.floor((seconds % 3600) / 60), 'minutes'],
   ];
   let returntext = '';
 
