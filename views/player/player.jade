@@ -334,7 +334,6 @@ block content
             // 'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
             'fullscreen'
           ];
-
         player = new Plyr('#player', {
           disableContextMenu: true,
           controls,
@@ -413,6 +412,9 @@ block content
             if(subtitlesLineHeight){
               $('.plyr__caption').css('line-height', `${subtitlesLineHeight}px`);
             }
+
+
+            localStorage.setItem("progressSaver", JSON.stringify({ !{JSON.stringify(renderedFilename)} : player.currentTime }));
             l(text);
           })
         }, 200)
