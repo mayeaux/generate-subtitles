@@ -414,7 +414,7 @@ block content
             }
 
 
-            localStorage.setItem("progressSaver", JSON.stringify({ !{JSON.stringify(renderedFilename)} : player.currentTime }));
+            localStorage.setItem("progressSaver", JSON.stringify({ '#{renderedFilename}' : player.currentTime}));
             l(text);
           })
         }, 200)
