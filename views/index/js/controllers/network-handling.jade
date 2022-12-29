@@ -81,6 +81,7 @@ script.
   }
 
   let latestProgress, globalTimeRemaining, myUploadStarted = false;
+  let globalFirstProcessLatestData = {}, globalSecondProcessLatestData = {};
 
   const renderProcessingFeedback = ({data, hitTheBackend}) => {
     l('websocket data');
@@ -102,6 +103,7 @@ script.
     latestProgress = formattedProgress;
 
     const fileName = $('#file').prop('files')[0]?.name;
+    // TODO: this is bugged, to be fixed
     if (percentDone) {
       document.title = `${percentDone}% Transcribed - ${fileName}`;
     }
@@ -166,6 +168,25 @@ script.
     // TODO: this seems off
     // update the process 2 info if appropriate
     if (!myUpload && !myUploadStarted && hitTheBackend) {
+      if(processNumber === 1){
+        globalFirstProcessLatestData = data;
+
+        if (!window.firstProcessInterval) {
+          // BUG: timer reaches 0 early because it's out of sync with the actual progress, maybe calculate it on the backend? -osb910
+          window.firstProcessInterval = setInterval(() => {
+            globalFirstProcessLatestData.timeRemaining = decrementBySecond(globalFirstProcessLatestData.timeRemaining);
+            l({globalFirstProcessLatestData});
+
+            const progressUpdate =
+                    `[${globalFirstProcessLatestData.percentDone}] ${globalFirstProcessLatestData.timeRemaining.string} Remaining, Speed ${globalFirstProcessLatestData.speed}f/s`;
+
+            $('#processingData').html(`${processFeedback}${progressUpdate}`);
+          }, 1000);
+        }
+
+      }
+
+
       l(`getting process ${processNumber} data`);
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
