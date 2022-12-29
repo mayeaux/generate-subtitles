@@ -7,8 +7,8 @@ const {formatStdErr} = require('../helpers/formatStdErr');
 // yt-dlp --no-mtime -f '\''bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'\''
 
 const l = console.log;
-
-const ytDlpPath = which.sync('yt-dlp')
+const ytDlpName = process.platform === 'win32' ? 'YoutubeDL' : 'yt-dlp';
+const ytDlpPath = which.sync(ytDlpName);
 
 const testUrl = 'https://www.youtube.com/watch?v=jXVcLVQ4FTg&ab_channel=HighlightHeaven';
 
