@@ -12,16 +12,39 @@ script.
     const selectWrapper = evt.target.closest('.wrapper');
     const input = selectWrapper.querySelector('.search input');
     selectWrapper.classList.toggle('active');
-    selectWrapper.querySelector('.selected').scrollIntoView({block: 'center'}); // scroll to selected option // doesn't work for some reason // TODO
-    input.focus();
+    if (selectWrapper.classList.contains('active')) {
+      input.focus();
+      input.select();
+      selectWrapper.querySelector('.selected')?.scrollIntoView({block: 'center', behavior: 'smooth'});
+    } else {
+      if (evt.target.id === 'translationSelect') {
+        const langDisplay = evt.target.querySelector('.select-value');
+        const selectedOptions = Array.from(selectWrapper.querySelectorAll('.selected'));
+        langDisplay.textContent = selectedOptions.map(opt => opt.textContent).join(', ');
+      }
+      selectWrapper.querySelector('.select-btn').focus(); // BUG: doesn't focus
+
+    }
   }
 
   const handleOptionClick = evt => {
     const option = evt.target;
     const selectWrapper = option.closest('.wrapper');
-    updateSelection(option);
-    selectWrapper.classList.remove('active');
-    selectWrapper.querySelector('.select-btn').focus();
+    const transSelector = selectWrapper.querySelector('#translationSelect');
+    if (transSelector) {
+      const checkbox = option.querySelector(`input[type='checkbox']`);
+      if (checkbox) {
+        checkbox.checked = !checkbox?.checked;
+        const option = checkbox.closest('.option');
+        checkbox.checked
+        ? option.classList.add('selected')
+        : option.classList.remove('selected');
+      }
+    } else {
+      updateSelection(option);
+      selectWrapper.classList.remove('active');
+      selectWrapper.querySelector('.select-btn').focus();
+    }
   }
 
   const handleSelectionShortcuts = evt => {
@@ -61,15 +84,23 @@ script.
   }
 
   const handleSelectionInput = evt => {
-    const searchInput = evt.target;
-    const options = Array.from(searchInput.closest('.content').querySelectorAll('.option'));
-    const selectButton = searchInput.closest('.wrapper').querySelector('.select-btn');
-    selectButton.id === 'languageSelect' && options.shift();
-    const filteredOptions = filterOptions(options, searchInput.value);
+    l('handleSelectionInput');
+    const input = evt.target;
+    const options = Array.from(input.closest('.content').querySelectorAll('.option'));
+    if (input.getAttribute('type') === 'checkbox') {
+      const option = input.closest('.option');
+      input.checked
+      ? option.classList.add('selected')
+      : option.classList.remove('selected');
+    } else if (input.getAttribute('type') === 'search') {
+      const selectButton = input.closest('.wrapper').querySelector('.select-btn');
+      selectButton.id === 'languageSelect' && options.shift();
+      const filteredOptions = filterOptions(options, input.value);
 
-    options.forEach(option => {
-      filteredOptions.includes(option) 
-      ? option.classList.remove('hidden')
-      : option.classList.add('hidden');
-    });
+      options.forEach(option => {
+        filteredOptions.includes(option)
+        ? option.classList.remove('hidden')
+        : option.classList.add('hidden');
+      });
+    }
   }

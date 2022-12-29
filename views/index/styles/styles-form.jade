@@ -135,17 +135,27 @@ style.
     background: #b3b3b3;
   }
 
-  .options li {
-    margin: 0;
-    font-size: 1rem;
+  .options * {
+    cursor: pointer;
   }
 
-  .options li:where(:hover, :focus, .selected) {
+  .options .option {
+    margin: 0;
+    font-size: 1rem;
+    display: flex;
+    gap: 0.5em;
+  }
+
+  .options .option.hidden {
+    display: none;
+  }
+
+  .options .option:where(:hover, :focus, .selected) {
     border-radius: 5px;
     background: hsl(0deg 0% 90%);
   }
 
-  .options li:focus {
+  .options .option:focus {
     outline: 0;
     box-shadow: 0 0 3px #4285f4;
   }
@@ -154,19 +164,32 @@ style.
     cursor: pointer;
   }
 
-  #translate {
+  .group.translateHolder {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5em;
+    align-items: center;
+  }
+
+  .group.translateHolder input[type='checkbox'] {
     position: relative;
     height: 1.1rem;
     width: 1.1rem;
     opacity: 0.8;
-    margin-left: 2px;
   }
 
+  .translateHolder .wrapper {
+    grid-column: 1 / -1;
+    visibility: hidden;
+    opacity: 0;
+    max-height: 0;
+    transition: all 250ms ease-in-out;
+  }
 
-  .group.translateHolder {
-    flex-direction: row;
-    gap: 0.5em;
-    align-items: center;
+  .translateHolder > input[type='checkbox']:checked + .wrapper {
+    visibility: visible;
+    opacity: 1;
+    max-height: 4rem;
   }
 
   .submit-btn {
