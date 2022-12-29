@@ -38,6 +38,22 @@ function forHumansNoSeconds ( seconds ) {
   return returntext.trim();
 }
 
+function forHumansHoursAndMinutes ( seconds ) {
+  let levels = [
+    [Math.floor(((seconds % 31536000) % 86400) / 3600), 'hours'],
+    [Math.floor((((seconds % 31536000) % 86400) % 3600) / 60), 'minutes'],
+  ];
+  let returntext = '';
+
+  for (let i = 0, max = levels.length; i < max; i++) {
+    if ( levels[i][0] === 0 ) continue;
+    returntext += ' ' + levels[i][0] + ' ' + (levels[i][0] === 1 ? levels[i][1].substr(0, levels[i][1].length-1): levels[i][1]);
+  };
+  return returntext.trim();
+}
+
+
+
 const decrementBySecond = timeRemainingValues => {
   let {secondsRemaining, minutesRemaining, hoursRemaining} = timeRemainingValues;
 
@@ -59,7 +75,7 @@ const decrementBySecond = timeRemainingValues => {
 
   minutesRemaining = `${minutesRemaining}`.padStart(2, '0');
   secondsRemaining = `${secondsRemaining}`.padStart(2, '0');
-  
+
   const wholeTime = `${hoursRemaining ? hoursRemaining + ':' : ''}${minutesRemaining}:${secondsRemaining}`;
 
   return {
@@ -73,5 +89,6 @@ const decrementBySecond = timeRemainingValues => {
 module.exports = {
   forHumans,
   forHumansNoSeconds,
-  decrementBySecond
+  decrementBySecond,
+  forHumansHoursAndMinutes
 }
