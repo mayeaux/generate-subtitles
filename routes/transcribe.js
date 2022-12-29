@@ -60,6 +60,11 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const passedFile = req.file;
     let downloadedFile = false;
 
+    // make the model medium by default
+    if (!model) {
+      model = 'medium';
+    }
+
     if (model === 'tiny.en' || model === 'base.en' || model === 'small.en' || model === 'medium.en') {
       language = 'English'
     }
@@ -95,6 +100,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
       res.send('ok');
 
+      // TODO: pass websocket connection and output download progress to frontend
       await downloadFile({ videoUrl: downloadLink, filepath: uploadedFilePath, randomNumber });
       downloadedFile = true;
 
@@ -108,19 +114,19 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l('uploadedFilePath');
     l(uploadedFilePath);
 
+    // get upload duration
     const ffprobeResponse = await ffprobe(uploadedFilePath, { path: ffprobePath });
-
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
     const uploadDurationInSeconds = Math.round(audioStream.duration);
 
-    const amountOfSecondsInHour = 60 * 60;
-
+    // TODO: pull out into a function
+    // error if on FS and over file size limit or duration limit
     const domainName = req.hostname;
-
     const isFreeSubtitles = domainName === 'freesubtitles.ai';
     if (isFreeSubtitles && !isYtdlp) {
       const fileSizeInMB = Math.round(req.file.size / 1048576);
 
+      const amountOfSecondsInHour = 60 * 60;
       if (uploadDurationInSeconds > amountOfSecondsInHour) {
         const uploadLengthErrorMessage = `Your upload length is ${forHumansNoSeconds(uploadDurationInSeconds)}, but currently the maximum length allowed is only 1 hour`;
         return res.status(400).send(uploadLengthErrorMessage);
@@ -131,32 +137,12 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       }
     }
 
-
-    // TODO: check file duration here
-
-    let logFileNames = true;
-    // something.mp4
-    // .mp4 (includes leading period)
-    const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
-
-    const originalFileNameWithoutExtension = path.parse(originalFileNameWithExtension).name;
-    // l('originalFileNameWithoutExtension')
-    // l(originalFileNameWithoutExtension)
-
-    // something
-    const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithoutExtension)
-
-    // l('directorySafeFileNameWithoutExtension')
-    // l(directorySafeFileNameWithoutExtension)
-
-
-    // something.mp4
-    const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${originalFileExtension}`
-
-    if (!uploadedFilePath) { res.status(500); res.send('no file')}
-
+    // TODO: pull into its own function
+    /** WEBSOCKET FUNCTIONALITY **/
     // load websocket by passed number
     let websocketConnection;
+
+    // websocket number is pushed when it connects on page load
     if (global.webSocketData) {
       // l(global.webSocketData);
       const websocket = global.webSocketData.find(function (websocket) {
@@ -167,23 +153,15 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       } else {
         throw new Error('no websocket!');
       }
-
     }
 
-    // TODO: this is wrong, it's with adding the pending length to get amount in front
     const placeInQueue = queue.getQueueLength();
 
-    // l(queue);
     l('place in queue');
     l(placeInQueue);
 
-    // general queue data
-    global.queue = {}
-
     const amountOfCurrentPending = queue.getPendingLength()
-
     const amountinQueue = queue.getQueueLength()
-
     const totalOutstanding = amountOfCurrentPending + amountinQueue;
 
     l('totaloutstanding');
@@ -199,14 +177,16 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     // queueData maybe renamed to websocketData? or just redo the queue altogether
     global.queueData.push(websocketNumber)
+    /** WEBSOCKET FUNCTIONALITY END **/
 
-    // l('queue data');
-    // l(global.queueData);
+    const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
+    const originalFileNameWithoutExtension = path.parse(originalFileNameWithExtension).name;
 
-    // make the model medium by default
-    if (!model) {
-      model = 'medium';
-    }
+    // directory name
+    const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithoutExtension)
+
+    // used for the final media resting place
+    const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${originalFileExtension}`
 
     const timestampString = moment(new Date()).format('DD-MMMM-YYYY_HH_mm_ss');
 
@@ -216,6 +196,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}${originalFileExtension}`;
 
+    // pass ip to queue
     const ip = req.headers['x-forwarded-for'] ||
       req.socket.remoteAddress ||
       null;

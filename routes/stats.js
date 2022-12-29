@@ -10,6 +10,7 @@ router.get('/stats', async function (req, res, next) {
   try {
 
     const stats = {
+      lastHour: 0,
       last24h: 0,
       lastWeek: 0,
       lastMonth: 0,
@@ -17,6 +18,7 @@ router.get('/stats', async function (req, res, next) {
     }
 
     const transcriptionTime = {
+      lastHour: 0,
       last24h: 0,
       lastWeek: 0,
       lastMonth: 0,
@@ -26,6 +28,7 @@ router.get('/stats', async function (req, res, next) {
     //
     let files = await getAllDirectories('./transcriptions');
 
+    const withinLastHour = moment().subtract(1, 'hours').valueOf();
     const within24h = moment().subtract(1, 'days').valueOf();
     const withinWeek = moment().subtract(1, 'weeks').valueOf();
     const withinMonth = moment().subtract(1, 'months').valueOf();
@@ -33,6 +36,10 @@ router.get('/stats', async function (req, res, next) {
     let languages = {};
 
     for (const file of files) {
+      if (file.timestamp > withinLastHour) {
+        stats.lastHour++;
+        transcriptionTime.lastHour += file.processingData.uploadDurationInSeconds;
+      }
       if (file.timestamp > within24h) {
         stats.last24h++;
         transcriptionTime.last24h += file.processingData.uploadDurationInSeconds;
@@ -60,6 +67,7 @@ router.get('/stats', async function (req, res, next) {
     // l('files');
     // l(files);
 
+    transcriptionTime.lastHour = forHumansHoursAndMinutes(transcriptionTime.lastHour);
     transcriptionTime.last24h = forHumansHoursAndMinutes(transcriptionTime.last24h);
     transcriptionTime.lastWeek = forHumansHoursAndMinutes(transcriptionTime.lastWeek);
     transcriptionTime.lastMonth = forHumansHoursAndMinutes(transcriptionTime.lastMonth);
@@ -68,6 +76,7 @@ router.get('/stats', async function (req, res, next) {
     // l('languages');
     // l(languages);
 
+    // sort languages by count
     const entries = Object.entries(languages);
 
     // Sort the array using the value
@@ -84,6 +93,7 @@ router.get('/stats', async function (req, res, next) {
 
     return res.render('stats/stats', {
       // list of file names
+      title: 'Stats',
       stats,
       transcriptionTime,
       languages: sortedObj
