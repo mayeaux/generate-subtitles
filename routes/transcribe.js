@@ -51,13 +51,17 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l('isYtdlp');
     l(isYtdlp);
 
-    const language = req.body.language;
+    let language = req.body.language;
     let model = req.body.model;
     const websocketNumber = req.body.websocketNumber;
     const shouldTranslate = req.body.shouldTranslate === 'true';
     const downloadLink = req.body.downloadLink;
     const passedFile = req.file;
     let downloadedFile = false;
+
+    if (model === 'tiny.en' || model === 'base.en' || model === 'small.en' || model === 'medium.en') {
+      language = 'English'
+    }
 
     let filename;
 
@@ -71,6 +75,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       l('uploadedFilePath');
       l(uploadedFilePath);
     } else if (downloadLink) {
+      // TODO: not the world's greatest implemention
       function generateRandomNumber () {
         return Math.floor(Math.random() * 10000000000).toString();
       }

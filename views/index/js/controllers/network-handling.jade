@@ -165,7 +165,8 @@ script.
 
     // TODO: this seems off
     // update the process 2 info if appropriate
-    if (!myUpload && !myUploadStarted && hitTheBackend) {
+    // TODO: this is misnamed, it's not the upload that's started but the processing
+    if (!myUpload && !myUploadStarted && hitTheBackend && !myProcessingStarted) {
       l(`getting process ${processNumber} data`);
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
@@ -178,6 +179,7 @@ script.
     $('#processingData').css({'font-size': '1.6rem'});
     $('#processingData').hide();
     $('#secondProcessingData').hide();
+    myProcessingStarted = true;
     // $('#latestData').css("font-size", "20px");
   }
 

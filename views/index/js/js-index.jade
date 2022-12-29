@@ -16,6 +16,7 @@ script.
   // global variables
   let circleProgress, hitTheBackend, videoDurationInSeconds, filename, uploadStarted;
   let processStarted, processFailed, uploadFinished, processingData, timeRemaining;
+  let receivedPlaceInQueue, myProcessingStarted = false;
   let placeInQueue = 0;
   const oneHourInSeconds = 60 * 60;
   const ipAndPort = location.host;
@@ -287,10 +288,13 @@ script.
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
-    if(sendingQueueInformation) placeInQueue = data.placeInQueue;
+    if(sendingQueueInformation){
+      receivedPlaceInQueue = true;
+      placeInQueue = data.placeInQueue;
+    }
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
 
-    if(differentUserHasFinishedProcessing && uploadStarted){
+    if(differentUserHasFinishedProcessing && receivedPlaceInQueue){
       placeInQueue = placeInQueue - 1;
       renderQueue({place: placeInQueue, log: 'finished processing'});
     }
