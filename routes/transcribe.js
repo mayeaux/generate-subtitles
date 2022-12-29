@@ -209,6 +209,11 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}${originalFileExtension}`;
 
+    const ip = req.headers['x-forwarded-for'] ||
+      req.socket.remoteAddress ||
+      null;
+
+
     queue.add(async function () {
       // TODO: catch the error here?
       await transcribeWrapped({
@@ -228,7 +233,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
         websocketConnection,
         websocketNumber,
         queue,
-        languagesToTranslateTo
+        languagesToTranslateTo,
+        ip
       })
     })
 
@@ -244,7 +250,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     // req.files is array of uploaded files
     // req.body will contain the text fields, if there were any
   } catch (err) {
-    l('err')
+    l('err from transcribe route')
     l(err);
     throw (err);
   }
