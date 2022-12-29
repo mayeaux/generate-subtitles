@@ -290,8 +290,10 @@ script.
     if(sendingQueueInformation) placeInQueue = data.placeInQueue;
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
 
-    // TODO: should use uploadFinished instead of uploadStarted
-    differentUserHasFinishedProcessing && uploadStarted && renderQueue({place: placeInQueue - 1, log: 'finished processing'});
+    if(differentUserHasFinishedProcessing && uploadStarted){
+      placeInQueue = placeInQueue - 1;
+      renderQueue({place: placeInQueue, log: 'finished processing'});
+    }
 
     transcriptionIsStarting && renderStartingFeedback(data);
 
