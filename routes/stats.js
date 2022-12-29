@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const moment = require('moment');
-const { forHumans } = require('../helpers/helpers')
+const { forHumansHoursAndMinutes } = require('../helpers/helpers')
 
 const { getAllDirectories } = require('../lib/files');
 
@@ -60,10 +60,10 @@ router.get('/stats', async function (req, res, next) {
     // l('files');
     // l(files);
 
-    transcriptionTime.last24h = forHumans(transcriptionTime.last24h);
-    transcriptionTime.lastWeek = forHumans(transcriptionTime.lastWeek);
-    transcriptionTime.lastMonth = forHumans(transcriptionTime.lastMonth);
-    transcriptionTime.allTime = forHumans(transcriptionTime.allTime);
+    transcriptionTime.last24h = forHumansHoursAndMinutes(transcriptionTime.last24h);
+    transcriptionTime.lastWeek = forHumansHoursAndMinutes(transcriptionTime.lastWeek);
+    transcriptionTime.lastMonth = forHumansHoursAndMinutes(transcriptionTime.lastMonth);
+    transcriptionTime.allTime = forHumansHoursAndMinutes(transcriptionTime.allTime);
 
     // l('languages');
     // l(languages);
