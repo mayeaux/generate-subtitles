@@ -27,6 +27,18 @@ function extractDataFromString(string){
   }
 }
 
+function deleteFromGlobalTranscriptionsBasedOnWebsocketNumber(websocketNumber) {
+  // find transcription based on websocketNumber
+  const closerTranscription = global['transcriptions'].find(function (transcription) {
+    return transcription.websocketNumber === websocketNumber;
+  })
+
+  const transcriptionIndex = global.transcriptions.indexOf(closerTranscription);
+  if (transcriptionIndex > -1) { // only splice array when item is found
+    global.transcriptions.splice(transcriptionIndex, 1); // 2nd parameter means remove one item only
+  }
+}
+
 async function downloadFile ({
   videoUrl,
   filepath,
@@ -97,6 +109,7 @@ async function downloadFile ({
         } else {
           reject();
         }
+        deleteFromGlobalTranscriptionsBasedOnWebsocketNumber(websocketNumber);
       });
 
     } catch (err) {
