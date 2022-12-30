@@ -47,6 +47,8 @@ script.
   const previousShouldTranslate = localStorage.getItem('shouldTranslate');
 
   $(document).ready(() => {
+    // start progress at 100 and rewind it when starting
+    // I did this by accident the first time but I like it so I kept it
     circleProgress = new CircleProgress('.progress', {
       max: 100,
       value: 100,
@@ -284,6 +286,10 @@ script.
     const transcriptionHasCompleted = status === 'Completed';
 
     const isErrorMessage = message === 'error';
+
+    const isDownloadingInfo = message === 'downloadInfo';
+
+    isDownloadingInfo && renderDownloadInfo({data , circleProgress });
 
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});

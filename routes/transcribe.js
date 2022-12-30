@@ -73,6 +73,21 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     l(downloadLink);
 
+    let websocketConnection;
+
+    // websocket number is pushed when it connects on page load
+    if (global.webSocketData) {
+      // l(global.webSocketData);
+      const websocket = global.webSocketData.find(function (websocket) {
+        return websocketNumber === websocket.websocketNumber;
+      })
+      if (websocket) {
+        websocketConnection = websocket.websocket;
+      } else {
+        throw new Error('no websocket!');
+      }
+    }
+
     let originalFileNameWithExtension, uploadedFilePath, uploadGeneratedFilename;
     if (passedFile) {
       originalFileNameWithExtension = req.file.originalname;
@@ -89,6 +104,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       const randomNumber = generateRandomNumber();
 
       filename =  await getFilename(downloadLink);
+      // remove linebreaks, this was causing bugs
       filename = filename.replace(/\r?\n|\r/g, '');
       l('filename');
       l(filename);
@@ -101,7 +117,13 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       res.send('ok');
 
       // TODO: pass websocket connection and output download progress to frontend
-      await downloadFile({ videoUrl: downloadLink, filepath: uploadedFilePath, randomNumber });
+      await downloadFile({
+        videoUrl: downloadLink,
+        filepath: uploadedFilePath,
+        randomNumber,
+        websocketConnection,
+        filename
+      });
       downloadedFile = true;
 
       uploadGeneratedFilename = baseName;
@@ -140,20 +162,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     // TODO: pull into its own function
     /** WEBSOCKET FUNCTIONALITY **/
     // load websocket by passed number
-    let websocketConnection;
-
-    // websocket number is pushed when it connects on page load
-    if (global.webSocketData) {
-      // l(global.webSocketData);
-      const websocket = global.webSocketData.find(function (websocket) {
-        return websocketNumber === websocket.websocketNumber;
-      })
-      if (websocket) {
-        websocketConnection = websocket.websocket;
-      } else {
-        throw new Error('no websocket!');
-      }
-    }
 
     const placeInQueue = queue.getQueueLength();
 

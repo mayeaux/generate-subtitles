@@ -1,4 +1,52 @@
 script.
+  const renderDownloadInfo = ({ data, circleProgress }) => {
+    // let's use my algo for calculating the ETA because it's more accurate
+    // therefore all we need is percentage
+    // we'll calculate, seconds elapsed, seconds remaining
+
+    l('data received from downloadInfo');
+    l(data);
+
+    const percentDownloaded = data.percentDownloaded;
+    const startedAtTime = data.startedAtTime;
+    const fileName = data.fileName;
+    const totalFileSize = data.totalFileSize;
+    const downloadSpeed = data.downloadSpeed;
+
+    // get time in seconds between upload start time and now
+    const timeElapsedInSeconds = Math.round((new Date() - new Date(startedAtTime)) / 1000);
+    // estimate how many seconds remaining based on percentage
+    const estimatedTotalDownloadTimeInSeconds = Math.round(timeElapsedInSeconds * (100 / percentDownloaded));
+    // time left is difference of estimated time and elapsed time
+    const estSecondsRemaining = estimatedTotalDownloadTimeInSeconds - timeElapsedInSeconds;
+
+    $('#timeEstimator').show();
+    $('#progress').show()
+    $('#progress').html(`${percentDownloaded}% downloaded`);
+    document.title = `${percentDownloaded}% Downloaded - ${fileName}`;
+
+    circleProgress.attr({
+      max: 100,
+      value: Number(percentDownloaded),
+    });
+
+    if (percentDownloaded === 100) {
+      circleProgress.attr({
+        max: 100,
+        value: 0,
+      });
+      $('.progress').hide();
+    } else {
+      $('.progress').show();
+    }
+
+    $('#timeEstimator').html(`[${timeElapsedInSeconds}/${estSecondsRemaining}s] ${forHumans(estSecondsRemaining)} remaining
+                  \n Total File Size: ${totalFileSize}, \nDownload Speed: ${downloadSpeed}
+                  `);
+
+  }
+
+  // global vars used for using in the decrementing function
   let globalEstimatedSecondsRemaining, globalTimeElapsedInSeconds, globalUploadedAmountInMB;
 
   const progressUpload = (evt, startDate, circleProgress, fileName) => {
