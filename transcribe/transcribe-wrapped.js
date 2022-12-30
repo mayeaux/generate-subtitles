@@ -95,11 +95,10 @@ async function transcribe ({
 
       // just do JSON, then loop through properties on the frontend
       let fileDetails = `
-            filename: ${directorySafeFileNameWithExtension}
-            language: ${displayLanguage}
-            model: ${model}
-            uploadDurationInSeconds: ${uploadDurationInSeconds}
-            uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
+            Filename: ${directorySafeFileNameWithExtension}
+            Language: ${displayLanguage}
+            Model: ${model}
+            Upload Duration: ${uploadDurationInSecondsHumanReadable}
       `.replace(/^ +/gm, ''); // remove indentation
 
       // update filedetails
@@ -112,8 +111,10 @@ async function transcribe ({
       // queue up arguments, path is the first one
       let arguments = [uploadedFilePath];
 
-      // set the language for whisper (if undefined with auto-detect and translate off that)
-      if (language && !/auto-detect/i.test(language)) {
+      const languageIsAutoDetect = language === 'auto-detect';
+
+      // don't pass a language to use auto-detect
+      if (!languageIsAutoDetect) {
         arguments.push('--language', language);
       }
 
@@ -184,11 +185,10 @@ async function transcribe ({
           // send data to frontend with updated language
           // TODO: when it's JSON, just add the detected language here as a property
           fileDetails = `
-            filename: ${directorySafeFileNameWithExtension}
-            language: ${displayLanguage}
-            model: ${model}
-            uploadDurationInSeconds: ${uploadDurationInSeconds}
-            uploadDurationInSecondsHumanReadable: ${uploadDurationInSecondsHumanReadable}
+            Filename: ${directorySafeFileNameWithExtension}
+            Language: ${displayLanguage}
+            Model: ${model}
+            Upload Duration: ${uploadDurationInSecondsHumanReadable}
           `.replace(/^ +/gm, ''); // remove indentation
 
           // update file details

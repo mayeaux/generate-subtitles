@@ -47,6 +47,8 @@ script.
   const previousShouldTranslate = localStorage.getItem('shouldTranslate');
 
   $(document).ready(() => {
+    // start progress at 100 and rewind it when starting
+    // I did this by accident the first time but I like it so I kept it
     circleProgress = new CircleProgress('.progress', {
       max: 100,
       value: 100,
@@ -215,7 +217,7 @@ script.
     const submitDate = new Date();
 
     /** upload progress / countdown functionality **/
-    ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, circleProgress, fileName));
+    if(!downloadLink) ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, circleProgress, fileName));
 
     ajax.addEventListener('error', err => ce(err), false);
 
@@ -236,11 +238,17 @@ script.
     });
 
     // once backend is hit
-    ajax.addEventListener('load', res => {
+    ajax.addEventListener('load', () => {
       l('hit the backend!');
       hitTheBackend = true;
-      loadAjax(res);
-    }, false);
+      const response = ajax.responseText;
+      if(response === 'download'){
+
+      } else {
+        loadAjax({response, circleProgress});
+
+      }
+    });
 
     // TODO: implement these
     // ajax.addEventListener("abort", abortHandler, false);
@@ -248,6 +256,7 @@ script.
     // hit the backend
     ajax.open('POST', uploadUrl);
     ajax.send(formData);
+    $('#form').hide()
   }
 
   // prompt user to refresh if websocket dies
@@ -285,6 +294,14 @@ script.
 
     const isErrorMessage = message === 'error';
 
+    const isDownloadingInfo = message === 'downloadInfo';
+
+    const downloadingIsFinished = message === 'downloadingFinished';
+
+    isDownloadingInfo && renderDownloadInfo({data , circleProgress });
+
+    downloadingIsFinished && loadAjax({circleProgress})
+
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
@@ -299,7 +316,7 @@ script.
       renderQueue({place: placeInQueue, log: 'finished processing'});
     }
 
-    transcriptionIsStarting && renderStartingFeedback(data);
+    transcriptionIsStarting && renderStartingFeedback({ data, circleProgress });
 
     isFileDetailsMessage && renderFileDetails(data);
 
