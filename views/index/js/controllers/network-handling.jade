@@ -27,6 +27,7 @@ script.
     $('#progress').show()
     $('#header').html('Downloading..');
     $('#form').hide()
+    $('#startNewUpload').show();
 
 
     $('#progress').html(`${percentDownloaded}% downloaded`);
@@ -132,13 +133,17 @@ script.
     }
   }
 
-  const loadAjax = res => {
-    l({res});
+  const loadAjax = ({ response, circleProgress }) => {
+    l({response});
     $('#processingData').show();
     $('#latestData').show();
     $('#progress').hide();
     $('#timeEstimator').hide();
     $('#header').html('Processing..');
+    circleProgress.attr({
+      max: 100,
+      value: 0,
+    });
   }
 
   const renderQueue = ({place, log}) => {
@@ -245,13 +250,22 @@ script.
     }
   }
 
-  const renderStartingFeedback = data => {
+  const renderStartingFeedback = ({ data, circleProgress }) => {
     l('starting data');
     $('#latestData').html(data.text);
     $('#processingData').css({'font-size': '1.6rem'});
     $('#processingData').hide();
     $('#secondProcessingData').hide();
     myProcessingStarted = true;
+    circleProgress.attr({
+      max: 100,
+      value: 100,
+    });
+    $('.progress').show();
+    circleProgress.attr({
+      max: 100,
+      value: 0,
+    });
     // $('#latestData').css("font-size", "20px");
   }
 

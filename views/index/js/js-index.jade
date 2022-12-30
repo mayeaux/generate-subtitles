@@ -241,13 +241,11 @@ script.
     ajax.addEventListener('load', () => {
       l('hit the backend!');
       hitTheBackend = true;
-      l('res');
-      l(res);
       const response = ajax.responseText;
       if(response === 'download'){
 
       } else {
-        loadAjax(response);
+        loadAjax({response, circleProgress});
 
       }
     });
@@ -298,7 +296,11 @@ script.
 
     const isDownloadingInfo = message === 'downloadInfo';
 
+    const downloadingIsFinished = message === 'downloadingFinished';
+
     isDownloadingInfo && renderDownloadInfo({data , circleProgress });
+
+    downloadingIsFinished && loadAjax({circleProgress})
 
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
@@ -314,7 +316,7 @@ script.
       renderQueue({place: placeInQueue, log: 'finished processing'});
     }
 
-    transcriptionIsStarting && renderStartingFeedback(data);
+    transcriptionIsStarting && renderStartingFeedback({ data, circleProgress });
 
     isFileDetailsMessage && renderFileDetails(data);
 

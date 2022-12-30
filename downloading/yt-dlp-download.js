@@ -110,6 +110,9 @@ async function downloadFile ({
           reject();
         }
         deleteFromGlobalTranscriptionsBasedOnWebsocketNumber(websocketNumber);
+        websocketConnection.send(JSON.stringify({
+          message: 'downloadingFinished',
+        }), function () {});
       });
 
     } catch (err) {
