@@ -93,7 +93,7 @@ async function downloadFile ({
 
 
       ytdlProcess.stdout.on('data', (data) => {
-        // l(`STDOUT: ${data}`);
+        l(`STDOUT: ${data}`);
         latestDownloadInfo = data.toString();
       })
 
