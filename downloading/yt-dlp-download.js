@@ -32,7 +32,8 @@ async function downloadFile ({
   filepath,
   randomNumber,
   websocketConnection,
-  filename
+  filename,
+  websocketNumber
 }) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -40,13 +41,6 @@ async function downloadFile ({
       let latestDownloadInfo = '';
 
       const startedAtTime = new Date();
-
-      websocketConnection.send(JSON.stringify({
-        message: 'downloadInfo',
-        fileName: filename,
-        percentDownloaded: 0,
-        startedAtTime,
-      }), function () {});
 
       const interval = setInterval(() => {
         l(latestDownloadInfo);
@@ -77,6 +71,13 @@ async function downloadFile ({
         '-o',
         `./uploads/${randomNumber}.%(ext)s`
       ]);
+
+      const process = {
+        websocketNumber,
+        spawnedProcess: ytdlProcess,
+      }
+      global['transcriptions'].push(process)
+
 
 
       ytdlProcess.stdout.on('data', (data) => {

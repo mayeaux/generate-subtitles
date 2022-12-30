@@ -26,6 +26,7 @@ script.
     $('#timeEstimator').show();
     $('#progress').show()
     $('#header').html('Downloading..');
+    $('#form').hide()
 
 
     $('#progress').html(`${percentDownloaded}% downloaded`);
@@ -46,17 +47,22 @@ script.
       $('.progress').show();
     }
 
+    const estSecondsIsNan = isNaN(estSecondsRemaining);
+
     let timeRemainingString = '';
-    if(estSecondsRemaining !== Infinity){
+    if(estSecondsRemaining !== Infinity && !estSecondsIsNan) {
       timeRemainingString = `[${timeElapsedInSeconds}/${estSecondsRemaining}s] ${forHumans(estSecondsRemaining)} remaining`
     }
+
+    const totalDownloaded = Number((fileSizeValue * (percentDownloaded / 100)).toFixed(2));
+    const totalDownloadedANumber = isNaN(totalDownloaded)
 
     const frontendDisplayString = `
     ${timeRemainingString}
 
-    Total File Size: ${totalFileSize},
-    Download Speed: ${downloadSpeed},
-    Total Downloaded: ${(fileSizeValue * (percentDownloaded / 100)).toFixed(2) }${fileSizeUnit}
+    Total File Size: ${totalFileSize || ''}
+    Download Speed: ${downloadSpeed || ''}
+    Total Downloaded: ${ totalDownloaded || ''}${totalDownloaded && fileSizeUnit || ''}
 
     Filename: ${fileName}
     `

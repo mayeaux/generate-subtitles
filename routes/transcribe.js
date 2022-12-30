@@ -96,6 +96,13 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       l('uploadedFilePath');
       l(uploadedFilePath);
     } else if (downloadLink) {
+
+      websocketConnection.send(JSON.stringify({
+        message: 'downloadInfo',
+        fileName: downloadLink,
+        percentDownloaded: 0,
+      }), function () {});
+
       // TODO: not the world's greatest implemention
       function generateRandomNumber () {
         return Math.floor(Math.random() * 10000000000).toString();
@@ -114,7 +121,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       const extension = path.parse(filename).ext;
       uploadedFilePath = `uploads/${randomNumber}${extension}`;
 
-      res.send('ok');
+      res.send('download');
 
       // TODO: pass websocket connection and output download progress to frontend
       await downloadFile({
@@ -122,7 +129,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
         filepath: uploadedFilePath,
         randomNumber,
         websocketConnection,
-        filename
+        filename,
+        websocketNumber,
       });
       downloadedFile = true;
 
