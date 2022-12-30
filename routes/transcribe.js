@@ -60,6 +60,11 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const passedFile = req.file;
     let downloadedFile = false;
 
+    // this shouldn't happen but there's some sort of frontend bug
+    if(!language || language === 'Auto-Detect'){
+      language = 'auto-detect';
+    }
+
     // make the model medium by default
     if (!model) {
       model = 'medium';
