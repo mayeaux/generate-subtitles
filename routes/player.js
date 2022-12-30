@@ -139,4 +139,34 @@ router.get('/player/:filename' , async function (req, res, next) {
   }
 });
 
+/** PLYR PLAYER **/
+router.get("/player/:filename/add" , async function(req, res, next){
+  try {
+
+    const fileNameWithoutExtension = req.params.filename
+
+    const processDirectory = process.cwd();
+
+    const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+
+    const processingDataPath = `${containingFolder}/processing_data.json`;
+
+    const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
+
+    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.directoryFileName}.vtt`, 'utf8');
+
+    res.render('addTranslation/addTranslation', {
+      title: 'Add Translation',
+      renderedFilename: fileNameWithoutExtension,
+      originalVtt
+      // vttPath,
+      // fileSource
+    })
+  } catch (err){
+    l('err');
+    l(err);
+    res.send(err);
+  }
+});
+
 module.exports = router;
