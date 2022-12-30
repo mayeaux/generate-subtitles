@@ -12,9 +12,12 @@ script.
     const fileName = data.fileName;
     const totalFileSize = data.totalFileSize;
     const downloadSpeed = data.downloadSpeed;
+    const {fileSizeUnit, fileSizeValue} = data;
+
+    const differenceInMs = new Date() - new Date(startedAtTime);
 
     // get time in seconds between upload start time and now
-    const timeElapsedInSeconds = Math.round((new Date() - new Date(startedAtTime)) / 1000);
+    const timeElapsedInSeconds = Math.round(differenceInMs / 1000);
     // estimate how many seconds remaining based on percentage
     const estimatedTotalDownloadTimeInSeconds = Math.round(timeElapsedInSeconds * (100 / percentDownloaded));
     // time left is difference of estimated time and elapsed time
@@ -22,6 +25,9 @@ script.
 
     $('#timeEstimator').show();
     $('#progress').show()
+    $('#header').html('Downloading..');
+
+
     $('#progress').html(`${percentDownloaded}% downloaded`);
     document.title = `${percentDownloaded}% Downloaded - ${fileName}`;
 
@@ -40,10 +46,22 @@ script.
       $('.progress').show();
     }
 
-    $('#timeEstimator').html(`[${timeElapsedInSeconds}/${estSecondsRemaining}s] ${forHumans(estSecondsRemaining)} remaining
-                  \n Total File Size: ${totalFileSize}, \nDownload Speed: ${downloadSpeed}
-                  `);
+    let timeRemainingString = '';
+    if(estSecondsRemaining !== Infinity){
+      timeRemainingString = `[${timeElapsedInSeconds}/${estSecondsRemaining}s] ${forHumans(estSecondsRemaining)} remaining`
+    }
 
+    const frontendDisplayString = `
+    ${timeRemainingString}
+
+    Total File Size: ${totalFileSize},
+    Download Speed: ${downloadSpeed},
+    Total Downloaded: ${(fileSizeValue * (percentDownloaded / 100)).toFixed(2) }${fileSizeUnit}
+
+    Filename: ${fileName}
+    `
+
+    $('#timeEstimator').html(frontendDisplayString)
   }
 
   // global vars used for using in the decrementing function

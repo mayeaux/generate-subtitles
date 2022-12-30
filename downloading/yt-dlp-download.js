@@ -15,10 +15,15 @@ function extractDataFromString(string){
   const totalFileSize = string.match(/of\s+(.*?)\s+at/)[1];
   const downloadSpeed = string.match(/at\s+(.*?)\s+ETA/)[1];
 
+  const fileSizeValue = totalFileSize.match(/\d+\.\d+/)[0];
+  const fileSizeUnit = totalFileSize.split(fileSizeValue)[1];
+
   return {
     percentDownloaded,
     totalFileSize,
     downloadSpeed,
+    fileSizeUnit,
+    fileSizeValue,
   }
 }
 
@@ -36,13 +41,20 @@ async function downloadFile ({
 
       const startedAtTime = new Date();
 
+      websocketConnection.send(JSON.stringify({
+        message: 'downloadInfo',
+        fileName: filename,
+        percentDownloaded: 0,
+        startedAtTime,
+      }), function () {});
+
       const interval = setInterval(() => {
         l(latestDownloadInfo);
 
         // only run if ETA is in the string
         if(!latestDownloadInfo.includes('ETA')) return
 
-        const { percentDownloaded, totalFileSize, downloadSpeed } = extractDataFromString(latestDownloadInfo);
+        const { percentDownloaded, totalFileSize, downloadSpeed, fileSizeUnit, fileSizeValue } = extractDataFromString(latestDownloadInfo);
 
         websocketConnection.send(JSON.stringify({
           message: 'downloadInfo',
@@ -51,6 +63,8 @@ async function downloadFile ({
           totalFileSize,
           downloadSpeed,
           startedAtTime,
+          fileSizeUnit,
+          fileSizeValue
         }), function () {});
 
       }, 1000);
