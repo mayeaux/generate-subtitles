@@ -272,7 +272,7 @@ script.
   const renderFileDetails = data => {
     l('file details data');
     const niceDate = new Date().toString().replace(/GMT.*/g, '');
-    const niceString = `startedAt: ${niceDate}`;
+    const niceString = `Started At: ${niceDate}`;
     $('#finishedData').html(data.fileDetails + niceString);
   }
 
