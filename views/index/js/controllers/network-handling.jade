@@ -184,12 +184,11 @@ script.
 
     // disregard any data that isn't yours after your processing has started
     if (!myUpload && myUploadStarted) return;
-    if (inTheQueue) return
 
     latestProgress = formattedProgress;
 
     const fileName = $('#file').prop('files')[0]?.name;
-    if (percentDone) {
+    if (!inTheQueue && percentDone) {
       document.title = `${percentDone}% Transcribed - ${fileName}`;
     }
 
@@ -257,6 +256,7 @@ script.
     // TODO: this is misnamed, it's not the upload that's started but the processing
     if (!myUpload && !myUploadStarted && hitTheBackend && !myProcessingStarted) {
       l(`getting process ${processNumber} data`);
+      // TODO: add decrementing here
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
     }
@@ -312,7 +312,7 @@ script.
     $('#header').html('Transcription Completed');
     $('#processingData').hide();
     // show refresh button
-    $('#refreshButton').show();
+    $('#refreshButton').hide();
     $('#startNewUpload').hide();
     wsConnection.close();
     // redirect to the player page
