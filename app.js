@@ -12,6 +12,8 @@ const _ = require('lodash');
 // run stats gathering
 require('./lib/stats');
 
+l = console.log;
+
 // Check if the .env file exists
 if (!fs.existsSync('.env')) {
   // If the .env file does not exist, copy the .env.sample file to .env
@@ -20,6 +22,8 @@ if (!fs.existsSync('.env')) {
 
 // Load the .env file
 require('dotenv').config();
+
+l(`FILES PASSWORD: ${process.env.FILES_PASSWORD}`);
 
 const routes = require('./routes/index');
 const users = require('./routes/users');

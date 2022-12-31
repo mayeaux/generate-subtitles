@@ -7,6 +7,77 @@ let router = express.Router();
 
 
 /** PLYR PLAYER **/
+router.get('/player/:filename' , async function (req, res, next) {
+  try {
+    const { password } = req.query;
+
+    const userAuthed = password === process.env.FILES_PASSWORD
+
+    const fileNameWithoutExtension = req.params.filename
+
+    const processDirectory = process.cwd();
+
+    const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+
+    const processingDataPath = `${containingFolder}/processing_data.json`;
+
+    const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
+
+
+    const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${processingData.directoryFileName}`;
+
+    l('filePathWithoutExtension')
+    l(filePathWithoutExtension);
+
+    const translatedLanguages = processingData.translatedLanguages;
+
+    // TODO: check that it doesn't include the original language? or it never will?
+    const languagesToLoop = newLanguagesMap.filter(function (language) {
+      return translatedLanguages.includes(language.name)
+    });
+
+    delete processingData.strippedText;
+    delete processingData.timestampsArray;
+
+    l('processing data');
+    l(processingData);
+
+    l('languages to loop');
+    l(languagesToLoop);
+
+    let allLanguages = languagesToLoop.slice();
+
+    allLanguages.push({
+      name: processingData.language,
+      languageCode: processingData.languageCode
+    })
+
+    l('all languages');
+    l(allLanguages);
+
+    res.render('player/player', {
+      filePath: filePathWithoutExtension,
+      languages: languagesToTranscribe,
+      fileNameWithoutExtension,
+      filePathWithoutExtension,
+      processingData,
+      title: processingData.filename,
+      languagesToLoop,
+      allLanguages,
+      renderedFilename: req.params.filename,
+      userAuthed,
+      password
+      // vttPath,
+      // fileSource
+    })
+  } catch (err) {
+    l('err');
+    l(err);
+    res.send(err);
+  }
+});
+
+/** PLYR PLAYER **/
 router.post('/player/:filename/add' , async function (req, res, next) {
   try {
 
@@ -74,74 +145,20 @@ router.post('/player/:filename/add' , async function (req, res, next) {
   }
 });
 
-/** PLYR PLAYER **/
-router.get('/player/:filename' , async function (req, res, next) {
+/** CHANGE KEEP MEDIA **/
+router.post("/player/:filename/keepMedia" , async function(req, res, next){
   try {
-    const fileNameWithoutExtension = req.params.filename
+    const { password } = req.query;
 
-    const processDirectory = process.cwd();
+    const keepMedia = req.query.keepMedia;
 
-    const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+    const shouldKeepMedia = keepMedia === 'true';
 
-    const processingDataPath = `${containingFolder}/processing_data.json`;
+    l('keep media');
+    l(keepMedia);
 
-    const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
-
-
-    const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${processingData.directoryFileName}`;
-
-    l('filePathWithoutExtension')
-    l(filePathWithoutExtension);
-
-    const translatedLanguages = processingData.translatedLanguages;
-
-    // TODO: check that it doesn't include the original language? or it never will?
-    const languagesToLoop = newLanguagesMap.filter(function (language) {
-      return translatedLanguages.includes(language.name)
-    });
-
-    delete processingData.strippedText;
-    delete processingData.timestampsArray;
-
-    l('processing data');
-    l(processingData);
-
-    l('languages to loop');
-    l(languagesToLoop);
-
-    let allLanguages = languagesToLoop.slice();
-
-    allLanguages.push({
-      name: processingData.language,
-      languageCode: processingData.languageCode
-    })
-
-    l('all languages');
-    l(allLanguages);
-
-    res.render('player/player', {
-      filePath: filePathWithoutExtension,
-      languages: languagesToTranscribe,
-      fileNameWithoutExtension,
-      filePathWithoutExtension,
-      processingData,
-      title: processingData.filename,
-      languagesToLoop,
-      allLanguages,
-      renderedFilename: req.params.filename
-      // vttPath,
-      // fileSource
-    })
-  } catch (err) {
-    l('err');
-    l(err);
-    res.send(err);
-  }
-});
-
-/** PLYR PLAYER **/
-router.get("/player/:filename/add" , async function(req, res, next){
-  try {
+    l('password');
+    l(password);
 
     const fileNameWithoutExtension = req.params.filename
 
@@ -153,20 +170,22 @@ router.get("/player/:filename/add" , async function(req, res, next){
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
-    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.directoryFileName}.vtt`, 'utf8');
+    if(shouldKeepMedia){
+      processingData.keepMedia = true;
+    } else {
+      processingData.keepMedia = false;
+    }
 
-    res.render('addTranslation/addTranslation', {
-      title: 'Add Translation',
-      renderedFilename: fileNameWithoutExtension,
-      originalVtt
-      // vttPath,
-      // fileSource
-    })
+    await fs.writeFile(processingDataPath, JSON.stringify(processingData), 'utf-8');
+
+    return res.redirect(`/player/${req.params.filename}`)
+
   } catch (err){
     l('err');
     l(err);
     res.send(err);
   }
 });
+
 
 module.exports = router;
