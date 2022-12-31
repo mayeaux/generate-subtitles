@@ -61,7 +61,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     let downloadedFile = false;
 
     // this shouldn't happen but there's some sort of frontend bug
-    if(!language || language === 'Auto-Detect'){
+    if(!language || language === 'undefined' || language === 'Auto-Detect'){
       language = 'auto-detect';
     }
 
