@@ -154,12 +154,14 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
     const uploadDurationInSeconds = Math.round(audioStream.duration);
 
+    const fileSizeInMB = Math.round(req.file.size / 1048576);
+
     // TODO: pull out into a function
     // error if on FS and over file size limit or duration limit
     const domainName = req.hostname;
+
     const isFreeSubtitles = domainName === 'freesubtitles.ai';
     if (isFreeSubtitles && !isYtdlp) {
-      const fileSizeInMB = Math.round(req.file.size / 1048576);
 
       const amountOfSecondsInHour = 60 * 60;
       if (uploadDurationInSeconds > amountOfSecondsInHour) {
@@ -241,6 +243,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
         uploadGeneratedFilename,
         shouldTranslate,
         uploadDurationInSeconds,
+        fileSizeInMB,
 
         // websocket/queue
         websocketConnection,
