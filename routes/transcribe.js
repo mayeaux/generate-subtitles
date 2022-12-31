@@ -226,7 +226,14 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     // allow admin to see items in the queue
     addItemToQueue({
-      model, language, filename: originalFileNameWithExtension, ip, uploadDurationInSeconds, shouldTranslate
+      model,
+      language,
+      filename: originalFileNameWithExtension,
+      ip,
+      uploadDurationInSeconds,
+      shouldTranslate,
+      fileSizeInMB,
+      startedAt: new Date(),
     })
 
     queue.add(async function () {
