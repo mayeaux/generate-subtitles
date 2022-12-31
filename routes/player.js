@@ -73,7 +73,7 @@ router.get('/player/:filename' , async function (req, res, next) {
   } catch (err) {
     l('err');
     l(err);
-    res.send(err);
+    res.redirect('/404')
   }
 });
 
