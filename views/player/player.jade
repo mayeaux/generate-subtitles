@@ -60,6 +60,20 @@ block content
           a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
             p(style="color:rgb(22, 29, 29);") Add Here
               //p Filename: #{processingData.filename}
+        if userAuthed
+          form(action='/player/#{renderedFilename}/keepMedia?password=#{password}&keepMedia=true' method='POST')
+            // form elements go here
+            button(type='submit') Keep Media True
+          br
+          form(action='/player/#{renderedFilename}/keepMedia?password=#{password}&keepMedia=false' method='POST')
+            // form elements go here
+            button(type='submit') Keep Media False
+          br
+
+          //a(href='/player/#{renderedFilename}/add?password=#{password}&keepMedia=true' style="text-decoration:none;")
+          //  p(style="") Add Here
+          //a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
+          //  p(style="color:rgb(22, 29, 29);") Add Here
 
     script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')

@@ -78,6 +78,7 @@ async function downloadFile ({
       const ytdlProcess = spawn('yt-dlp', [
         videoUrl,
         '--no-mtime',
+        '--no-playlist',
         '-f',
         'bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         '-o',
