@@ -134,6 +134,7 @@ script.
   }
 
   const loadAjax = ({ response, circleProgress }) => {
+    if(downloadStarted) downloadFinished = true;
     l({response});
     $('#processingData').show();
     $('#latestData').show();
@@ -144,7 +145,7 @@ script.
       max: 100,
       value: 0,
     });
-    $('.progress').hide();
+    $('.progress').show();
   }
 
   const renderQueue = ({place, log}) => {
@@ -240,6 +241,8 @@ script.
         $('#processingData').html(`${processFeedback}Transcription starting soon..`);
       }
     }
+
+    if(downloadStarted && !downloadFinished) return
 
     // TODO: this seems off
     // update the process 2 info if appropriate
