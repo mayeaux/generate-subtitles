@@ -48,6 +48,7 @@ async function transcribe ({
   uploadGeneratedFilename,
   shouldTranslate,
   uploadDurationInSeconds,
+  fileSizeInMB,
 }) {
   return new Promise(async (resolve, reject) => {
 
@@ -402,7 +403,8 @@ async function transcribe ({
               strippedText,
               timestampsArray,
               wordCount,
-              wordsPerMinute
+              wordsPerMinute,
+              fileSizeInMB
             }
 
             // save processing_data.json

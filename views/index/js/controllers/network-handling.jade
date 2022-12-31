@@ -134,6 +134,7 @@ script.
   }
 
   const loadAjax = ({ response, circleProgress }) => {
+    if(downloadStarted) downloadFinished = true;
     l({response});
     $('#processingData').show();
     $('#latestData').show();
@@ -144,18 +145,25 @@ script.
       max: 100,
       value: 0,
     });
-    $('.progress').hide();
+    $('.progress').show();
   }
 
   const renderQueue = ({place, log}) => {
+    inTheQueue = true;
     l(log);
+    let queueMessage;
+    let titleMessage;
     if(place < 1){
-      $('#latestData').html(`Starting now...`)
+      queueMessage = `Starting now...`;
     } else if (place === 1){
-      $('#latestData').html(`You're next up`)
+      queueMessage = `You're next up`;
     } else {
-      $('#latestData').html(`There are ${place} people ahead of you.`)
+      queueMessage = `There are ${place} people ahead of you`;
+      titleMessage = `${place} people ahead of you`;
     }
+
+    document.title = `${titleMessage || queueMessage}`;
+    $('#latestData').html(queueMessage)
   }
 
   let latestProgress, globalTimeRemaining, myUploadStarted = false;
@@ -180,7 +188,7 @@ script.
     latestProgress = formattedProgress;
 
     const fileName = $('#file').prop('files')[0]?.name;
-    if (percentDone) {
+    if (!inTheQueue && percentDone) {
       document.title = `${percentDone}% Transcribed - ${fileName}`;
     }
 
@@ -241,17 +249,22 @@ script.
       }
     }
 
+    if(downloadStarted && !downloadFinished) return
+
     // TODO: this seems off
     // update the process 2 info if appropriate
     // TODO: this is misnamed, it's not the upload that's started but the processing
     if (!myUpload && !myUploadStarted && hitTheBackend && !myProcessingStarted) {
       l(`getting process ${processNumber} data`);
+      // TODO: add decrementing here
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).show();
       $(`${processNumber === 1 ? '#processingData' : '#secondProcessingData'}`).html(`${processFeedback}\n${data.processingData}`);
     }
   }
 
   const renderStartingFeedback = ({ data, circleProgress }) => {
+    inTheQueue = false;
+    document.title = `Starting processing..`;
     l('starting data');
     $('#latestData').html(data.text);
     $('#processingData').css({'font-size': '1.6rem'});
@@ -299,7 +312,7 @@ script.
     $('#header').html('Transcription Completed');
     $('#processingData').hide();
     // show refresh button
-    $('#refreshButton').show();
+    $('#refreshButton').hide();
     $('#startNewUpload').hide();
     wsConnection.close();
     // redirect to the player page

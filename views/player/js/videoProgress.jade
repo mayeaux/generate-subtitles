@@ -1,0 +1,18 @@
+script.
+  function getStoredVideoProgress() {
+    const storedVideoProgress = localStorage.getItem('storedVideoProgress');
+    if (storedVideoProgress) {
+      return JSON.parse(storedVideoProgress);
+    }
+    return {};
+  }
+
+  function setStoredVideoProgress(ended) {
+    const storedVideoProgress = getStoredVideoProgress();
+    if (ended) {
+      storedVideoProgress[filename] = 0;
+    } else {
+      storedVideoProgress[filename] = player.currentTime;
+    }
+    localStorage.setItem('storedVideoProgress', JSON.stringify(storedVideoProgress));
+  }

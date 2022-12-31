@@ -81,170 +81,15 @@ block content
       l = console.log;
 
       let player;
+      let subtitlesFontSize, subtitlesLineHeight;
 
       const language = '#{processingData.language}';
       const languagesToLoop = !{JSON.stringify(languagesToLoop)};
       const allLanguages = !{JSON.stringify(allLanguages)};
+      const filename = '#{renderedFilename}';
 
       l('all languages');
       l(allLanguages);
-
-      function findIndexNumber(language, text) {
-        const video = $('video')[0]
-        const textTracks = video.textTracks;
-
-        let foundIndex;
-        let index = 0;
-        for (const track of textTracks) {
-          const trackLanguage = track.label
-          if (language === trackLanguage) {
-            for (const cue of track.cues) {
-              if (cue.text === text) {
-                foundIndex = index
-              }
-              index++
-            }
-          }
-        }
-
-        return foundIndex
-      }
-
-      function loadTextTracks(){
-        const video = $('video')[0]
-        const textTracks = video.textTracks;
-        for (const track of textTracks) {
-          track.mode = 'hidden';
-        }
-      }
-      loadTextTracks()
-
-      function findTextFromIndexNumber(language, index) {
-        const video = $('video')[0]
-        const textTracks = video.textTracks;
-
-        let text;
-        l('text tracks');
-        l(textTracks);
-
-        for (const track of textTracks) {
-          const trackLanguage = track.label
-          if (language === trackLanguage) {
-            text = track.cues[index]?.text
-            return text
-          }
-        }
-        return false;
-      }
-
-      function getCurrentLanguageAndTrack() {
-        const video = $('video')[0]
-        const textTracks = video.textTracks;
-        const trackNumber = player.currentTrack;
-        const currentTrack = textTracks[trackNumber]
-
-        const language = currentTrack.label;
-        const text = currentTrack.activeCues?.[0]?.text;
-
-        const indexNumber = findIndexNumber(language, text);
-
-        return {
-          language,
-          text,
-          indexNumber
-        }
-      }
-
-      function getSecondCaptionsDefaults(){
-        let secendCaptionsDefaults = localStorage.getItem('secondCaptionsDefaults')
-        if(!secendCaptionsDefaults){
-          localStorage.setItem('secondCaptionsDefaults', JSON.stringify({}))
-          return {}
-        } else {
-          secendCaptionsDefaults = JSON.parse(secendCaptionsDefaults)
-          return secendCaptionsDefaults
-        }
-      }
-
-      function setSecondCaptionsDefaults(secondCaptionsLanguage){
-        const secondCaptionsDefaults = getSecondCaptionsDefaults()
-        secondCaptionsDefaults[language] = secondCaptionsLanguage;
-        localStorage.setItem('secondCaptionsDefaults', JSON.stringify(secondCaptionsDefaults))
-      }
-
-      function buildMenuItemString(language, index){
-        return `<button data-plyr="language" id="languageName" type="button" role="menuitemradio" class="plyr__control" aria-checked="false" value="${index}">
-              <span id="languageValue" value="${language.name}">${language.name}<span class="plyr__menu__value"><span class="plyr__badge">${language.languageCode.toUpperCase()}</span></span></span>
-          </button>`;
-      }
-
-      const disabledMenuItem = `
-         <button data-plyr="language" type="button" role="menuitemradio" class="plyr__control" aria-checked="true" value="-1">
-            <span>Disabled</span>
-        </button>`;
-
-      function createSecondCaptionsSetting() {
-        const menuText = `${disabledMenuItem}
-                ${allLanguages.map((language, index) => {
-          return buildMenuItemString(language, index)
-        }).join('')}`;
-
-        // show second caption option in popup
-        $('.plyr__menu__container > div > div > div > button')[1].removeAttribute('hidden')
-
-        // write Second Captions name with Disabled as default on popup
-        $('.plyr__menu__container > div > div > div > button').eq(1).html('<span>Second Captions<span class="plyr__menu__value">Disabled</span></span>');
-
-        // add menu items for when you click the button
-        $("div[id*='secondCaptions'] div").html(menuText)
-
-        // set default chosen value as Disabled
-        $("div[id*='secondCaptions'] button span").eq(0).text('Disabled')
-
-        // handle when language value is clicked
-        $("div[id*='secondCaptions'] div button").click(function () {
-            // mark all languages as not checked
-            $("div[id*='secondCaptions'] div button").attr("aria-checked", "false");
-
-            // get language of clicked value
-            let languageValue = $(this).children().text();
-
-            // remove last two characters from string (couldn't get only French instead of FrenchFR)
-            if (/[A-Z]{2}$/.test(languageValue)) {
-                languageValue = languageValue.slice(0, -2);
-            }
-
-            setSecondCaptionsDefaults(languageValue)
-
-            // get current vtt text
-            const currentLang = getCurrentLanguageAndTrack();
-
-            const translationText = findTextFromIndexNumber(languageValue, currentLang.indexNumber);
-
-            const originalText = $("span.plyr__caption").text();
-
-            // mark language as activated
-            $(this).attr("aria-checked", "true");
-
-            // update text at the top of the menu options
-            $("div[id*='secondCaptions'] button span").eq(0).text(languageValue)
-
-            // immediately add text if they didn't select Disabled
-            if (languageValue !== 'Disabled') {
-                $("span.plyr__caption").text(`${originalText}\n${translationText}`);
-            }
-
-            // update text on secondCaptions option
-            $('.plyr__menu__container > div > div > div > button').eq(1)
-            .find('span.plyr__menu__value')
-            .text(languageValue)
-
-            // click back button (mirrors plyr functionality)
-            $("div[id*='secondCaptions'] button span").eq(0).click()
-        })
-      }
-
-      let subtitlesFontSize, subtitlesLineHeight;
 
       $(document).ready(function () {
 
@@ -273,43 +118,6 @@ block content
         anchorTags.forEach((anchor) => {
           anchor.setAttribute('target', '_blank');
         });
-
-        function adjustFontSize(direction) {
-
-          const currentLineHeight = $('.plyr__caption').css('line-height');
-          const currentLineHeight1 = currentLineHeight.replace('px', '');
-          const newLineHeight = parseInt(currentLineHeight1) + (direction === 'increase' ? 2 : -2);
-
-          const currentFontSize = $('.plyr__caption').css('font-size');
-          const currentFontSize1 = currentFontSize.replace('px', '');
-          const newFontSize = parseInt(currentFontSize1) + (direction === 'increase' ? 2 : -2);
-
-
-          subtitlesFontSize = newFontSize;
-          subtitlesLineHeight = newLineHeight;
-
-          l('subtitlesFontSize', subtitlesFontSize)
-          l('subtitlesLineHeight', subtitlesLineHeight)
-
-
-          // $('.plyr__caption').attr('style', `font-size: ${newFontSize}px !important`);
-          $('.plyr__caption').css('line-height', `${newLineHeight}px`);
-          $('.plyr__caption').css('font-size', `${newFontSize}px`);
-        }
-
-        function adjustLineHeight(direction) {
-          const currentLineHeight = $('.plyr__caption').css('line-height');
-          const currentLineHeight1 = currentLineHeight.replace('px', '');
-          const newLineHeight = parseInt(currentLineHeight1) + (direction === 'increase' ? 2 : -2);
-
-
-          subtitlesLineHeight = newLineHeight;
-
-          l('subtitlesLineHeight', subtitlesLineHeight)
-
-          // $('.plyr__caption').attr('style', `font-size: ${newFontSize}px !important`);
-          $('.plyr__caption').css('line-height', `${newLineHeight}px`);
-        }
 
         $('#increaseSize').click(function (event) {
           adjustFontSize('increase');
@@ -357,10 +165,52 @@ block content
         });
 
         player.on('ready', event => {
+          // change position of volume button
           $('.plyr__volume').append($('.plyr__volume').children('').get().reverse());
+
+          // without this timeout it doesn't work properly
+          setTimeout(function(){
+            setStoredLineHeightAndFontSizeIfExists();
+          }, 200)
+
         });
 
-        l('captions');
+        let intervalId;
+        player.on('playing', event => {
+          l('playing');
+          intervalId = setInterval(function () {
+            // Run your function here
+            setStoredVideoProgress();
+          }, 5000);
+        })
+
+        player.on('pause', event => {
+          clearInterval(intervalId);
+          setStoredVideoProgress();
+          l('pause');
+        })
+
+        player.on('ended', event => {
+          clearInterval(intervalId);
+          setStoredVideoProgress(true);
+          l('ended');
+        })
+
+        // ChatGPT says this should work but doesn't for me
+        // player.on('pause, ended', event => {
+        //   clearInterval(intervalId);
+        //   l('pause or ended!');
+        // })
+
+        // l('captions');
+
+        player.on('loadeddata', () => {
+          const currentStoredProgress = getStoredVideoProgress()[filename];
+          l('currentStoredProgress', currentStoredProgress);
+          if (currentStoredProgress) {
+            player.currentTime = currentStoredProgress;
+          }
+        })
 
         // probably better to do on plyr ready if available as event
         setTimeout(function(){
@@ -388,8 +238,8 @@ block content
           // set secondsDefault language
           player.on('playing', function(){
             const currentSecondLanguageDefaults = getSecondCaptionsDefaults()
-            l('currentSecondLanguageDefaults', currentSecondLanguageDefaults)
-            l(language);
+            // l('currentSecondLanguageDefaults', currentSecondLanguageDefaults)
+            // l(language);
             if(!haveSetupSecondCaptions){
               setTimeout(function () {
                 // open menu
@@ -409,7 +259,7 @@ block content
           player.on('cuechange', function (event) {
             const text = event.detail.plyr.captions.currentTrackNode.activeCues[0]?.text;
             const thing = getCurrentLanguageAndTrack()
-            l(thing);
+            // l(thing);
 
             const selectedTranslation = $("#languageName[aria-checked='true'] > span[id*='languageValue']").attr("value");
             if(selectedTranslation && selectedTranslation !== 'Disabled') {
@@ -421,13 +271,17 @@ block content
 
             // balance text not working at the moment
             if(subtitlesFontSize){
-              $('.plyr__caption').css('font-size', `${subtitlesFontSize}px`);
+              $('.plyr__caption').css('font-size', subtitlesFontSize);
             }
 
             if(subtitlesLineHeight){
-              $('.plyr__caption').css('line-height', `${subtitlesLineHeight}px`);
+              $('.plyr__caption').css('line-height', subtitlesLineHeight);
             }
-            l(text);
+            // l(text);
           })
         }, 200)
       });
+    include js/secondCaptions
+    include js/captionsDisplay
+    include js/videoProgress
+
