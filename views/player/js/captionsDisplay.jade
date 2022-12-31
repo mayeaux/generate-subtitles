@@ -1,0 +1,67 @@
+script.
+  function setStoredLineHeightAndFontSizeIfExists() {
+    const storedLineHeight = localStorage.getItem('storedLineHeight');
+    if (storedLineHeight) {
+      subtitlesLineHeight = storedLineHeight;
+      $('.plyr__caption').css('line-height', storedLineHeight);
+    } else {
+      const currentLineHeight = $('.plyr__caption').css('line-height');
+      localStorage.setItem('storedLineHeight', currentLineHeight);
+    }
+
+    const storedFontSize = localStorage.getItem('storedFontSize');
+    if (storedFontSize) {
+      // l('found font size');
+      // l(storedFontSize)
+      subtitlesFontSize = storedFontSize;
+
+      $('.plyr__caption').css('font-size', storedFontSize);
+    } else {
+      const currentFontSize = $('.plyr__caption').css('font-size');
+      localStorage.setItem('storedFontSize', currentFontSize);
+    }
+  }
+
+  function adjustFontSize(direction) {
+
+    const currentLineHeight = $('.plyr__caption').css('line-height');
+    const currentLineHeight1 = currentLineHeight.replace('px', '');
+    const newLineHeight = parseInt(currentLineHeight1) + (direction === 'increase' ? 1 : -1);
+
+    const currentFontSize = $('.plyr__caption').css('font-size');
+    const currentFontSize1 = currentFontSize.replace('px', '');
+    const newFontSize = parseInt(currentFontSize1) + (direction === 'increase' ? 1 : -1);
+
+    l('subtitlesFontSize', subtitlesFontSize)
+    l('subtitlesLineHeight', subtitlesLineHeight)
+
+    const newLineHeightWithPx = `${newLineHeight}px`;
+    const newFontSizeWithPx = `${newFontSize}px`;
+
+    $('.plyr__caption').css('line-height', newLineHeightWithPx);
+    $('.plyr__caption').css('font-size', newFontSizeWithPx);
+
+    localStorage.setItem('storedLineHeight', newLineHeightWithPx);
+    localStorage.setItem('storedFontSize', newFontSizeWithPx);
+
+    subtitlesFontSize = newFontSizeWithPx;
+    subtitlesLineHeight = newLineHeightWithPx;
+
+  }
+
+  function adjustLineHeight(direction) {
+    const currentLineHeight = $('.plyr__caption').css('line-height');
+    const currentLineHeight1 = currentLineHeight.replace('px', '');
+    const newLineHeight = parseInt(currentLineHeight1) + (direction === 'increase' ? 1 : -1);
+
+
+    const newLineHeightWithPx = `${newLineHeight}px`;
+
+    // l('subtitlesLineHeight', subtitlesLineHeight)
+
+    $('.plyr__caption').css('line-height', newLineHeightWithPx);
+
+    localStorage.setItem('storedLineHeight', newLineHeightWithPx);
+
+    subtitlesLineHeight = newLineHeightWithPx;
+  }
