@@ -149,14 +149,21 @@ script.
   }
 
   const renderQueue = ({place, log}) => {
+    inTheQueue = true;
     l(log);
+    let queueMessage;
+    let titleMessage;
     if(place < 1){
-      $('#latestData').html(`Starting now...`)
+      queueMessage = `Starting now...`;
     } else if (place === 1){
-      $('#latestData').html(`You're next up`)
+      queueMessage = `You're next up`;
     } else {
-      $('#latestData').html(`There are ${place} people ahead of you.`)
+      queueMessage = `There are ${place} people ahead of you`;
+      titleMessage = `${place} people ahead of you`;
     }
+
+    document.title = `${titleMessage || queueMessage}`;
+    $('#latestData').html(queueMessage)
   }
 
   let latestProgress, globalTimeRemaining, myUploadStarted = false;
@@ -177,6 +184,7 @@ script.
 
     // disregard any data that isn't yours after your processing has started
     if (!myUpload && myUploadStarted) return;
+    if (inTheQueue) return
 
     latestProgress = formattedProgress;
 
@@ -255,6 +263,8 @@ script.
   }
 
   const renderStartingFeedback = ({ data, circleProgress }) => {
+    inTheQueue = false;
+    document.title = `Starting processing..`;
     l('starting data');
     $('#latestData').html(data.text);
     $('#processingData').css({'font-size': '1.6rem'});
