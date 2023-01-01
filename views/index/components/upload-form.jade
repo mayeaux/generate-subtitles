@@ -38,7 +38,7 @@ form.form#form
     input#translate(type='checkbox' name='translate')
     .wrapper
       button#translationSelect.select-btn(type='button')
-        span#transLanguage.select-value(name='transLanguage') Placeholder
+        span#transLanguage.select-value(name='transLanguage') Select languages
         i.fa-solid.fa-angle-down
       .content
         .search
@@ -49,4 +49,7 @@ form.form#form
             li.option(data-value=language.value tabindex='0')
               input(type='checkbox' id=language.value name=language.value value=language.value)
               label(for=language.value tabindex='0')= language.name
+      .group
+        p You have selected #[span.selected-langs-num 0]/110 languages:
+        ul.selected-langs
   button#upload-button.submit-btn(type='submit') Upload

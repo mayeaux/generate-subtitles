@@ -22,6 +22,9 @@ style.
   }
 
   form .group .wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
     position: relative;
     width: 100%;
   }
@@ -50,7 +53,6 @@ style.
 
   .content {
     position: absolute;
-    top: 3.5rem;
     z-index: 1;
     width: 100%;
     display: none;
@@ -60,6 +62,7 @@ style.
     max-height: 0;
     padding: 16px;
     padding-bottom: 0;
+    margin-block: 3.5em;
     background: #fff;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     transition: max-height 250ms ease-in-out;
@@ -178,6 +181,37 @@ style.
     opacity: 0.8;
   }
 
+  .translateHolder .group > * {
+    margin: 0;
+  }
+  
+  .group ul.selected-langs {
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+  }
+
+  .selected-langs .selected-lang {
+    width: fit-content;
+    padding: 0.4em 0.6em;
+    display: flex;
+    gap: 0.5em;
+    font-size: 1rem;
+  }
+
+  .selected-langs .selected-lang p {
+    margin: 0;
+  }
+
+  .selected-langs .selected-lang i {
+    font-size: 1.125rem;
+  }
+
+  .selected-langs .selected-lang:hover i {
+    color: #961515;
+  }
+
   .translateHolder .wrapper {
     grid-column: 1 / -1;
     visibility: hidden;
@@ -189,7 +223,7 @@ style.
   .translateHolder > input[type='checkbox']:checked + .wrapper {
     visibility: visible;
     opacity: 1;
-    max-height: 4rem;
+    max-height: fit-content;
   }
 
   .submit-btn {

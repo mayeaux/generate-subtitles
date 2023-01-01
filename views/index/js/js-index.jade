@@ -80,6 +80,7 @@ script.
     const selectionBtn = clicked.closest('.select-btn');
     const option = clicked.closest('.option');
     const groupElement = clicked.closest('.form .group');
+    const selectedLang = clicked.closest('.selected-lang');
 
     const langSelectionBtn = clicked.closest('.select-btn#languageSelect');
     langSelectionBtn && selectWrappers[1].classList.remove('active');
@@ -87,6 +88,8 @@ script.
     selectionBtn && handleSelectionButtonClick(evt); // On selection button click
 
     option && handleOptionClick(evt); // On option click
+
+    selectedLang && removeSelectedTranslationLang(evt); // On selected language click
 
     !groupElement && selectWrappers.forEach(wrapper => wrapper.classList.remove('active')); // On outside form group click
   });

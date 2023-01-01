@@ -12,19 +12,33 @@ script.
     const selectWrapper = evt.target.closest('.wrapper');
     const input = selectWrapper.querySelector('.search input');
     selectWrapper.classList.toggle('active');
+    l(evt.target.closest('.select-btn'));
     if (selectWrapper.classList.contains('active')) {
       input.focus();
       input.select();
       selectWrapper.querySelector('.selected')?.scrollIntoView({block: 'center', behavior: 'smooth'});
     } else {
       if (evt.target.id === 'translationSelect') {
-        const langDisplay = evt.target.querySelector('.select-value');
-        const selectedOptions = Array.from(selectWrapper.querySelectorAll('.selected'));
-        langDisplay.textContent = selectedOptions.map(opt => opt.textContent).join(', ');
+        
       }
       selectWrapper.querySelector('.select-btn').focus(); // BUG: doesn't focus
 
     }
+  }
+
+  const updateSelectedTranslationLangs = evt => {
+    const selectWrapper = evt.target.closest('.wrapper');
+    const selectedLangsEl = selectWrapper.querySelector('.selected-langs');
+    const selectedOptions = Array.from(selectWrapper.querySelectorAll('.selected'));
+    const selectedLangsNumEl = selectWrapper.querySelector('.selected-langs-num');
+    l({selectedOptions});
+    selectedLangsEl.innerHTML = selectedOptions.map(opt => `
+      <li class='selected-lang' data-value='${opt.dataset.value}'>
+        <p>${opt.textContent}</p>
+        <span><i class='fa-solid fa-circle-xmark'></i></span>
+      </li>
+    `).join('') || 'Select languages';
+    selectedLangsNumEl.textContent = selectedOptions.length;
   }
 
   const handleOptionClick = evt => {
@@ -40,6 +54,7 @@ script.
         ? option.classList.add('selected')
         : option.classList.remove('selected');
       }
+      updateSelectedTranslationLangs(evt);
     } else {
       updateSelection(option);
       selectWrapper.classList.remove('active');
@@ -92,6 +107,7 @@ script.
       input.checked
       ? option.classList.add('selected')
       : option.classList.remove('selected');
+      updateSelectedTranslationLangs(evt);
     } else if (input.getAttribute('type') === 'search') {
       const selectButton = input.closest('.wrapper').querySelector('.select-btn');
       selectButton.id === 'languageSelect' && options.shift();
@@ -103,4 +119,17 @@ script.
         : option.classList.add('hidden');
       });
     }
+  }
+
+  const removeSelectedTranslationLang = evt => {
+    const selectedLang = evt.target.closest('.selected-lang');
+    const selectWrapper = selectedLang.closest('.wrapper');
+    const selectedOptions = Array.from(selectWrapper.querySelectorAll('.selected'));
+    const option = selectedOptions.find(opt => opt.dataset.value === selectedLang.dataset.value);
+    const selectedLangsNumEl = selectWrapper.querySelector('.selected-langs-num');
+    const checkbox = option?.querySelector('input[type="checkbox"]');
+    option?.classList.remove('selected');
+    checkbox && (checkbox.checked = false);
+    selectedLang.remove();
+    selectedLangsNumEl.textContent = selectWrapper.querySelectorAll('.selected').length;
   }
