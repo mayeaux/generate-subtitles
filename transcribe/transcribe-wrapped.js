@@ -12,6 +12,7 @@ const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
 const { stripOutTextAndTimestamps } = require('../translate/helpers')
+const { updateQueueItemStatus } = require('../queue/queue');
 
 l = console.log;
 
@@ -61,6 +62,7 @@ async function transcribe ({
       l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
       // if they're not in the queue, cut them off
       // TODO: change to reject?
+      updateQueueItemStatus(websocketNumber, 'abandoned');
       return reject('WEBSOCKET DISCONNECTED');
     }
 
@@ -71,6 +73,7 @@ async function transcribe ({
         message: 'starting',
         text: 'Whisper initializing, updates to come...'
       })
+      updateQueueItemStatus(websocketNumber, 'processing');
 
       // fixes bug with windows
       const osSpecificPathSeparator = path.sep;
@@ -310,6 +313,8 @@ async function transcribe ({
               await convertChineseTraditionalToSimplified({ transcribedSrtFilePath, transcribedVttFilePath, transcribedTxtFilePath })
             }
 
+            updateQueueItemStatus(websocketNumber, 'completed');
+
             // return await so queue moves on, don't need to wait for translations
             resolve(code);
 
@@ -426,6 +431,8 @@ async function transcribe ({
 
           l(`child process exited with code ${code}`);
         } catch (err) {
+          updateQueueItemStatus(websocketNumber, 'errored');
+
           reject(err);
           l('websocket connection');
           // if websocket is still connected
@@ -446,6 +453,8 @@ async function transcribe ({
     } catch (err) {
       l('error from transcribe-wrapped')
       l(err);
+
+      updateQueueItemStatus(websocketNumber, 'errored');
 
       websocketConnection.send(JSON.stringify({
         message: 'error',

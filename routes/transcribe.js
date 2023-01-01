@@ -232,6 +232,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       shouldTranslate,
       fileSizeInMB,
       startedAt: new Date(),
+      status: 'pending',
+      websocketNumber
     })
 
     const transcriptionJobItem = {
