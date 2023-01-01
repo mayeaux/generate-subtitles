@@ -1,18 +1,12 @@
-async function delay(delayInSeconds) {
-  await new Promise(resolve => setTimeout(resolve, delayInSeconds * 1000));
-}
+const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 
 const l = console.log;
 
-function generateRandomNumber(){
-  return Math.floor(Math.random() * 4 + 3);
-}
+const maxConcurrentJobs = process.env.NODE_ENV === 'development' ? 1 : Number(process.env.CONCURRENT_AMOUNT);
 
 function createNumberSet(x) {
   return Array.from({length: x}, (_, i) => i + 1);
 }
-
-const maxConcurrentJobs = 1;
 
 const numberSet = createNumberSet(maxConcurrentJobs);
 
@@ -32,60 +26,114 @@ for(const number of numberSet){
 
 l(jobProcesses);
 
-async function runJob({ seconds, websocketNumber }){
+async function runJob(jobObject){
+  const { websocketNumber } = jobObject;
+
   // simulate job running
-  await delay(seconds);
-  l('job done');
+  try {
+    await transcribeWrapped(jobObject);
+
+    l('job done');
+
+  } catch (err){
+    l('error from runjob');
+    l(err);
+  }
+
   const processNumber = findProcessNumber(websocketNumber);
 
-  if(newQueue.length){
-    const nextQueueItem = newQueue.shift();
-    const { websocketNumber, seconds } = nextQueueItem;
+  if(global.newQueue.length){
+    const nextQueueItem = global.newQueue.shift();
+    const { websocketNumber } = nextQueueItem;
     jobProcesses[processNumber] = websocketNumber;
-    runJob({ seconds, websocketNumber });
+    runJob(nextQueueItem);
   } else {
     jobProcesses[processNumber] = undefined;
   }
 
+
 }
 
-const newQueue = [];
+global.newQueue = [];
 
 function addToJobObjectOrQueue(jobObject){
-  const { websocketNumber, seconds } = jobObject;
+  const { websocketNumber } = jobObject;
 
   for (let processNumber in jobProcesses) {
     const propValue = jobProcesses[processNumber];
 
     if(propValue === undefined){
       jobProcesses[processNumber] = websocketNumber;
-      runJob({ seconds, websocketNumber });
+      runJob(jobObject);
       return
     }
   }
 
-  newQueue.push(jobObject);
+  global.newQueue.push(jobObject);
 }
 
-async function main(){
-  addToJobObjectOrQueue({ websocketNumber: '1234', seconds: 15 });
-  await delay(generateRandomNumber());
-  // l('delay done')
-  addToJobObjectOrQueue({ websocketNumber: '2345', seconds: 8 });
-  await delay(generateRandomNumber());
-  // l('delay done')
-  addToJobObjectOrQueue({ websocketNumber: '5678', seconds: 5 });
+function amountOfRunningJobs(){
+  let amount = 0;
+  for (let processNumber in jobProcesses) {
+    const propValue = jobProcesses[processNumber];
+
+    if(propValue !== undefined){
+      amount++;
+    }
+  }
+
+  return amount;
 }
 
-main();
+module.exports = {
+  addToJobObjectOrQueue,
+  amountOfRunningJobs
+}
 
-setInterval(() => {
-  l('job object');
-  l(jobProcesses);
-  l('queue');
-  l(newQueue);
-}, 1000);
+// async function delay(delayInSeconds) {
+//   await new Promise(resolve => setTimeout(resolve, delayInSeconds * 1000));
+// }
+//
+// function generateRandomNumber(){
+//   return Math.floor(Math.random() * 4 + 3);
+// }
 
+// async function main(){
+//   addToJobObjectOrQueue({ websocketNumber: '1234', seconds: 15 });
+//   await delay(generateRandomNumber());
+//   // l('delay done')
+//   addToJobObjectOrQueue({ websocketNumber: '2345', seconds: 8 });
+//   await delay(generateRandomNumber());
+//   // l('delay done')
+//   addToJobObjectOrQueue({ websocketNumber: '5678', seconds: 5 });
+// }
+
+// main();
+
+// setInterval(() => {
+//   l('job object');
+//   l(jobProcesses);
+//   l('queue');
+//   l(newQueue);
+// }, 1000);
+
+// async function delayJob(seconds){
+//   l('delaying 5000');
+//   await delay(seconds * 1000);
+//   l('delay done');
+// }
+//
+// const newDelayJob = delayJob(3);
+// l(newDelayJob)
+//
+// async function main1(){
+//   l('starting');
+//   await delay(5000);
+//   l('delay 1 done');
+//   await newDelayJob;
+// }
+//
+// main1()
 
 // function addJobToProcessesObject(processNumber, jobObject){
 //

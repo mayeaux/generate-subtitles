@@ -203,8 +203,8 @@ async function transcribe ({
       // log output from bash (it all comes through stderr for some reason?)
       whisperProcess.stderr.on('data', data => {
         // figure out how many people currently transcribing
-        const amountOfCurrentPending = queue.getPendingLength()
-        const amountinQueue = queue.getQueueLength()
+        const amountOfCurrentPending = global.newQueue.length;
+        const amountinQueue = global.newQueue.length;
 
         const totalOutstanding = amountOfCurrentPending + amountinQueue;
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
@@ -440,9 +440,13 @@ async function transcribe ({
       });
       // TODO: this doesn't seem to actually work (errors never seem to land here)
     } catch (err) {
-      l('error from transcribe')
+      l('error from transcribe-wrapped')
       l(err);
 
+      websocketConnection.send(JSON.stringify({
+        message: 'error',
+        text: 'The transcription failed, please try again or try again later'
+      }), function () {});
       reject(err);
 
       throw err;

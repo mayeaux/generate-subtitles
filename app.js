@@ -9,19 +9,22 @@ const fs = require('fs');
 const {createServer} = require('http');
 const sessions = require('express-session');
 const _ = require('lodash');
+l = console.log;
+
+// Load the .env file
+require('dotenv').config();
+
+l('node env');
+l(process.env.NODE_ENV);
+
 // run stats gathering
 require('./lib/stats');
-
-l = console.log;
 
 // Check if the .env file exists
 if (!fs.existsSync('.env')) {
   // If the .env file does not exist, copy the .env.sample file to .env
   fs.copyFileSync('.env.sample', '.env');
 }
-
-// Load the .env file
-require('dotenv').config();
 
 l(`FILES PASSWORD: ${process.env.FILES_PASSWORD}`);
 
