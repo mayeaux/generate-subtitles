@@ -71,9 +71,11 @@ router.get('/queue', function (req, res, next) {
 
   const queueData = global.queueItems;
 
+  const reversedQueueData = queueData.slice().reverse();
+
   res.render('queue', {
     title: 'Queue',
-    queueData: queueData.reverse(),
+    queueData: reversedQueueData,
   })
 });
 

@@ -198,8 +198,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       }), function () {});
     }
 
-    // queueData maybe renamed to websocketData? or just redo the queue altogether
-    global.queueData.push(websocketNumber)
     /** WEBSOCKET FUNCTIONALITY END **/
 
     const originalFileExtension = path.parse(originalFileNameWithExtension).ext;

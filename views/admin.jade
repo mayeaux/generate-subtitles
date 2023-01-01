@@ -1,0 +1,33 @@
+extends layout
+
+block content
+    style.
+        p {
+            margin: 2px auto;
+        }
+
+
+    div
+        h1 Admin
+
+        h2 Job Processes
+        each val, key in jobProcesses
+          p #{key}: #{val}
+
+        h2 New Queue Items
+        each item in queueItems
+          each val, key in item
+              p #{key}: #{val}
+
+        h2 Transcriptions
+        each item in transcriptions
+          each val, key in item
+              p #{key}: #{val}
+
+        h2 Websocket Connections
+        each item in websocketItems
+            each val, key in item
+                p #{key}: #{val}
+
+
+

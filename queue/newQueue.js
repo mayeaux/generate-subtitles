@@ -11,20 +11,20 @@ function createNumberSet(x) {
 const numberSet = createNumberSet(maxConcurrentJobs);
 
 function findProcessNumber(websocketNumber) {
-  for (let processNumber in jobProcesses) {
-    if (jobProcesses.hasOwnProperty(processNumber) && jobProcesses[processNumber] === websocketNumber) {
+  for (let processNumber in global.jobProcesses) {
+    if (global.jobProcesses.hasOwnProperty(processNumber) && global.jobProcesses[processNumber] === websocketNumber) {
       return processNumber;
     }
   }
 }
 
-const jobProcesses = {};
+global.jobProcesses = {};
 
 for(const number of numberSet){
-  jobProcesses[number] = undefined;
+  global.jobProcesses[number] = undefined;
 }
 
-l(jobProcesses);
+l(global.jobProcesses);
 
 async function runJob(jobObject){
   const { websocketNumber } = jobObject;
@@ -45,10 +45,10 @@ async function runJob(jobObject){
   if(global.newQueue.length){
     const nextQueueItem = global.newQueue.shift();
     const { websocketNumber } = nextQueueItem;
-    jobProcesses[processNumber] = websocketNumber;
+    global.jobProcesses[processNumber] = websocketNumber;
     runJob(nextQueueItem);
   } else {
-    jobProcesses[processNumber] = undefined;
+    global.jobProcesses[processNumber] = undefined;
   }
 
 
@@ -59,11 +59,11 @@ global.newQueue = [];
 function addToJobObjectOrQueue(jobObject){
   const { websocketNumber } = jobObject;
 
-  for (let processNumber in jobProcesses) {
-    const propValue = jobProcesses[processNumber];
+  for (let processNumber in global.jobProcesses) {
+    const propValue = global.jobProcesses[processNumber];
 
     if(propValue === undefined){
-      jobProcesses[processNumber] = websocketNumber;
+      global.jobProcesses[processNumber] = websocketNumber;
       runJob(jobObject);
       return
     }
@@ -74,8 +74,8 @@ function addToJobObjectOrQueue(jobObject){
 
 function amountOfRunningJobs(){
   let amount = 0;
-  for (let processNumber in jobProcesses) {
-    const propValue = jobProcesses[processNumber];
+  for (let processNumber in global.jobProcesses) {
+    const propValue = global.jobProcesses[processNumber];
 
     if(propValue !== undefined){
       amount++;

@@ -52,12 +52,16 @@ async function transcribe ({
 }) {
   return new Promise(async (resolve, reject) => {
 
+    function webSocketIsStillAlive(webSocketNumber) {
+      return global.webSocketData.some(item => item.websocketNumber === webSocketNumber);
+    }
+
     // if the upload was removed from the queue, don't run it
-    if (!global.queueData.includes(websocketNumber)) {
+    if (webSocketIsStillAlive(websocketNumber) === false) {
       l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
       // if they're not in the queue, cut them off
       // TODO: change to reject?
-      return resolve(true);
+      return reject('WEBSOCKET DISCONNECTED');
     }
 
     try {
