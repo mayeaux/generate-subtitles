@@ -8,6 +8,7 @@ const express = require('express');
 const router = express.Router();
 const which = require('which');
 const ffprobePath = which.sync('ffprobe')
+const fs = require('fs-extra');
 
 const { downloadFile, getFilename } = require('../downloading/yt-dlp-download');
 const transcribeWrapped = require('../transcribe/transcribe-wrapped');
@@ -154,7 +155,9 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
     const uploadDurationInSeconds = Math.round(audioStream.duration);
 
-    const fileSizeInMB = Math.round(req.file.size / 1048576);
+    const stats = await fs.promises.stat(uploadedFilePath);
+    const fileSizeInBytes = stats.size;
+    const fileSizeInMB = Number(fileSizeInBytes / 1048576).toFixed(1);
 
     // TODO: pull out into a function
     // error if on FS and over file size limit or duration limit
