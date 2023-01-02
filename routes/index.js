@@ -36,7 +36,7 @@ router.get('/', function (req, res, next) {
 // home page
 router.get('/ytdlp', async function (req, res, next) {
 
-  const { password, user } = req.query;
+  const { password, user, skip } = req.query;
 
   const usersString = await fs.readFile(`${process.cwd()}/constants/ytdlpUsers.txt`, 'utf8');
   const users = usersString.split(',');
@@ -67,7 +67,8 @@ router.get('/ytdlp', async function (req, res, next) {
     languagesArray,
     decrementBySecond,
     ytdlp: true,
-    user
+    user,
+    skipToFront: skip
   });
 });
 

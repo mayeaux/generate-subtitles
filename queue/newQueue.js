@@ -57,7 +57,10 @@ async function runJob(jobObject){
 global.newQueue = [];
 
 function addToJobObjectOrQueue(jobObject){
-  const { websocketNumber } = jobObject;
+  const { websocketNumber, skipToFront } = jobObject;
+
+  l('skipToFront');
+  l(skipToFront);
 
   for (let processNumber in global.jobProcesses) {
     const propValue = global.jobProcesses[processNumber];
@@ -69,7 +72,12 @@ function addToJobObjectOrQueue(jobObject){
     }
   }
 
-  global.newQueue.push(jobObject);
+  // push to newQueue if all processes are busy
+  if(skipToFront){
+    global.newQueue.unshift(jobObject);
+  } else {
+    global.newQueue.push(jobObject);
+  }
 }
 
 function amountOfRunningJobs(){

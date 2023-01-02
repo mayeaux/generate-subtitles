@@ -10,6 +10,7 @@ script.
 
   let ytdlp = !{ytdlp || false};
   const user = '#{user}';
+  const skipToFront = '#{skipToFront}'
 
   l('ytdlp', ytdlp);
   l(ytdlp)
@@ -164,6 +165,7 @@ script.
     if (passedFile) formData.append('file', passedFile);
     if (downloadLink) formData.append('downloadLink', downloadLink);
     if (user) formData.append('user', user);
+    if (skipToFront) formData.append('skipToFront', skipToFront);
     formData.append('language', language);
     formData.append('model', model);
     formData.append('shouldTranslate', translateIsChecked);
