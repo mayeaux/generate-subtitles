@@ -31,9 +31,8 @@ script.
     const selectedLangsEl = selectWrapper.querySelector('.selected-langs');
     const selectedOptions = Array.from(selectWrapper.querySelectorAll('.selected'));
     const selectedLangsNumEl = selectWrapper.querySelector('.selected-langs-num');
-    l({selectedOptions});
     selectedLangsEl.innerHTML = selectedOptions.map(opt => `
-      <li class='selected-lang' data-value='${opt.dataset.value}'>
+      <li class='selected-lang' data-lang='${opt.dataset.lang}'>
         <p>${opt.textContent}</p>
         <span><i class='fa-solid fa-circle-xmark'></i></span>
       </li>
@@ -41,7 +40,32 @@ script.
     selectedLangsNumEl.textContent = selectedOptions.length;
   }
 
+  const disableAllUnchecked = () => {
+    l('disabling all unchecked');
+    const options = document.querySelectorAll('.trans-languages .option');
+    options.forEach(lang => {
+      const checkbox = lang.querySelector('input[type="checkbox"]');
+      if (!checkbox.checked) {
+        checkbox.setAttribute('disabled', true);
+        lang.classList.add('no-pointer-events');
+      }
+    });
+  }
+
+  const enableAllUnchecked = () => {
+    const options = document.querySelectorAll('.trans-languages .option');
+    l('enabling all unchecked');
+    options.forEach(lang => {
+      const checkbox = lang.querySelector('input[type="checkbox"]');
+      if (!checkbox.checked) {
+        checkbox.removeAttribute('disabled');
+        lang.classList.remove('no-pointer-events');
+      }
+    });
+  }
+
   const handleOptionClick = evt => {
+    evt.stopPropagation();
     const option = evt.target;
     const selectWrapper = option.closest('.wrapper');
     const transSelector = selectWrapper.querySelector('#translationSelect');
@@ -55,6 +79,11 @@ script.
         : option.classList.remove('selected');
       }
       updateSelectedTranslationLangs(evt);
+      const selected = document.querySelectorAll('.trans-languages .selected');
+      //- BUG: it's not disabling all unchecked
+      selected.length >= 6
+        ? disableAllUnchecked()
+        : enableAllUnchecked();
     } else {
       updateSelection(option);
       selectWrapper.classList.remove('active');
@@ -108,6 +137,10 @@ script.
       ? option.classList.add('selected')
       : option.classList.remove('selected');
       updateSelectedTranslationLangs(evt);
+      const selected = document.querySelectorAll('.trans-languages .selected');
+      selected.length >= 6
+        ? disableAllUnchecked()
+        : enableAllUnchecked();
     } else if (input.getAttribute('type') === 'search') {
       const selectButton = input.closest('.wrapper').querySelector('.select-btn');
       selectButton.id === 'languageSelect' && options.shift();
@@ -125,11 +158,39 @@ script.
     const selectedLang = evt.target.closest('.selected-lang');
     const selectWrapper = selectedLang.closest('.wrapper');
     const selectedOptions = Array.from(selectWrapper.querySelectorAll('.selected'));
-    const option = selectedOptions.find(opt => opt.dataset.value === selectedLang.dataset.value);
-    const selectedLangsNumEl = selectWrapper.querySelector('.selected-langs-num');
+    const option = selectedOptions.find(opt => opt.dataset.lang === selectedLang.dataset.lang);
+    const selectedLangsNumEl = document.querySelector('.selected-langs-num');
     const checkbox = option?.querySelector('input[type="checkbox"]');
     option?.classList.remove('selected');
     checkbox && (checkbox.checked = false);
     selectedLang.remove();
     selectedLangsNumEl.textContent = selectWrapper.querySelectorAll('.selected').length;
+  }
+
+  const disableTranscribeLang = evt => {
+    const transcribeLang = document.querySelector('#language').textContent;
+    const transLangs = Array.from(document.querySelectorAll('.trans-languages .option'));
+    const transLang = transLangs.find(lang => lang.textContent === transcribeLang);
+    const selectedLangs = Array.from(document.querySelectorAll('.selected-lang'));
+    const selectedLang = selectedLangs.find(lang => lang.textContent.trim() === transcribeLang);
+    const checkbox = transLang.querySelector('input[type="checkbox"]');
+    transLangs.forEach(lang => {
+      lang.querySelector('input[type="checkbox"]').removeAttribute('disabled');
+      lang.classList.remove('no-pointer-events');
+    });
+    transLang.classList.remove('selected');
+    transLang.classList.add('no-pointer-events');
+    checkbox.checked = false;
+    checkbox.setAttribute('disabled', true);
+    selectedLang?.remove();
+    const selectedLangsNumEl = document.querySelector('.selected-langs-num');
+    selectedLangsNumEl.textContent = document.querySelectorAll('.trans-languages .selected').length;
+  }
+
+  const getSelectedLangs = () => {
+    const selectedLangs = Array.from(document.querySelectorAll('.selected-lang'));
+    return selectedLangs.map(lang => ({
+      code: lang.dataset.lang,
+      name: lang.textContent
+    }));
   }

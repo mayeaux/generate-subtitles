@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {forHumans, decrementBySecond} = require('../helpers/helpers')
-const { modelsArray, languagesArray } = require('../constants/constants');
+const {modelsArray, languagesArray, allLanguages} = require('../constants/constants');
 
 l = console.log;
 
@@ -28,7 +28,8 @@ router.get('/', function (req, res, next) {
     uploadLimitInMB,
     modelsArray,
     languagesArray,
-    decrementBySecond
+    decrementBySecond,
+    allLanguages
   });
 });
 
@@ -57,7 +58,8 @@ router.get('/ytdlp', function (req, res, next) {
     modelsArray,
     languagesArray,
     decrementBySecond,
-    ytdlp: true
+    ytdlp: true,
+    allLanguages
   });
 });
 

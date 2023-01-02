@@ -6,7 +6,7 @@ script.
 
   const filterOptions = (options, q) => {
     const regex = new RegExp(`^${q}`, 'i');
-    return options.filter(opt => !!opt.dataset.value.match(regex));
+    return options.filter(opt => !!opt.textContent.match(regex));
   }
 
   //- get next, previous, first, and last visible siblings with recursion
