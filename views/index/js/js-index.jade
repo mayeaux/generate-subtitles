@@ -30,6 +30,7 @@ script.
   const wssPrepend = protocol === 'https:' ? 'wss' : 'ws';
   const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
   const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
+  const checkAmountOfOutstandingJobsUrl = `${httpPrepend}://${ipAndPort}/checkingOutstandingProcesses`;
 
   // passed from server
   const isFreeSubtitles = !{isFreeSubtitles};
@@ -123,6 +124,13 @@ script.
 
   async function submitForm(evt) {
     evt.preventDefault();
+
+    const outstandingJobsResponse = await fetch(checkAmountOfOutstandingJobsUrl);
+    const outstandingJobsText = await outstandingJobsResponse.text();
+
+    if(outstandingJobsText === 'tooMany') {
+      return errorsMap['too-many-outstanding']()
+    }
 
     /* DATA */
     const formData = new FormData();

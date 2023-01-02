@@ -15,8 +15,9 @@ const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 const { languagesToTranslateTo } = require('../constants/constants');
 const {forHumansNoSeconds} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
-const { addItemToQueue, addItemToQueueJobs } = require('../queue/queue');
+const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
 const { addToJobObjectOrQueue, amountOfRunningJobs } = require('../queue/newQueue');
+
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const maxConcurrentJobs = nodeEnv === 'development' ? 1 : Number(process.env.CONCURRENT_AMOUNT);
@@ -295,6 +296,31 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     }
     // req.files is array of uploaded files
     // req.body will contain the text fields, if there were any
+  } catch (err) {
+    l('err from transcribe route')
+    l(err);
+
+    // websocketConnection.terminate()
+    // throw (err);
+  }
+});
+
+router.get('/checkingOutstandingProcesses', async function (req, res, next) {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+
+  const outstandingJobsAmount = getNumberOfPendingOrProcessingJobs(ip);
+
+  l('outstandingJobsAmount');
+  l(outstandingJobsAmount);
+
+  if(outstandingJobsAmount >= 3) {
+    res.send('tooMany');
+  } else {
+    res.send('ok');
+  }
+
+  try {
+
   } catch (err) {
     l('err from transcribe route')
     l(err);
