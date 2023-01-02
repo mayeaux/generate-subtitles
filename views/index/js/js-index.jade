@@ -34,6 +34,7 @@ script.
   const decrementBySecond = !{decrementBySecond};
   const forHumans = !{forHumans};
   const allLanguages = !{JSON.stringify(allLanguages)};
+  const defaultTransLanguages = !{JSON.stringify(defaultTransLanguages)};
 
   // grab elements
   const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
@@ -46,6 +47,7 @@ script.
   const previousLanguage = localStorage.getItem('language');
   const previousLanguageName = localStorage.getItem('languageName');
   const previousShouldTranslate = localStorage.getItem('shouldTranslate');
+  const previousSourceTargets = JSON.parse(localStorage.getItem('sourceTargets'));
 
   $(document).ready(() => {
     circleProgress = new CircleProgress('.progress', {
@@ -71,7 +73,16 @@ script.
     $('#model').text(previousModelName || 'Medium');
     $('#language').text(previousLanguageName || 'Auto-Detect');
     $('#translate').prop('checked', previousShouldTranslate === 'true');
-
+    const previousTransLangs = previousSourceTargets?.[previousLanguage];
+    l({previousTransLangs});
+    const transLangs = document.querySelectorAll('.trans-languages .option');
+    transLangs.forEach(lang => {
+      if (previousTransLangs?.map(lang => lang.code).includes(lang.dataset.lang)) {
+        lang.classList.add('selected');
+        lang.querySelector('input[type="checkbox"]').setAttribute('checked', true);
+      }
+    });
+    updateSelectedTranslationLangs();
     disableTranscribeLang();
     l('ready now');
   });
@@ -135,6 +146,10 @@ script.
     const translateIsChecked = $('#translate').is(':checked');
     const downloadLink = $('#downloadLink').val();
     const transLangs = getSelectedLangs();
+    const sourceTargets = JSON.parse(localStorage.getItem('sourceTargets')) || {
+      [language]: transLangs
+    };
+    sourceTargets[language] = transLangs;
 
     function capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
@@ -152,6 +167,7 @@ script.
     }
     localStorage.setItem('languageName', languageName);
     localStorage.setItem('shouldTranslate', translateIsChecked);
+    localStorage.setItem('sourceTargets', JSON.stringify(sourceTargets));
 
     //- gather data
     if (passedFile) formData.append('file', passedFile);

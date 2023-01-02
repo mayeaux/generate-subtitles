@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {forHumans, decrementBySecond} = require('../helpers/helpers')
-const {modelsArray, languagesArray, allLanguages} = require('../constants/constants');
+const {modelsArray, languagesArray, allLanguages, defaultTransLanguages} = require('../constants/constants');
 
 l = console.log;
 
@@ -29,7 +29,9 @@ router.get('/', function (req, res, next) {
     modelsArray,
     languagesArray,
     decrementBySecond,
-    allLanguages
+    allLanguages,
+    maxTransLangs: process.env.MAX_TRANSLATION_LANGUAGES,
+    defaultTransLanguages,
   });
 });
 
@@ -59,7 +61,9 @@ router.get('/ytdlp', function (req, res, next) {
     languagesArray,
     decrementBySecond,
     ytdlp: true,
-    allLanguages
+    allLanguages,
+    maxTransLangs: process.env.MAX_TRANSLATION_LANGUAGES,
+    defaultTransLanguages,
   });
 });
 

@@ -214,11 +214,13 @@ style.
 
   .translateHolder .wrapper {
     grid-column: 1 / -1;
+    order: 2;
     visibility: hidden;
     opacity: 0;
     max-height: 0;
     transition: all 250ms ease-in-out;
   }
+
 
   .translateHolder > input[type='checkbox']:checked + .wrapper {
     visibility: visible;
@@ -226,6 +228,10 @@ style.
     max-height: fit-content;
   }
 
+  .translateHolder > .group {
+    grid-column: 1 / -1;
+  }
+  
   .submit-btn {
     width: 100%;
     border: none;

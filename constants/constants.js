@@ -117,6 +117,16 @@ Object.keys(languageNameMap).forEach(languageCode =>{
   })
 });
 
+const defaultTransLanguages = [
+  {code: 'en', name: 'English'},
+  {code: 'es', name: 'Spanish'},
+  {code: 'jp', name: 'Japanese'},
+  {code: 'fr', name: 'French'},
+  {code: 'ar', name: 'Arabic'},
+  {code: 'zh', name: 'Chinese'},
+  {code: 'ru', name: 'Russian'},
+];
+
 // l('all languages length');
 // l(allLanguages.length);
 
@@ -135,5 +145,6 @@ module.exports = {
   newLanguagesMap,
   allLanguages,
   modelsArray,
-  languagesToTranslateTo
+  languagesToTranslateTo,
+  defaultTransLanguages
 }
