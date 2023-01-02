@@ -85,8 +85,8 @@ router.get('/stats', async function (req, res, next) {
     // Reconstruct the object
     const sortedObj = Object.fromEntries(entries);
 
-    l('sortedObj');
-    console.log(sortedObj);
+    // l('sortedObj');
+    // l(sortedObj);
 
     // l('languages');
     // l(languages);

@@ -40,7 +40,6 @@ async function transcribe ({
   model,
   websocketConnection,
   websocketNumber,
-  queue,
   directorySafeFileNameWithoutExtension,
   directorySafeFileNameWithExtension,
   originalFileNameWithExtension,
@@ -50,6 +49,8 @@ async function transcribe ({
   shouldTranslate,
   uploadDurationInSeconds,
   fileSizeInMB,
+  user,
+  downloadLink
 }) {
   return new Promise(async (resolve, reject) => {
 
@@ -413,8 +414,11 @@ async function transcribe ({
               timestampsArray,
               wordCount,
               wordsPerMinute,
-              fileSizeInMB
+              fileSizeInMB,
             }
+
+            if(downloadLink) fileDetailsObject.downloadLink = downloadLink;
+            if(user) fileDetailsObject.user = user;
 
             // save processing_data.json
             await fs.appendFile(`${originalContainingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');

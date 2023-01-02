@@ -154,6 +154,9 @@ script.
     l(log);
     let queueMessage;
     let titleMessage;
+    let movingBackwardsInQueue = false;
+    if(placeInQueue && place > placeInQueue) movingBackwardsInQueue = true;
+    placeInQueue = place;
     if(place < 1){
       queueMessage = `Starting now...`;
     } else if (place === 1){
@@ -164,6 +167,10 @@ script.
     } else {
       queueMessage = `There are ${place - 1} people ahead of you`;
       titleMessage = `${place - 1} people ahead of you`;
+    }
+
+    if(movingBackwardsInQueue){
+      queueMessage = queueMessage + `\n\n Paid users can jump to the front of the line`
     }
 
     document.title = `${titleMessage || queueMessage}`;

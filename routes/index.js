@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const {forHumans, decrementBySecond} = require('../helpers/helpers')
 const { modelsArray, languagesArray } = require('../constants/constants');
+const fs = require('fs-extra')
 
-l = console.log;
+const l = console.log;
 
 const uploadPath =  process.env.UPLOAD_PATH || 'localhost:3000';
 
@@ -33,11 +34,19 @@ router.get('/', function (req, res, next) {
 });
 
 // home page
-router.get('/ytdlp', function (req, res, next) {
+router.get('/ytdlp', async function (req, res, next) {
 
-  const { password } = req.query;
+  const { password, user, skip } = req.query;
 
-  if (nodeEnv === 'production' && password !== process.env.FILES_PASSWORD) {
+  const usersString = await fs.readFile(`${process.cwd()}/constants/ytdlpUsers.txt`, 'utf8');
+  const users = usersString.split(',');
+  const userAuthed = users.includes(user);
+
+  const passwordAuthed = password === process.env.FILES_PASSWORD
+
+  const authedByPasswordOrUser = userAuthed || passwordAuthed;
+
+  if (nodeEnv === 'production' && !authedByPasswordOrUser) {
     return res.redirect('/404')
   }
 
@@ -57,7 +66,9 @@ router.get('/ytdlp', function (req, res, next) {
     modelsArray,
     languagesArray,
     decrementBySecond,
-    ytdlp: true
+    ytdlp: true,
+    user,
+    skipToFront: skip
   });
 });
 

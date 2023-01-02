@@ -61,6 +61,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const shouldTranslate = req.body.shouldTranslate === 'true';
     const downloadLink = req.body.downloadLink;
+    const { user, skipToFront } = req.body
     const passedFile = req.file;
     let downloadedFile = false;
 
@@ -192,12 +193,12 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l(totalOutstanding);
 
     // give frontend their queue position
-    if (totalOutstanding > 0) {
-      websocketConnection.send(JSON.stringify({
-        message: 'queue',
-        placeInQueue: totalOutstanding
-      }), function () {});
-    }
+    // if (totalOutstanding > 0) {
+    //   websocketConnection.send(JSON.stringify({
+    //     message: 'queue',
+    //     placeInQueue: totalOutstanding
+    //   }), function () {});
+    // }
 
     /** WEBSOCKET FUNCTIONALITY END **/
 
@@ -234,7 +235,10 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       fileSizeInMB,
       startedAt: new Date(),
       status: 'pending',
-      websocketNumber
+      websocketNumber,
+      ...(user && { user }),
+      ...(downloadLink && { downloadLink }),
+      ...(skipToFront && { skipToFront }),
     })
 
     const transcriptionJobItem = {
@@ -250,6 +254,9 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       shouldTranslate,
       uploadDurationInSeconds,
       fileSizeInMB,
+      user,
+      downloadLink,
+      skipToFront: skipToFront === 'true',
 
       // websocket/queue
       websocketConnection,

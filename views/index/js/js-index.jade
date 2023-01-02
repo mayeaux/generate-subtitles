@@ -9,6 +9,8 @@ script.
   ce = console.error;
 
   let ytdlp = !{ytdlp || false};
+  const user = '#{user}';
+  const skipToFront = '#{skipToFront}'
 
   l('ytdlp', ytdlp);
   l(ytdlp)
@@ -162,6 +164,8 @@ script.
     //- gather data
     if (passedFile) formData.append('file', passedFile);
     if (downloadLink) formData.append('downloadLink', downloadLink);
+    if (user) formData.append('user', user);
+    if (skipToFront) formData.append('skipToFront', skipToFront);
     formData.append('language', language);
     formData.append('model', model);
     formData.append('shouldTranslate', translateIsChecked);
@@ -317,16 +321,16 @@ script.
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
-    if(sendingQueueInformation){
-      receivedPlaceInQueue = true;
-      placeInQueue = data.placeInQueue;
-    }
+    // if(sendingQueueInformation){
+    //   receivedPlaceInQueue = true;
+    //   placeInQueue = data.placeInQueue;
+    // }
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
 
-    if(differentUserHasFinishedProcessing && receivedPlaceInQueue){
-      placeInQueue = placeInQueue - 1;
-      renderQueue({place: placeInQueue, log: 'finished processing'});
-    }
+    // if(differentUserHasFinishedProcessing && receivedPlaceInQueue){
+    //   placeInQueue = placeInQueue - 1;
+    //   renderQueue({place: placeInQueue, log: 'finished processing'});
+    // }
 
     transcriptionIsStarting && renderStartingFeedback({ data, circleProgress });
 
