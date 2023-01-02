@@ -61,6 +61,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const shouldTranslate = req.body.shouldTranslate === 'true';
     const downloadLink = req.body.downloadLink;
+    const { user } = req.body
     const passedFile = req.file;
     let downloadedFile = false;
 
@@ -234,7 +235,9 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       fileSizeInMB,
       startedAt: new Date(),
       status: 'pending',
-      websocketNumber
+      websocketNumber,
+      ...(user && { user }),
+      ...(downloadLink && { downloadLink }),
     })
 
     const transcriptionJobItem = {
@@ -250,6 +253,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       shouldTranslate,
       uploadDurationInSeconds,
       fileSizeInMB,
+      user,
+      downloadLink,
 
       // websocket/queue
       websocketConnection,

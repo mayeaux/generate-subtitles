@@ -9,6 +9,7 @@ script.
   ce = console.error;
 
   let ytdlp = !{ytdlp || false};
+  const user = '#{user}';
 
   l('ytdlp', ytdlp);
   l(ytdlp)
@@ -162,6 +163,7 @@ script.
     //- gather data
     if (passedFile) formData.append('file', passedFile);
     if (downloadLink) formData.append('downloadLink', downloadLink);
+    if (user) formData.append('user', user);
     formData.append('language', language);
     formData.append('model', model);
     formData.append('shouldTranslate', translateIsChecked);
