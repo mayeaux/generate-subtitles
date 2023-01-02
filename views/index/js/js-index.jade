@@ -36,10 +36,12 @@ script.
   const nodeEnvironment = `!{nodeEnv}`;
   const decrementBySecond = !{decrementBySecond};
   const forHumans = !{forHumans};
+  const allLanguages = !{JSON.stringify(allLanguages)};
 
   // grab elements
   const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
   const modelOptions = Array.from(document.querySelectorAll('.options.models .option'));
+  const languageSelect = document.querySelector('#language');
 
   // local storage
   const previousModel = localStorage.getItem('model');
@@ -75,6 +77,7 @@ script.
     $('#language').text(previousLanguageName || 'Auto-Detect');
     $('#translate').prop('checked', previousShouldTranslate === 'true');
 
+    disableTranscribeLang();
     l('ready now');
   });
 
@@ -85,6 +88,7 @@ script.
     const selectionBtn = clicked.closest('.select-btn');
     const option = clicked.closest('.option');
     const groupElement = clicked.closest('.form .group');
+    const selectedLang = clicked.closest('.selected-lang');
 
     const langSelectionBtn = clicked.closest('.select-btn#languageSelect');
     langSelectionBtn && selectWrappers[1].classList.remove('active');
@@ -92,6 +96,9 @@ script.
     selectionBtn && handleSelectionButtonClick(evt); // On selection button click
 
     option && handleOptionClick(evt); // On option click
+    option && disableTranscribeLang();
+
+    selectedLang && removeSelectedTranslationLang(evt); // On selected language click
 
     !groupElement && selectWrappers.forEach(wrapper => wrapper.classList.remove('active')); // On outside form group click
   });
@@ -131,7 +138,8 @@ script.
     const model = document.querySelector('#model').dataset.value;
     const modelName = document.querySelector('#model').textContent;
     const translateIsChecked = $('#translate').is(':checked');
-    const downloadLink = $('#downloadLink').val()
+    const downloadLink = $('#downloadLink').val();
+    const transLangs = getSelectedLangs();
 
     function capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);

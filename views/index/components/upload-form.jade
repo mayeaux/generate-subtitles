@@ -34,6 +34,23 @@ form.form#form
           each model in modelsArray
             li.option(data-value= model.value tabindex='0')= model.name
   .group.translateHolder
+    //- .translation-option
     label#translateLabel(for='translate') Translate to different languages
     input#translate(type='checkbox' name='translate')
+    .wrapper
+      button#translationSelect.select-btn(type='button')
+        span#transLanguage.select-value(name='transLanguage') Select languages
+        i.fa-solid.fa-angle-down
+      .content
+        .search
+          i.fa-solid.fa-magnifying-glass
+          input(spellcheck='false' type='search' placeholder='Filter...' tabindex='0')
+        ul.options.trans-languages
+          each language in allLanguages.slice(1)
+            li.option(data-lang=language.code tabindex='0')
+              input(type='checkbox' id=`lang-${language.code}` name=language.code value=language.code)
+              label(for=`lang-${language.code}` tabindex='0')= language.name
+      .group
+        p You have selected #[span.selected-langs-num 0]/#{allLanguages.length} languages:
+        ul.selected-langs
   button#upload-button.submit-btn(type='submit') Upload

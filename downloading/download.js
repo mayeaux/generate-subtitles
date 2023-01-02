@@ -6,7 +6,8 @@ l = console.log;
 
 // async usage
 // rejects if not found
-const ytDlpBinaryPath = which.sync('yt-dlp');
+const ytDlpName = process.platform === 'win32' ? 'YoutubeDL' : 'yt-dlp';
+const ytDlpBinaryPath = which.sync(ytDlpName);
 
 const ytDlpWrap = new YTDlpWrap(ytDlpBinaryPath);
 

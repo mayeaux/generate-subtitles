@@ -22,6 +22,9 @@ style.
   }
 
   form .group .wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
     position: relative;
     width: 100%;
   }
@@ -50,7 +53,6 @@ style.
 
   .content {
     position: absolute;
-    top: 3.5rem;
     z-index: 1;
     width: 100%;
     display: none;
@@ -60,6 +62,7 @@ style.
     max-height: 0;
     padding: 16px;
     padding-bottom: 0;
+    margin-block: 3.5em;
     background: #fff;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     transition: max-height 250ms ease-in-out;
@@ -135,17 +138,27 @@ style.
     background: #b3b3b3;
   }
 
-  .options li {
-    margin: 0;
-    font-size: 1rem;
+  .options * {
+    cursor: pointer;
   }
 
-  .options li:where(:hover, :focus, .selected) {
+  .options .option {
+    margin: 0;
+    font-size: 1rem;
+    display: flex;
+    gap: 0.5em;
+  }
+
+  .options .option.hidden {
+    display: none;
+  }
+
+  .options .option:where(:hover, :focus, .selected) {
     border-radius: 5px;
     background: hsl(0deg 0% 90%);
   }
 
-  .options li:focus {
+  .options .option:focus {
     outline: 0;
     box-shadow: 0 0 3px #4285f4;
   }
@@ -154,19 +167,63 @@ style.
     cursor: pointer;
   }
 
-  #translate {
+  .group.translateHolder {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5em;
+    align-items: center;
+  }
+
+  .group.translateHolder input[type='checkbox'] {
     position: relative;
     height: 1.1rem;
     width: 1.1rem;
     opacity: 0.8;
-    margin-left: 2px;
   }
 
-
-  .group.translateHolder {
-    flex-direction: row;
+  .translateHolder .group > * {
+    margin: 0;
+  }
+  
+  .group ul.selected-langs {
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.5em;
-    align-items: center;
+  }
+
+  .selected-langs .selected-lang {
+    width: fit-content;
+    padding: 0.4em 0.6em;
+    display: flex;
+    gap: 0.5em;
+    font-size: 1rem;
+  }
+
+  .selected-langs .selected-lang p {
+    margin: 0;
+  }
+
+  .selected-langs .selected-lang i {
+    font-size: 1.125rem;
+  }
+
+  .selected-langs .selected-lang:hover i {
+    color: #961515;
+  }
+
+  .translateHolder .wrapper {
+    grid-column: 1 / -1;
+    visibility: hidden;
+    opacity: 0;
+    max-height: 0;
+    transition: all 250ms ease-in-out;
+  }
+
+  .translateHolder > input[type='checkbox']:checked + .wrapper {
+    visibility: visible;
+    opacity: 1;
+    max-height: fit-content;
   }
 
   .submit-btn {
