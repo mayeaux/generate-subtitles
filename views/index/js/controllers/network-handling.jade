@@ -135,6 +135,7 @@ script.
 
   const loadAjax = ({ response, circleProgress }) => {
     if(downloadStarted) downloadFinished = true;
+    if(transcriptionFailed) return
     l({response});
     $('#processingData').show();
     $('#latestData').show();
@@ -157,9 +158,12 @@ script.
       queueMessage = `Starting now...`;
     } else if (place === 1){
       queueMessage = `You're next up`;
+    } else if (place === 2) {
+      queueMessage = `There's 1 person ahead of you`;
+      titleMessage = `1 person ahead of you`;
     } else {
-      queueMessage = `There are ${place} people ahead of you`;
-      titleMessage = `${place} people ahead of you`;
+      queueMessage = `There are ${place - 1} people ahead of you`;
+      titleMessage = `${place - 1} people ahead of you`;
     }
 
     document.title = `${titleMessage || queueMessage}`;
@@ -322,5 +326,8 @@ script.
 
   const renderError = data => {
     l('error data');
+    transcriptionFailed = true;
+    $('#latestData').hide()
+    $('#processingData').show()
     $('#processingData').html(data.text);
   }

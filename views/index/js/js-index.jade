@@ -17,6 +17,7 @@ script.
   let circleProgress, hitTheBackend, videoDurationInSeconds, filename, uploadStarted;
   let processStarted, processFailed, uploadFinished, processingData, timeRemaining;
   let downloadStarted, downloadFinished;
+  let transcriptionFailed = false;
   let inTheQueue;
   let receivedPlaceInQueue, myProcessingStarted = false;
   let placeInQueue = 0;
@@ -29,6 +30,7 @@ script.
   const wssPrepend = protocol === 'https:' ? 'wss' : 'ws';
   const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
   const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
+  const checkAmountOfOutstandingJobsUrl = `${httpPrepend}://${ipAndPort}/checkingOutstandingProcesses`;
 
   // passed from server
   const isFreeSubtitles = !{isFreeSubtitles};
@@ -122,6 +124,13 @@ script.
 
   async function submitForm(evt) {
     evt.preventDefault();
+
+    const outstandingJobsResponse = await fetch(checkAmountOfOutstandingJobsUrl);
+    const outstandingJobsText = await outstandingJobsResponse.text();
+
+    if(outstandingJobsText === 'tooMany') {
+      return errorsMap['too-many-outstanding']()
+    }
 
     /* DATA */
     const formData = new FormData();

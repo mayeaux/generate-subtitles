@@ -69,11 +69,13 @@ router.get('/queue', function (req, res, next) {
     return res.redirect('/404')
   }
 
-  const queueData = global.queueJobs;
+  const queueData = global.queueItems;
+
+  const reversedQueueData = queueData.slice().reverse();
 
   res.render('queue', {
     title: 'Queue',
-    queueData: queueData.reverse(),
+    queueData: reversedQueueData,
   })
 });
 
