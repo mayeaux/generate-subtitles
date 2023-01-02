@@ -321,16 +321,16 @@ script.
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
-    if(sendingQueueInformation){
-      receivedPlaceInQueue = true;
-      placeInQueue = data.placeInQueue;
-    }
+    // if(sendingQueueInformation){
+    //   receivedPlaceInQueue = true;
+    //   placeInQueue = data.placeInQueue;
+    // }
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
 
-    if(differentUserHasFinishedProcessing && receivedPlaceInQueue){
-      placeInQueue = placeInQueue - 1;
-      renderQueue({place: placeInQueue, log: 'finished processing'});
-    }
+    // if(differentUserHasFinishedProcessing && receivedPlaceInQueue){
+    //   placeInQueue = placeInQueue - 1;
+    //   renderQueue({place: placeInQueue, log: 'finished processing'});
+    // }
 
     transcriptionIsStarting && renderStartingFeedback({ data, circleProgress });
 
