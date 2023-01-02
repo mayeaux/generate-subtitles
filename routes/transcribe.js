@@ -193,12 +193,12 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l(totalOutstanding);
 
     // give frontend their queue position
-    if (totalOutstanding > 0) {
-      websocketConnection.send(JSON.stringify({
-        message: 'queue',
-        placeInQueue: totalOutstanding
-      }), function () {});
-    }
+    // if (totalOutstanding > 0) {
+    //   websocketConnection.send(JSON.stringify({
+    //     message: 'queue',
+    //     placeInQueue: totalOutstanding
+    //   }), function () {});
+    // }
 
     /** WEBSOCKET FUNCTIONALITY END **/
 

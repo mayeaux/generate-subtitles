@@ -14,6 +14,8 @@ l = console.log;
 // Load the .env file
 require('dotenv').config();
 
+const { createWebSocketServer } = require('./lib/websockets');
+
 l('node env');
 l(process.env.NODE_ENV);
 
@@ -39,7 +41,7 @@ const files = require('./routes/files');
 const app = express();
 const server = createServer(app);
 
-require('./lib/websockets')(server);
+createWebSocketServer(server);
 
 l = console.log;
 

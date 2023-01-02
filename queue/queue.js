@@ -12,7 +12,7 @@ function addItemToQueueJobs(queueData){
 
 function updateQueueItemStatus(websocketNumber, status){
   const item = global.queueItems.find((item) => item.websocketNumber === websocketNumber);
-  if (item) {
+  if (item && item.status !== 'completed') {
     item.status = status;
   }
 }
