@@ -21,16 +21,9 @@ const { addToJobObjectOrQueue, amountOfRunningJobs } = require('../queue/newQueu
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const maxConcurrentJobs = nodeEnv === 'development' ? 1 : Number(process.env.CONCURRENT_AMOUNT);
-const uploadLimitInMB = nodeEnv === 'production' ? process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB : 3000;
+const uploadLimitInMB = nodeEnv === 'production' ? Number(process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB) : 3000;
 
 l(`CONCURRENT JOBS ALLOWED AMOUNT: ${maxConcurrentJobs}`);
-
-// todo: on dif node-env change it to 2
-// let maxConcurrent = ( concurrentJobs && Number(concurrentJobs) ) || 1;
-// let maxQueue = Infinity;
-// let queue = new Queue(maxConcurrent, maxQueue);
-
-// l(queue);
 
 const storage = multer.diskStorage({ // notice you are calling the multer.diskStorage() method here, not multer()
   destination: function (req, file, cb) {
@@ -192,14 +185,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l('totaloutstanding');
     l(totalOutstanding);
 
-    // give frontend their queue position
-    // if (totalOutstanding > 0) {
-    //   websocketConnection.send(JSON.stringify({
-    //     message: 'queue',
-    //     placeInQueue: totalOutstanding
-    //   }), function () {});
-    // }
-
     /** WEBSOCKET FUNCTIONALITY END **/
 
     const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
@@ -267,30 +252,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     // l('transcriptionJobItem');
     // l(transcriptionJobItem);
     addToJobObjectOrQueue(transcriptionJobItem);
-
-    // queue.add(async function () {
-    //   // TODO: catch the error here?
-    //   await transcribeWrapped({
-    //     uploadedFilePath,
-    //     language,
-    //     model,
-    //     directorySafeFileNameWithoutExtension,
-    //     directorySafeFileNameWithExtension,
-    //     originalFileNameWithExtension,
-    //     fileSafeNameWithDateTimestamp,
-    //     fileSafeNameWithDateTimestampAndExtension,
-    //     uploadGeneratedFilename,
-    //     shouldTranslate,
-    //     uploadDurationInSeconds,
-    //     fileSizeInMB,
-    //
-    //     // websocket/queue
-    //     websocketConnection,
-    //     websocketNumber,
-    //     queue,
-    //     languagesToTranslateTo,
-    //   })
-    // })
 
     const obj = JSON.parse(JSON.stringify(req.body));
     l(obj);
