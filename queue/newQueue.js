@@ -43,8 +43,8 @@ function sendOutQueuePositionUpdate(){
 
       const { queuePosition } = getQueueInformationByWebsocketNumber(websocketNumber);
 
-      l('queuePosition');
-      l(queuePosition);
+      // l('queuePosition');
+      // l(queuePosition);
 
       if(queuePosition) {
         websocketConnection.send(JSON.stringify({
