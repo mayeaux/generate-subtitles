@@ -1,13 +1,20 @@
 script.
   const errorsMap = {
-    'no-file': () => 
+    'no-file': () =>
       Swal.fire({
         title: `You didn't pass a file`,
         text: 'Please select a file to upload.',
         icon: 'error',
         confirmButtonText: 'Cool'
       }),
-    'too-large-file': (size, sizeLimit) => 
+    'too-many-outstanding': () =>
+      Swal.fire({
+        title: `Slow down a bit`,
+        text: 'You already have 3 outstanding jobs which is the maximum for now, please wait for one of them to finish before you upload another file',
+        icon: 'error',
+        confirmButtonText: 'Cool'
+      }),
+    'too-large-file': (size, sizeLimit) =>
       Swal.fire({
         title: `Too large file`,
         text: `Your file size of ${size}MB is too large. The limit is ${sizeLimit}MB.`,
@@ -21,7 +28,7 @@ script.
           icon: 'error',
           confirmButtonText: 'Cool'
         }),
-      'transcription-error': text => 
+      'transcription-error': text =>
         Swal.fire({
           title: 'Transcription Failed',
           text,
@@ -29,7 +36,7 @@ script.
           showCancelButton: true,
           confirmButtonText: 'Try Again',
         }).then(result => result.isConfirmed && window.location.reload()),
-      'interrupted-connection': () => 
+      'interrupted-connection': () =>
         Swal.fire({
           title: 'Websocket Disconnected',
           text: 'Your websocket connection was disconnected, please refresh to start a new upload',

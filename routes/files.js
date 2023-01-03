@@ -95,4 +95,28 @@ router.get('/learnserbian', async function (req, res, next) {
   }
 });
 
+router.get('/admin', async function (req, res, next) {
+  try {
+    const { password } = req.query;
+
+    if (process.env.NODE_ENV !== 'development' && password !== process.env.FILES_PASSWORD) {
+      res.redirect('/404')
+    } else {
+
+
+      return res.render('admin', {
+        title: 'Admin',
+        jobProcesses: global.jobProcesses,
+        queueItems: global.newQueue,
+        transcriptions: global.transcriptions,
+        websocketItems: global.webSocketData,
+      })
+    }
+
+  } catch (err) {
+    l('err');
+    l(err);
+  }
+});
+
 module.exports = router;
