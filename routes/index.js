@@ -30,7 +30,7 @@ router.get('/', function (req, res, next) {
     languagesArray,
     decrementBySecond,
     allLanguages,
-    maxTransLangs: process.env.MAX_TRANSLATION_LANGUAGES,
+    maxTransLangs: process.env.MAX_TRANSLATION_LANGUAGES || 7,
     defaultTransLanguages,
   });
 });
@@ -62,7 +62,7 @@ router.get('/ytdlp', function (req, res, next) {
     decrementBySecond,
     ytdlp: true,
     allLanguages,
-    maxTransLangs: process.env.MAX_TRANSLATION_LANGUAGES,
+    maxTransLangs: process.env.MAX_TRANSLATION_LANGUAGES || 7,
     defaultTransLanguages,
   });
 });

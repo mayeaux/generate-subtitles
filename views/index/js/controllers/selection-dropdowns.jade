@@ -20,7 +20,7 @@ script.
       selectWrapper.querySelector('.selected')?.scrollIntoView({block: 'center', behavior: 'smooth'});
     } else {
       if (evt.target.id === 'translationSelect') {
-        
+
       }
       selectWrapper.querySelector('.select-btn').focus(); // BUG: doesn't focus
 
@@ -36,7 +36,7 @@ script.
         <p>${opt.textContent}</p>
         <span><i class='fa-solid fa-circle-xmark'></i></span>
       </li>
-    `).join('') || 'Select languages';
+    `).join('') || '';
     selectedLangsNumEl.textContent = selectedOptions.length;
   }
 
@@ -112,7 +112,7 @@ script.
       }},
 
       {command: /Enter/, action: () => focusedOption?.click()},
-      
+
       {command: /Escape/, action: () => selectionContent.closest('.wrapper').classList.remove('active')},
 
       {command: /[a-z]/i, action: () => {

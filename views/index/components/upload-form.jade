@@ -49,7 +49,7 @@ form.form#form
             li.option(data-lang=language.code tabindex='0')
               input(type='checkbox' id=`lang-${language.code}` name=language.code value=language.code)
               label(for=`lang-${language.code}` tabindex='0')= language.name
-    .group
+    .group#selectedLanguages
       p You have selected #[span.selected-langs-num 0]/7 languages:
       ul.selected-langs
   button#upload-button.submit-btn(type='submit') Upload
