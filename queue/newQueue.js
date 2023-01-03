@@ -4,7 +4,7 @@ const WebSocket = require("ws");
 
 const l = console.log;
 
-const maxConcurrentJobs = process.env.NODE_ENV === 'development' ? 1 : Number(process.env.CONCURRENT_AMOUNT);
+const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
 // create set of numbers from x, such as 1,2,3
 function createNumberSet(x) {
@@ -77,10 +77,12 @@ async function runJob(jobObject){
 
   const processNumber = findProcessNumber(websocketNumber);
 
+  // run the next item from the queue
   if(global.newQueue.length){
     const nextQueueItem = global.newQueue.shift();
     const { websocketNumber } = nextQueueItem;
     global.jobProcesses[processNumber] = websocketNumber;
+    nextQueueItem.processNumber = Number(processNumber);
     runJob(nextQueueItem);
   } else {
     global.jobProcesses[processNumber] = undefined;
@@ -102,6 +104,7 @@ function addToJobObjectOrQueue(jobObject){
 
     if(propValue === undefined){
       global.jobProcesses[processNumber] = websocketNumber;
+      jobObject.processNumber = Number(processNumber);
       runJob(jobObject);
       return
     }

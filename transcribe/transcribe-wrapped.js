@@ -14,7 +14,7 @@ const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } =
 const { stripOutTextAndTimestamps } = require('../translate/helpers')
 const { updateQueueItemStatus } = require('../queue/queue');
 
-l = console.log;
+const l = console.log;
 
 const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 const nodeEnvironment = process.env.NODE_ENV;
@@ -32,8 +32,6 @@ function sendToWebsocket (websocketConnection, data) {
   websocketConnection.send(JSON.stringify(data), function () {});
 }
 
-
-let topLevelValue = 1;
 async function transcribe ({
   uploadedFilePath,
   language,
@@ -51,7 +49,8 @@ async function transcribe ({
   fileSizeInMB,
   user,
   downloadLink,
-  totalOutstanding
+  totalOutstanding,
+  processNumber,
 }) {
   return new Promise(async (resolve, reject) => {
 
@@ -154,13 +153,8 @@ async function transcribe ({
 
       const whisperProcess = spawn(whisperPath, arguments);
 
-      let serverNumber = topLevelValue;
-
-      if (serverNumber === 1) {
-        topLevelValue = 2
-      } else if (serverNumber === 2) {
-        topLevelValue = 1
-      }
+      // TODO: rename
+      let serverNumber = processNumber
 
       // add process globally to kill it when user leaves
       const process = {
@@ -246,7 +240,7 @@ async function transcribe ({
               processingData: processingString,
               // processingData: data.toString(),
               ownershipPerson,
-              serverNumber, // on the frontend we'll react different if it it's on server 1 or two
+              serverNumber, // on the frontend we'll react different if it's on server 1 or two
               formattedProgress,
               percentDone: percentDoneAsNumber,
               timeRemaining,
