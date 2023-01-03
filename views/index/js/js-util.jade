@@ -23,3 +23,19 @@ script.
   const getLastVisibleSibling = el => el?.lastChild?.classList.contains('hidden')
     ? getPreviousVisibleSibling(el.lastChild) : el?.lastChild;
 
+  const getTransLangsDefaults = () => {
+    let transLangsDefaults = localStorage.getItem('transLangsDefaults');
+    if (!transLangsDefaults) {
+      localStorage.setItem('transLangsDefaults', JSON.stringify({}));
+      return {};
+    } else {
+      transLangsDefaults = JSON.parse(transLangsDefaults);
+      return transLangsDefaults;
+    }
+  }
+
+  const setTransLangsDefaults = (language, transLangs) => {
+    const existingDefault = getTransLangsDefaults();
+    existingDefault[language] = transLangs;
+    localStorage.setItem('transLangsDefaults', JSON.stringify(existingDefault));
+  }
