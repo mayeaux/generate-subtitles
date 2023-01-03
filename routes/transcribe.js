@@ -239,9 +239,10 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       shouldTranslate,
       uploadDurationInSeconds,
       fileSizeInMB,
-      user,
-      downloadLink,
+      ...(user && { user }),
+      ...(downloadLink && { downloadLink }),
       skipToFront: skipToFront === 'true',
+      totalOutstanding,
 
       // websocket/queue
       websocketConnection,

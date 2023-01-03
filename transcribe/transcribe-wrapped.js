@@ -50,7 +50,8 @@ async function transcribe ({
   uploadDurationInSeconds,
   fileSizeInMB,
   user,
-  downloadLink
+  downloadLink,
+  totalOutstanding
 }) {
   return new Promise(async (resolve, reject) => {
 
@@ -210,11 +211,6 @@ async function transcribe ({
 
       // log output from bash (it all comes through stderr for some reason?)
       whisperProcess.stderr.on('data', data => {
-        // figure out how many people currently transcribing
-        const amountOfCurrentPending = global.newQueue.length;
-        const amountinQueue = global.newQueue.length;
-
-        const totalOutstanding = amountOfCurrentPending + amountinQueue;
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
         l(`STDERR: ${data},
          Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language: ${displayLanguage}, Filename: ${directorySafeFileNameWithExtension}, Queue: ${totalOutstanding}, Translating: ${shouldTranslate}  `);
