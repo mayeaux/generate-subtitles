@@ -43,13 +43,21 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     }
 
     // get language and model
-    const { model, language, downloadLink } = postBodyData;
+    const { model, language, downloadLink, apiToken } = postBodyData;
 
     l('postBodyData');
     l(postBodyData);
 
     // get model values as array
     const validModelValues = modelsArray.map((model) => model.value);
+
+    const authTokenString = await fs.readFile(`${process.cwd()}/constants/apiTokens.txt`, 'utf8');
+    const authTokenStringsAsArray = authTokenString.split(',');
+    const authedByToken = authTokenStringsAsArray.includes(apiToken);
+
+    if(process.env.NODE_ENV === 'production' && !authedByToken){
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     // nothing to transcribe
     if(!downloadLink && !file){
