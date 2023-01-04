@@ -1,7 +1,9 @@
 const { generateRequestUrl, normaliseResponse } = require('google-translate-api-browser');
 const axios = require('axios');
 
-const maximumStringLength = 5000;
+const l = console.log;
+
+const maximumStringLength = 3000;
 
 function splitString (str) {
   let splitStrings = [];

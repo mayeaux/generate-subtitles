@@ -10,6 +10,7 @@ const l = console.log;
 
 const ytDlpPath = which.sync('yt-dlp')
 
+// get data from youtube-dlp stdout string
 function extractDataFromString(string){
   const percentDownloaded = parseInt(string.match(/(\d+\.?\d*)%/)[1]);
   const totalFileSize = string.match(/of\s+(.*?)\s+at/)[1];
@@ -27,17 +28,20 @@ function extractDataFromString(string){
   }
 }
 
+// delete from transcription array (used to get rid of the yt-dlp process)
 function deleteFromGlobalTranscriptionsBasedOnWebsocketNumber(websocketNumber) {
   // find transcription based on websocketNumber
   const closerTranscription = global['transcriptions'].find(function (transcription) {
     return transcription.websocketNumber === websocketNumber;
   })
 
+  // TODO bug: this should be based on the websocketNumber
   const transcriptionIndex = global.transcriptions.indexOf(closerTranscription);
   if (transcriptionIndex > -1) { // only splice array when item is found
     global.transcriptions.splice(transcriptionIndex, 1); // 2nd parameter means remove one item only
   }
 }
+
 
 async function downloadFile ({
   videoUrl,
@@ -85,13 +89,12 @@ async function downloadFile ({
         `./uploads/${randomNumber}.%(ext)s`
       ]);
 
+      // add process to global array (for deleting if canceled)
       const process = {
         websocketNumber,
         spawnedProcess: ytdlProcess,
       }
       global['transcriptions'].push(process)
-
-
 
       ytdlProcess.stdout.on('data', (data) => {
         l(`STDOUT: ${data}`);
@@ -110,6 +113,7 @@ async function downloadFile ({
         } else {
           reject();
         }
+        // TODO: this code is bugged
         deleteFromGlobalTranscriptionsBasedOnWebsocketNumber(websocketNumber);
         websocketConnection.send(JSON.stringify({
           message: 'downloadingFinished',
@@ -126,9 +130,76 @@ async function downloadFile ({
     }
 
   });
-
 }
 
+async function downloadFileApi ({
+  videoUrl,
+  filepath,
+  randomNumber,
+  filename,
+  websocketNumber
+}) {
+  return new Promise(async (resolve, reject) => {
+    try {
+
+      let latestDownloadInfo = '';
+      let currentPercentDownload = 0;
+
+      const startedAtTime = new Date();
+
+      const interval = setInterval(() => {
+        l(latestDownloadInfo);
+
+        // only run if ETA is in the string
+        if(!latestDownloadInfo.includes('ETA')) return
+
+        const { percentDownloaded, totalFileSize, downloadSpeed, fileSizeUnit, fileSizeValue } = extractDataFromString(latestDownloadInfo);
+        currentPercentDownload = percentDownloaded;
+
+      }, 1000);
+
+      const ytdlProcess = spawn('yt-dlp', [
+        videoUrl,
+        '--no-mtime',
+        '--no-playlist',
+        '-f',
+        'bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        '-o',
+        `./uploads/${randomNumber}`
+      ]);
+
+      ytdlProcess.stdout.on('data', (data) => {
+        l(`STDOUT: ${data}`);
+        latestDownloadInfo = data.toString();
+      })
+
+      ytdlProcess.stderr.on('data', (data) => {
+        l(`STDERR: ${data}`);
+      });
+
+      ytdlProcess.on('close', (code) => {
+        l(`child process exited with code ${code}`);
+        clearInterval(interval)
+        if (code === 0) {
+          resolve();
+        } else {
+          reject();
+        }
+      });
+
+    } catch (err) {
+      l('error from download')
+      l(err);
+
+      reject(err);
+
+      throw new Error(err)
+    }
+
+  });
+}
+
+// get file title name given youtube url
 async function getFilename (videoUrl) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -142,7 +213,7 @@ async function getFilename (videoUrl) {
 
       ytdlProcess.stdout.on('data', (data) => {
         // l(`STDOUTT: ${data}`);
-        resolve(data.toString());
+        resolve(data.toString().replace(/\r?\n|\r/g, ''));
       })
 
       ytdlProcess.stderr.on('data', (data) => {
@@ -193,5 +264,6 @@ async function main () {
 
 module.exports = {
   downloadFile,
+  downloadFileApi,
   getFilename
 };

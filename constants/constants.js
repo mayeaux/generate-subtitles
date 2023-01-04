@@ -135,5 +135,6 @@ module.exports = {
   newLanguagesMap,
   allLanguages,
   modelsArray,
-  languagesToTranslateTo
+  languagesToTranslateTo,
+  whisperLanguagesHumanReadableArray
 }

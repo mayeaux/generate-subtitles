@@ -12,8 +12,9 @@ const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
 const { stripOutTextAndTimestamps } = require('../translate/helpers')
+const { updateQueueItemStatus } = require('../queue/queue');
 
-l = console.log;
+const l = console.log;
 
 const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 const nodeEnvironment = process.env.NODE_ENV;
@@ -31,15 +32,12 @@ function sendToWebsocket (websocketConnection, data) {
   websocketConnection.send(JSON.stringify(data), function () {});
 }
 
-
-let topLevelValue = 1;
 async function transcribe ({
   uploadedFilePath,
   language,
   model,
   websocketConnection,
   websocketNumber,
-  queue,
   directorySafeFileNameWithoutExtension,
   directorySafeFileNameWithExtension,
   originalFileNameWithExtension,
@@ -49,15 +47,24 @@ async function transcribe ({
   shouldTranslate,
   uploadDurationInSeconds,
   fileSizeInMB,
+  user,
+  downloadLink,
+  totalOutstanding,
+  processNumber,
 }) {
   return new Promise(async (resolve, reject) => {
 
+    function webSocketIsStillAlive(webSocketNumber) {
+      return global.webSocketData.some(item => item.websocketNumber === webSocketNumber);
+    }
+
     // if the upload was removed from the queue, don't run it
-    if (!global.queueData.includes(websocketNumber)) {
+    if (webSocketIsStillAlive(websocketNumber) === false) {
       l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
       // if they're not in the queue, cut them off
       // TODO: change to reject?
-      return resolve(true);
+      updateQueueItemStatus(websocketNumber, 'abandoned');
+      return reject('WEBSOCKET DISCONNECTED');
     }
 
     try {
@@ -67,6 +74,7 @@ async function transcribe ({
         message: 'starting',
         text: 'Whisper initializing, updates to come...'
       })
+      updateQueueItemStatus(websocketNumber, 'processing');
 
       // fixes bug with windows
       const osSpecificPathSeparator = path.sep;
@@ -145,13 +153,8 @@ async function transcribe ({
 
       const whisperProcess = spawn(whisperPath, arguments);
 
-      let serverNumber = topLevelValue;
-
-      if (serverNumber === 1) {
-        topLevelValue = 2
-      } else if (serverNumber === 2) {
-        topLevelValue = 1
-      }
+      // TODO: rename
+      let serverNumber = processNumber
 
       // add process globally to kill it when user leaves
       const process = {
@@ -202,11 +205,6 @@ async function transcribe ({
 
       // log output from bash (it all comes through stderr for some reason?)
       whisperProcess.stderr.on('data', data => {
-        // figure out how many people currently transcribing
-        const amountOfCurrentPending = queue.getPendingLength()
-        const amountinQueue = queue.getQueueLength()
-
-        const totalOutstanding = amountOfCurrentPending + amountinQueue;
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
         l(`STDERR: ${data},
          Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language: ${displayLanguage}, Filename: ${directorySafeFileNameWithExtension}, Queue: ${totalOutstanding}, Translating: ${shouldTranslate}  `);
@@ -242,7 +240,7 @@ async function transcribe ({
               processingData: processingString,
               // processingData: data.toString(),
               ownershipPerson,
-              serverNumber, // on the frontend we'll react different if it it's on server 1 or two
+              serverNumber, // on the frontend we'll react different if it's on server 1 or two
               formattedProgress,
               percentDone: percentDoneAsNumber,
               timeRemaining,
@@ -305,6 +303,8 @@ async function transcribe ({
             if (language === 'Chinese') {
               await convertChineseTraditionalToSimplified({ transcribedSrtFilePath, transcribedVttFilePath, transcribedTxtFilePath })
             }
+
+            updateQueueItemStatus(websocketNumber, 'completed');
 
             // return await so queue moves on, don't need to wait for translations
             resolve(code);
@@ -404,8 +404,11 @@ async function transcribe ({
               timestampsArray,
               wordCount,
               wordsPerMinute,
-              fileSizeInMB
+              fileSizeInMB,
             }
+
+            if(downloadLink) fileDetailsObject.downloadLink = downloadLink;
+            if(user) fileDetailsObject.user = user;
 
             // save processing_data.json
             await fs.appendFile(`${originalContainingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');
@@ -422,6 +425,8 @@ async function transcribe ({
 
           l(`child process exited with code ${code}`);
         } catch (err) {
+          updateQueueItemStatus(websocketNumber, 'errored');
+
           reject(err);
           l('websocket connection');
           // if websocket is still connected
@@ -440,9 +445,15 @@ async function transcribe ({
       });
       // TODO: this doesn't seem to actually work (errors never seem to land here)
     } catch (err) {
-      l('error from transcribe')
+      l('error from transcribe-wrapped')
       l(err);
 
+      updateQueueItemStatus(websocketNumber, 'errored');
+
+      websocketConnection.send(JSON.stringify({
+        message: 'error',
+        text: 'The transcription failed, please try again or try again later'
+      }), function () {});
       reject(err);
 
       throw err;

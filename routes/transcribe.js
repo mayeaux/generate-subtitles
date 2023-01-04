@@ -15,20 +15,15 @@ const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 const { languagesToTranslateTo } = require('../constants/constants');
 const {forHumansNoSeconds} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
-const { addItemToQueue } = require('../queue/queue');
+const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
+const { addToJobObjectOrQueue, amountOfRunningJobs } = require('../queue/newQueue');
+
 
 const nodeEnv = process.env.NODE_ENV || 'development';
-const concurrentJobs = process.NODE_ENV === 'development' ? 1 : process.env.CONCURRENT_AMOUNT;
+const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 const uploadLimitInMB = nodeEnv === 'production' ? Number(process.env.UPLOAD_FILE_SIZE_LIMIT_IN_MB) : 3000;
 
-l(`CONCURRENT JOBS ALLOWED AMOUNT: ${concurrentJobs}`);
-
-// todo: on dif node-env change it to 2
-let maxConcurrent = ( concurrentJobs && Number(concurrentJobs) ) || 1;
-let maxQueue = Infinity;
-let queue = new Queue(maxConcurrent, maxQueue);
-
-// l(queue);
+l(`CONCURRENT JOBS ALLOWED AMOUNT: ${maxConcurrentJobs}`);
 
 const storage = multer.diskStorage({ // notice you are calling the multer.diskStorage() method here, not multer()
   destination: function (req, file, cb) {
@@ -40,6 +35,7 @@ let upload = multer({ storage });
 
 router.post('/file', upload.single('file'), async function (req, res, next) {
   // l(global.ws);
+  let websocketConnection;
 
   try {
     l(req.file);
@@ -58,6 +54,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const shouldTranslate = req.body.shouldTranslate === 'true';
     const downloadLink = req.body.downloadLink;
+    const { user, skipToFront } = req.body
     const passedFile = req.file;
     let downloadedFile = false;
 
@@ -78,8 +75,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     let filename;
 
     l(downloadLink);
-
-    let websocketConnection;
 
     // websocket number is pushed when it connects on page load
     if (global.webSocketData) {
@@ -152,6 +147,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     // get upload duration
     const ffprobeResponse = await ffprobe(uploadedFilePath, { path: ffprobePath });
+
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
     const uploadDurationInSeconds = Math.round(audioStream.duration);
 
@@ -181,28 +177,14 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     /** WEBSOCKET FUNCTIONALITY **/
     // load websocket by passed number
 
-    const placeInQueue = queue.getQueueLength();
 
-    l('place in queue');
-    l(placeInQueue);
-
-    const amountOfCurrentPending = queue.getPendingLength()
-    const amountinQueue = queue.getQueueLength()
-    const totalOutstanding = amountOfCurrentPending + amountinQueue;
+    const currentlyRunningJobs = amountOfRunningJobs();
+    const amountInQueue = global.newQueue.length
+    const totalOutstanding = currentlyRunningJobs + amountInQueue - maxConcurrentJobs + 1;
 
     l('totaloutstanding');
     l(totalOutstanding);
 
-    // give frontend their queue position
-    if (amountOfCurrentPending > 0) {
-      websocketConnection.send(JSON.stringify({
-        message: 'queue',
-        placeInQueue: totalOutstanding
-      }), function () {});
-    }
-
-    // queueData maybe renamed to websocketData? or just redo the queue altogether
-    global.queueData.push(websocketNumber)
     /** WEBSOCKET FUNCTIONALITY END **/
 
     const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
@@ -237,32 +219,40 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       shouldTranslate,
       fileSizeInMB,
       startedAt: new Date(),
+      status: 'pending',
+      websocketNumber,
+      ...(user && { user }),
+      ...(downloadLink && { downloadLink }),
+      ...(skipToFront && { skipToFront }),
     })
 
-    queue.add(async function () {
-      // TODO: catch the error here?
-      await transcribeWrapped({
-        uploadedFilePath,
-        language,
-        model,
-        directorySafeFileNameWithoutExtension,
-        directorySafeFileNameWithExtension,
-        originalFileNameWithExtension,
-        fileSafeNameWithDateTimestamp,
-        fileSafeNameWithDateTimestampAndExtension,
-        uploadGeneratedFilename,
-        shouldTranslate,
-        uploadDurationInSeconds,
-        fileSizeInMB,
+    const transcriptionJobItem = {
+      uploadedFilePath,
+      language,
+      model,
+      directorySafeFileNameWithoutExtension,
+      directorySafeFileNameWithExtension,
+      originalFileNameWithExtension,
+      fileSafeNameWithDateTimestamp,
+      fileSafeNameWithDateTimestampAndExtension,
+      uploadGeneratedFilename,
+      shouldTranslate,
+      uploadDurationInSeconds,
+      fileSizeInMB,
+      ...(user && { user }),
+      ...(downloadLink && { downloadLink }),
+      skipToFront: skipToFront === 'true',
+      totalOutstanding,
 
-        // websocket/queue
-        websocketConnection,
-        websocketNumber,
-        queue,
-        languagesToTranslateTo,
-        ip
-      })
-    })
+      // websocket/queue
+      websocketConnection,
+      websocketNumber,
+      languagesToTranslateTo,
+    }
+
+    // l('transcriptionJobItem');
+    // l(transcriptionJobItem);
+    addToJobObjectOrQueue(transcriptionJobItem);
 
     const obj = JSON.parse(JSON.stringify(req.body));
     l(obj);
@@ -278,7 +268,34 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
   } catch (err) {
     l('err from transcribe route')
     l(err);
-    throw (err);
+
+    // websocketConnection.terminate()
+    // throw (err);
+  }
+});
+
+router.get('/checkingOutstandingProcesses', async function (req, res, next) {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+
+  const outstandingJobsAmount = getNumberOfPendingOrProcessingJobs(ip);
+
+  l('outstandingJobsAmount');
+  l(outstandingJobsAmount);
+
+  if(outstandingJobsAmount >= 3) {
+    res.send('tooMany');
+  } else {
+    res.send('ok');
+  }
+
+  try {
+
+  } catch (err) {
+    l('err from transcribe route')
+    l(err);
+
+    // websocketConnection.terminate()
+    // throw (err);
   }
 });
 
