@@ -126,7 +126,73 @@ async function downloadFile ({
     }
 
   });
+}
 
+async function downloadFileApi ({
+  videoUrl,
+  filepath,
+  randomNumber,
+  filename,
+  websocketNumber
+}) {
+  return new Promise(async (resolve, reject) => {
+    try {
+
+      let latestDownloadInfo = '';
+      let currentPercentDownload = 0;
+
+      const startedAtTime = new Date();
+
+      const interval = setInterval(() => {
+        l(latestDownloadInfo);
+
+        // only run if ETA is in the string
+        if(!latestDownloadInfo.includes('ETA')) return
+
+        const { percentDownloaded, totalFileSize, downloadSpeed, fileSizeUnit, fileSizeValue } = extractDataFromString(latestDownloadInfo);
+        currentPercentDownload = percentDownloaded;
+
+      }, 1000);
+
+      const ytdlProcess = spawn('yt-dlp', [
+        videoUrl,
+        '--no-mtime',
+        '--no-playlist',
+        '-f',
+        'bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        '-o',
+        `./uploads/${randomNumber}`
+      ]);
+
+      ytdlProcess.stdout.on('data', (data) => {
+        l(`STDOUT: ${data}`);
+        latestDownloadInfo = data.toString();
+      })
+
+      ytdlProcess.stderr.on('data', (data) => {
+        l(`STDERR: ${data}`);
+      });
+
+      ytdlProcess.on('close', (code) => {
+        l(`child process exited with code ${code}`);
+        clearInterval(interval)
+        if (code === 0) {
+          resolve();
+        } else {
+          reject();
+        }
+      });
+
+    } catch (err) {
+      l('error from download')
+      l(err);
+
+      reject(err);
+
+      throw new Error(err)
+    }
+
+  });
 }
 
 async function getFilename (videoUrl) {
@@ -193,5 +259,6 @@ async function main () {
 
 module.exports = {
   downloadFile,
+  downloadFileApi,
   getFilename
 };

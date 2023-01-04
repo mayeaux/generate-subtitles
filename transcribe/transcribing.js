@@ -14,7 +14,7 @@ function buildArguments ({
   uploadedFilePath,
   language,
   model,
-  sdHash
+  randomNumber
 }) {
   /** INSTANTIATE WHISPER PROCESS **/
     // queue up arguments, path is the first one
@@ -27,65 +27,16 @@ function buildArguments ({
   if (language) arguments.push('--language', language);
   if (model) arguments.push('--model', model);
 
-  // TODO: add the max GPUS thing here
-  if (isProd) {
-    if (global.topLevelValue === 1) {
-      arguments.push('--device', 'cuda:0');
-    } else if (global.topLevelValue === 2) {
-      arguments.push('--device', 'cuda:1');
-    }
-    toggleTopLevelValue();
-  }
-
   // dont show the text output but show the progress thing
   arguments.push('--verbose', 'False');
 
   // folder to save .txt, .vtt and .srt
-  arguments.push('-o', `transcriptions/${sdHash}`);
+  arguments.push('-o', `transcriptions/${randomNumber}`);
 
   l('transcribe arguments');
   l(arguments);
 
   return arguments
-}
-
-function toggleTopLevelValue () {
-  if (global.topLevelValue === 1) {
-    global.topLevelValue = 2
-  } else if (global.topLevelValue === 2) {
-    global.topLevelValue = 1
-  }
-}
-
-function autoDetectLanguage (dataAsString) {
-  if (!dataAsString) return false
-  if (dataAsString.includes('Detected language:')) {
-    // parse out the language from the console output
-    return dataAsString.split(':')[1].substring(1).trimEnd();
-  }
-  return false;
-}
-
-/** write output to processing_data.json **/
-async function writeToProcessingDataFile (processingDataPath, dataObject) {
-  // save data to the file
-  const processingDataExists = await fs.exists(processingDataPath)
-
-  l('processingDataExists')
-  l(processingDataExists);
-  if (processingDataExists) {
-    const fileData = await fs.readFile(processingDataPath, 'utf8')
-    l('fileData');
-    l(fileData);
-
-    const existingProcessingData = JSON.parse(fileData);
-
-    let merged = Object.assign({}, existingProcessingData, dataObject);
-
-    await fs.writeFile(processingDataPath, JSON.stringify(merged), 'utf8');
-  } else {
-    await fs.writeFile(processingDataPath, JSON.stringify(dataObject), 'utf8');
-  }
 }
 
 async function translateIfNeeded ({ language, shouldTranslate, processingDataPath, directoryAndFileName}) {
@@ -165,6 +116,6 @@ module.exports = {
   saveTranscriptionCompletedInformation,
   translateIfNeeded,
   buildArguments,
-  autoDetectLanguage,
-  writeToProcessingDataFile
+  // autoDetectLanguage,
+  // writeToProcessingDataFile
 }

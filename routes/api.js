@@ -9,7 +9,16 @@ const transcribe = require('../transcribe/transcribe-api-wrapped')
 const constants = require('../constants/constants');
 const filenamify = require('filenamify');
 const createTranslatedFiles = require('../translate/translate-files-api');
+const { downloadFileApi, getFilename} = require("../downloading/yt-dlp-download");
 const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
+const { modelsArray, whisperLanguagesHumanReadableArray } = constants;
+const { writeToProcessingDataFile } = require('../lib/transcribing');
+
+const l = console.log;
+
+function generateRandomNumber () {
+  return Math.floor(Math.random() * 10000000000).toString();
+}
 
 const makeFileNameSafe = function (string) {
   return filenamify(string, {replacement: '_' })
@@ -45,78 +54,130 @@ let upload = multer({ storage });
 //   size: 22904865
 // }
 
+function createFileNames(originalFileName){
+  const originalFileNameWithoutExtension = path.parse(originalFileName).name;
+
+  return {
+    originalFileNameWithExtension: originalFileName,
+    originalFileExtension: path.parse(originalFileName).ext,
+    originalFileNameWithoutExtension,
+    directorySafeFileNameWithoutExtension: makeFileNameSafe(originalFileNameWithoutExtension),
+  }
+}
+
 router.post('/api', upload.single('file'), async function (req, res, next) {
   try {
     const postBodyData = Object.assign({},req.body)
     const file = req.file;
-    const { originalname: originalFileName, filename: uploadFileName } = file;
-
-    const { model, language, sdHash } = postBodyData;
-
-    const processingDataFile = `./transcriptions/${sdHash}/processing_data.json`
-
-    let processingFileExists = false;
-    try {
-      processingFileExists = await fs.promises.stat(processingDataFile)
-    } catch (error) {}
-
-    if (processingFileExists) {
-      const completedProcessingData = await fs.readFile(processingDataFile, 'utf8')
-
-      if (completedProcessingData) {
-        l = console.log;
-        return res.redirect(`/api/${sdHash}`)
-      }
+    let originalFileName, uploadFileName;
+    if(file){
+      originalFileName = file.originalname;
+      uploadFileName = file.filename;
     }
 
-    // TODO: move this stuff to transcribe function
-    // something.mp4
-    let originalFileNameWithExtension = originalFileName;
+    const { model, language, downloadLink } = postBodyData;
 
-    // .mp4 (includes leading period)
-    const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
+    l('postBodyData');
+    l(postBodyData);
 
-    const originalFileNameWithoutExtension = path.parse(originalFileNameWithExtension).name;
-    l('originalFileNameWithoutExtension')
-    l(originalFileNameWithoutExtension)
+    const randomNumber = generateRandomNumber();
 
-    // something
-    const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithoutExtension)
+    const validValues = modelsArray.map((model) => model.value);
 
-    l('directorySafeFileNameWithoutExtension')
-    l(directorySafeFileNameWithoutExtension)
+    if(!downloadLink && !file){
+      return res.status(400).json({error: `Please pass either a 'file' or 'downloadLink'`});
+    }
 
-    l = console.log;
+    if(!validValues.includes(model)) {
+      return res.status(400).send({error: `Your model of '${model}' is not valid. Please choose one of the following: ${validValues.join(', ')}`});
+    }
+
+    if(!whisperLanguagesHumanReadableArray.includes(language)) {
+      return res.status(400).send({error: `Your language of '${language}' is not valid. Please choose one of the following: ${whisperLanguagesHumanReadableArray.join(', ')}`});
+    }
+
+    let originalFileNameWithExtension, originalFileExtension, originalFileNameWithoutExtension, directorySafeFileNameWithoutExtension;
+
+    if(file){
+      ({
+        originalFileNameWithExtension,
+        originalFileExtension,
+        originalFileNameWithoutExtension,
+        directorySafeFileNameWithoutExtension
+      } = createFileNames(originalFileName));
+    }
+
+    const filename =  await getFilename(downloadLink);
+
+    const directoryName = makeFileNameSafe(filename)
+
+    l('directoryName');
+    l(directoryName);
+
+    l('filename');
+    l(filename);
+
+    const host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai/api' : 'http://localhost:3001';
+
+    await fs.mkdirp(`${process.cwd()}/transcriptions/${randomNumber}`);
+
+    const processingDataPath = `${process.cwd()}/transcriptions/${randomNumber}/processing_data.json`;
+
+    await writeToProcessingDataFile(processingDataPath, {
+      model,
+      language,
+      downloadLink,
+      filename
+    })
+
+    res.send({
+      message: 'success',
+      // TODO: allow localhost here
+      transcribeDataEndpoint: `${host}/api/${randomNumber}`,
+      fileTitle: filename,
+    });
+
+    await downloadFileApi({
+      videoUrl: downloadLink,
+      randomNumber,
+    });
+
+    const files = await fs.promises.readdir(`${process.cwd()}/uploads`);
+
+    const matchingFile = files.filter((file) => file.startsWith(randomNumber))[0];
+
+
+
+    l(matchingFile);
 
     // todo: rename to transcribeAndTranslate
     const response = await transcribe({
       language,
       model,
       originalFileExtension,
-      uploadFileName,
+      uploadFileName: matchingFile,
       originalFileName,
-      sdHash // standin for claimId or something like that
+      randomNumber
     })
 
     // tell the client it's started
-    if (response === 'started') {
-      const port = req.socket.localPort;
-      let apiPath = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
-      if (process.env.NODE_ENV === 'production') {
-        apiPath = req.protocol + '://' + req.hostname + req.path;
-      }
-
-      // return res.redirect(`/api/${sixDigitNumber}`)
-      res.send({
-        status: 'started',
-        sdHash,
-        url: `${apiPath}/${sdHash}`,
-      });
-    }
+    // if (response === 'started') {
+    //   const port = req.socket.localPort;
+    //   let apiPath = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
+    //   if (process.env.NODE_ENV === 'production') {
+    //     apiPath = req.protocol + '://' + req.hostname + req.path;
+    //   }
+    //
+    //   // return res.redirect(`/api/${sixDigitNumber}`)
+    //   res.send({
+    //     status: 'started',
+    //     url: `${apiPath}/${sdHash}`,
+    //   });
+    // }
   } catch (err) {
     l('err')
     l(err);
-    throw (err);
+    return res.status(500).send({error: `Something went wrong: ${err}`});
   }
 });
 
@@ -159,14 +220,14 @@ router.get('/api/:sdHash', async function (req, res, next) {
         webVtt: originalVtt
       })
 
-      for (const translatedLanguage of translatedLanguages) {
-        const originalVtt = await fs.readFile(`./transcriptions/${sdHash}/${sdHash}_${translatedLanguage}.vtt`, 'utf8');
-        subtitles.push({
-          language: translatedLanguage,
-          languageCode: getCodeFromLanguageName(translatedLanguage),
-          webVtt: originalVtt
-        })
-      }
+      // for (const translatedLanguage of translatedLanguages) {
+      //   const originalVtt = await fs.readFile(`./transcriptions/${sdHash}/${sdHash}_${translatedLanguage}.vtt`, 'utf8');
+      //   subtitles.push({
+      //     language: translatedLanguage,
+      //     languageCode: getCodeFromLanguageName(translatedLanguage),
+      //     webVtt: originalVtt
+      //   })
+      // }
 
       const responseObject = {
         status: 'completed',
