@@ -49,8 +49,24 @@ script.
   const previousLanguageName = localStorage.getItem('languageName');
   const previousShouldTranslate = localStorage.getItem('shouldTranslate');
   const previousSourceTargets = getTransLangsDefaults();
-  const previousTransLangs = previousSourceTargets?.[previousLanguage];
+  let previousTransLangs = previousSourceTargets?.[previousLanguage];
   l({previousSourceTargets, previousTransLangs});
+
+  const populateTransLanguages = transLangs => {
+    l('populating');
+    l({transLangs});
+    transLangsOptions.forEach(option => {
+      if (transLangs?.map(lang => lang.code).includes(option.dataset.lang)) {
+        option.querySelector('input[type="checkbox"]').removeAttribute('disabled');
+        option.click();
+        //- option.classList.add('selected');
+        //- option.querySelector('input[type="checkbox"]').setAttribute('checked', true);
+      } else {
+        option.classList.remove('selected');
+        option.querySelector('input[type="checkbox"]').removeAttribute('checked');
+      }
+    });
+  }
 
   $(document).ready(() => {
     circleProgress = new CircleProgress('.progress', {
@@ -77,12 +93,7 @@ script.
     $('#language').text(previousLanguageName || 'Auto-Detect');
     $('#translate').prop('checked', previousShouldTranslate === 'true');
     
-    transLangsOptions.forEach(option => {
-      if (previousTransLangs?.map(lang => lang.code).includes(option.dataset.lang)) {
-        option.classList.add('selected');
-        option.querySelector('input[type="checkbox"]').setAttribute('checked', true);
-      }
-    });
+    populateTransLanguages(previousTransLangs);
     updateSelectedTranslationLangs();
     disableTranscribeLang();
     l('ready now');
@@ -96,14 +107,20 @@ script.
     const option = clicked.closest('.option');
     const groupElement = clicked.closest('.form .group');
     const selectedLang = clicked.closest('.selected-lang');
+    const languagesList = clicked.closest('.languages');
 
     const langSelectionBtn = clicked.closest('.select-btn#languageSelect');
     langSelectionBtn && selectWrappers[1].classList.remove('active');
 
     selectionBtn && handleSelectionButtonClick(evt); // On selection button click
 
-    option && handleOptionClick(evt); // On option click
-    option && disableTranscribeLang();
+    if (option) {
+      handleOptionClick(evt); // On option click
+      languagesList && disableTranscribeLang();
+      const currentLang = document.querySelector('#language').dataset.value;
+      previousTransLangs = previousSourceTargets?.[currentLang];
+      languagesList && populateTransLanguages(previousTransLangs);
+    }
 
     selectedLang && removeSelectedTranslationLang(evt); // On selected language click
 
