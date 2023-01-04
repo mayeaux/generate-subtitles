@@ -12,27 +12,14 @@ const createTranslatedFiles = require('../translate/translate-files-api');
 const { downloadFileApi, getFilename} = require("../downloading/yt-dlp-download");
 const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
 const { modelsArray, whisperLanguagesHumanReadableArray } = constants;
-const { writeToProcessingDataFile } = require('../lib/transcribing');
+const { writeToProcessingDataFile, createFileNames, makeFileNameSafe } = require('../lib/transcribing');
 
 const l = console.log;
 
+// generate random 10 digit number
 function generateRandomNumber () {
   return Math.floor(Math.random() * 10000000000).toString();
 }
-
-const makeFileNameSafe = function (string) {
-  return filenamify(string, {replacement: '_' })
-    .split('：').join(':')
-    .replace(/[&\/\\#,+()$~%.'":*?<>{}!]/g, '')
-    .replace(/\s+/g,'_')
-}
-
-function getCodeFromLanguageName (languageName) {
-  return translationLanguages.find(function (filteredLanguage) {
-    return languageName === filteredLanguage.name;
-  }).code
-}
-
 
 const storage = multer.diskStorage({ // notice  you are calling the multer.diskStorage() method here, not multer()
   destination: function (req, file, cb) {
@@ -42,32 +29,12 @@ const storage = multer.diskStorage({ // notice  you are calling the multer.diskS
 
 let upload = multer({ storage });
 
-// file
-// {
-//   fieldname: 'file',
-//   originalname: 'dutch_language.mp3',
-//   encoding: '7bit',
-//   mimetype: 'audio/mpeg',
-//   destination: './uploads/',
-//   filename: '572fa0ecb660b1d0eb489b879c2e2310',
-//   path: 'uploads/572fa0ecb660b1d0eb489b879c2e2310',
-//   size: 22904865
-// }
-
-function createFileNames(originalFileName){
-  const originalFileNameWithoutExtension = path.parse(originalFileName).name;
-
-  return {
-    originalFileNameWithExtension: originalFileName,
-    originalFileExtension: path.parse(originalFileName).ext,
-    originalFileNameWithoutExtension,
-    directorySafeFileNameWithoutExtension: makeFileNameSafe(originalFileNameWithoutExtension),
-  }
-}
-
 router.post('/api', upload.single('file'), async function (req, res, next) {
   try {
+    // fix body data
     const postBodyData = Object.assign({},req.body)
+
+    // get file names
     const file = req.file;
     let originalFileName, uploadFileName;
     if(file){
@@ -75,29 +42,32 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       uploadFileName = file.filename;
     }
 
+    // get language and model
     const { model, language, downloadLink } = postBodyData;
 
     l('postBodyData');
     l(postBodyData);
 
-    const randomNumber = generateRandomNumber();
+    // get model values as array
+    const validModelValues = modelsArray.map((model) => model.value);
 
-    const validValues = modelsArray.map((model) => model.value);
-
+    // nothing to transcribe
     if(!downloadLink && !file){
       return res.status(400).json({error: `Please pass either a 'file' or 'downloadLink'`});
     }
 
-    if(!validValues.includes(model)) {
-      return res.status(400).send({error: `Your model of '${model}' is not valid. Please choose one of the following: ${validValues.join(', ')}`});
+    // bad model name
+    if(!validModelValues.includes(model)) {
+      return res.status(400).send({error: `Your model of '${model}' is not valid. Please choose one of the following: ${validModelValues.join(', ')}`});
     }
 
+    // bad language name
     if(!whisperLanguagesHumanReadableArray.includes(language)) {
       return res.status(400).send({error: `Your language of '${language}' is not valid. Please choose one of the following: ${whisperLanguagesHumanReadableArray.join(', ')}`});
     }
 
+    // TODO: implement this
     let originalFileNameWithExtension, originalFileExtension, originalFileNameWithoutExtension, directorySafeFileNameWithoutExtension;
-
     if(file){
       ({
         originalFileNameWithExtension,
@@ -107,7 +77,12 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       } = createFileNames(originalFileName));
     }
 
+    // random ten digit number
+    const randomNumber = generateRandomNumber();
+
+    // hit yt-dlp and get file title name
     const filename =  await getFilename(downloadLink);
+
 
     const directoryName = makeFileNameSafe(filename)
 
@@ -117,12 +92,16 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l('filename');
     l(filename);
 
-    const host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai/api' : 'http://localhost:3001';
+    // build this properly
+    const host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
 
+    // create directory for transcriptions
     await fs.mkdirp(`${process.cwd()}/transcriptions/${randomNumber}`);
 
+    // setup path for processing data
     const processingDataPath = `${process.cwd()}/transcriptions/${randomNumber}/processing_data.json`;
 
+    // save initial data
     await writeToProcessingDataFile(processingDataPath, {
       model,
       language,
@@ -131,27 +110,35 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     })
 
     res.send({
-      message: 'success',
-      // TODO: allow localhost here
+      message: 'starting-download',
+      // where the data will be sent from
       transcribeDataEndpoint: `${host}/api/${randomNumber}`,
       fileTitle: filename,
     });
 
+    await writeToProcessingDataFile(processingDataPath, {
+      status: 'downloading',
+    })
+
+    // download file with name as the random number
     await downloadFileApi({
       videoUrl: downloadLink,
       randomNumber,
     });
 
+    // check uploads directory
     const files = await fs.promises.readdir(`${process.cwd()}/uploads`);
 
+    // get matching file (I don't think we always know the extension)
     const matchingFile = files.filter((file) => file.startsWith(randomNumber))[0];
-
-
-
     l(matchingFile);
 
+    await writeToProcessingDataFile(processingDataPath, {
+      status: 'starting-transcription',
+    })
+
     // todo: rename to transcribeAndTranslate
-    const response = await transcribe({
+    await transcribe({
       language,
       model,
       originalFileExtension,
@@ -187,18 +174,22 @@ router.get('/api/:sdHash', async function (req, res, next) {
 
     l('Getting info by SDHash');
 
+    // TODO: should rename this
     const sdHash = req.params.sdHash;
 
+    // get processing data path
     const processingData = JSON.parse(await fs.readFile(`./transcriptions/${sdHash}/processing_data.json`, 'utf8'));
 
-    const transcriptionStatus = processingData.status;
+    // get data from processing data
+    const {
+      language,
+      languageCode,
+      translatedLanguages,
+      status: transcriptionStatus,
+      progress
+    } = processingData;
 
-    // todo: should be a number
-    const progress = processingData.progress;
-
-    const { language, languageCode, translatedLanguages } = processingData;
-
-    /** transcription successfully completed **/
+    // transcription processing or translating
     if (transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {
       // send current processing data
       return res.send({
@@ -229,6 +220,7 @@ router.get('/api/:sdHash', async function (req, res, next) {
       //   })
       // }
 
+      // send response as json
       const responseObject = {
         status: 'completed',
         sdHash,

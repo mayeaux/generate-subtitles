@@ -41,7 +41,10 @@ async function transcribe ({
 }) {
   return new Promise(async (resolve, reject) => {
     try {
+      // original upload file path
       const originalUpload = `${process.cwd()}/uploads/${uploadFileName}`;
+
+      //
       const processingDataPath = `${process.cwd()}/transcriptions/${randomNumber}/processing_data.json`
 
       // save date when starting to see how long it's taking
@@ -58,9 +61,10 @@ async function transcribe ({
       l('whisperArguments');
       l(whisperArguments);
 
-      // todo: should probably rename since Whisper doesn't like special chars in folder path
+      // start whisper process
       const whisperProcess = spawn(whisperPath, whisperArguments);
 
+      // let foundLanguage;
       whisperProcess.stdout.on('data',  (data) => l(`STDOUT: ${data}`));
 
       /** console output from stderr **/ // (progress comes through stderr for some reason)
