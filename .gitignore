@@ -9,3 +9,5 @@ downloads
 
 public/javascripts/ffmpeg-core.wasm
 .env
+
+constants/apiTokens.txt
