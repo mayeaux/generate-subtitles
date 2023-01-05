@@ -11,7 +11,7 @@ block content
         h1 Admin
         br
 
-        h2 Job Processes
+        h2 Job Processes (#{Object.keys(jobProcesses).length})
         each val, key in jobProcesses
             p Process Number: #{key}
             br
@@ -29,14 +29,14 @@ block content
         br
 
         br
-        h2 Transcription/Download Processes
+        h2 Transcription/Download Processes (#{transcriptions && transcriptions.length})
         each item in transcriptions
           each val, key in item
               p #{key}: #{val}
           br
         br
 
-        h2 Websocket Connections
+        h2 Websocket Connections (#{websocketItems && websocketItems.length})
         each item in websocketItems
             each val, key in item
                 p #{key}: #{val}
