@@ -51,7 +51,7 @@ const api = require('./routes/api');
 const stats = require('./routes/stats');
 const player = require('./routes/player');
 const transcribe = require('./routes/transcribe');
-const files = require('./routes/files');
+const admin = require('./routes/admin');
 
 const app = express();
 const server = createServer(app);
@@ -114,7 +114,7 @@ app.use('/', api);
 app.use('/users', users);
 app.use('/', stats);
 app.use('/', transcribe);
-app.use('/', files);
+app.use('/', admin);
 app.use('/', player);
 
 // catch 404 and forward to error handler
