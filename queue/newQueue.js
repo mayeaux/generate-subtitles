@@ -89,6 +89,8 @@ async function runJob(jobObject){
     nextQueueItem.processNumber = Number(processNumber);
 
     global.jobProcesses[processNumber] = nextQueueItem;
+
+    // TODO: add got out of queue time here
     runJob(nextQueueItem);
   } else {
     global.jobProcesses[processNumber] = undefined;
@@ -117,11 +119,14 @@ function addToJobProcessOrQueue(jobObject){
     }
   }
 
+  // TODO: add got in queue time here
+
   // push to newQueue if all processes are busy
   if(skipToFront){
     // last skip to front item
     const lastItem = global.newQueue.filter(queueItem => queueItem.skipToFront === true).slice(-1)[0];
 
+    // insert after latest skipToFront
     if(lastItem){
       const lastItemIndex = global.newQueue.indexOf(lastItem);
 

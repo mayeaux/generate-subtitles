@@ -54,9 +54,12 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const websocketNumber = req.body.websocketNumber;
     const shouldTranslate = req.body.shouldTranslate === 'true';
     const downloadLink = req.body.downloadLink;
-    const { user, skipToFront } = req.body
+    const { user, skipToFront, uploadTimeStarted } = req.body
+
     const passedFile = req.file;
     let downloadedFile = false;
+
+    const uploadTimeFinished = new Date();
 
     // this shouldn't happen but there's some sort of frontend bug
     if(!language || language === 'undefined' || language === 'Auto-Detect'){
@@ -224,6 +227,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       ...(user && { user }),
       ...(downloadLink && { downloadLink }),
       ...(skipToFront && { skipToFront }),
+      totalOutstanding
     })
 
     const transcriptionJobItem = {
