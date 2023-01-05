@@ -124,11 +124,31 @@ router.get('/admin', async function (req, res, next) {
       l('cleanedUpJobProcessObject')
       l(cleanedUpJobProcessObject)
 
+      const cleanedUpNewQueue = [];
+
+      l('global newqueue')
+      l(global.newQueue);
+
+      // cleanup new queue items
+      for(const queueItem of global.newQueue){
+
+        if(!queueItem) continue
+
+        delete queueItem.directorySafeFileNameWithoutExtension;
+        delete queueItem.directorySafeFileNameWithExtension;
+        delete queueItem.fileSafeNameWithDateTimestamp
+        delete queueItem.fileSafeNameWithDateTimestampAndExtension
+
+        cleanedUpNewQueue.push(queueItem);
+      }
+
+      l('cleanedUpNewQueue')
+      l(cleanedUpNewQueue)
 
       return res.render('admin', {
         title: 'Admin',
-        processes: cleanedUpJobProcessObject || [],
-        newQueue: global.newQueue,
+        processes: cleanedUpJobProcessObject,
+        newQueue: cleanedUpNewQueue || [],
         transcriptions: global.transcriptions,
         websocketItems: global.webSocketData,
       })

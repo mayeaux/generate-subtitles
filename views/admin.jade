@@ -20,11 +20,12 @@ block content
                     p #{key2}: #{val2}
 
         br
-        h2 New Queue Items (#{newQueue.length})
-        each item in newQueue
-          each val, key in item
-              p #{key}: #{val}
-          br
+        h2 New Queue Items (#{newQueue && newQueue.length})
+        each item, index in newQueue
+            p Place In Queue: #{index}
+            each val, key in item
+                p #{key}: #{val}
+                br
         br
 
         br
