@@ -123,8 +123,11 @@ async function findMediaFileInDirectory (directory) {
 
 
 // delete files that are over 24h old script
-const deleteOldFiles = async function () {
+const deleteOldFiles = async function (shouldDelete = false) {
   try {
+
+    let deletingFiles = shouldDelete || shouldDeleteFiles;
+
     const processDirectory = process.cwd();
     const transcriptionsDirectory = `${processDirectory}/transcriptions`;
     const transcriptionsDirectoryContents = await fs.readdir(transcriptionsDirectory);
@@ -183,7 +186,7 @@ const deleteOldFiles = async function () {
           if (fileExistsButJsonError) {
             l('deleting media files')
             // delete the media files
-            if (shouldDeleteFiles) {
+            if (deletingFiles) {
               await deleteAllMediaFiles({ dirPath: directoryPath });
             }
             continue
@@ -219,7 +222,7 @@ const deleteOldFiles = async function () {
 
           if (over24Hours) {
             l('deleting media files')
-            if (shouldDeleteFiles && !shouldKeepMedia) {
+            if (deletingFiles && !shouldKeepMedia) {
               // delete mediaFilePath
               await fs.unlink(mediaFilePath);
             }
@@ -230,7 +233,7 @@ const deleteOldFiles = async function () {
         // there is an issue because the current processing_data.json file doesn't have a startedAt property
         } else {
           l('deleting media files')
-          if (shouldDeleteFiles) await deleteAllMediaFiles({ dirPath: directoryPath });
+          if (deletingFiles) await deleteAllMediaFiles({ dirPath: directoryPath });
         }
       }
 
@@ -247,4 +250,8 @@ const deleteOldFiles = async function () {
   }
 }
 
-deleteOldFiles();
+// deleteOldFiles();
+
+module.exports = {
+  deleteOldFiles
+}
