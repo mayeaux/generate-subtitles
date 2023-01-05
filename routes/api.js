@@ -114,7 +114,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       model,
       language,
       downloadLink,
-      filename
+      filename,
+      apiToken
     })
 
     res.send({
