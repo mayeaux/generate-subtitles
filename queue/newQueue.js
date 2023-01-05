@@ -112,6 +112,7 @@ function addToJobObjectOrQueue(jobObject){
 
   // push to newQueue if all processes are busy
   if(skipToFront){
+    // last skip to front item
     const lastItem = global.newQueue.filter(queueItem => queueItem.skipToFront === true).slice(-1)[0];
 
     if(lastItem){

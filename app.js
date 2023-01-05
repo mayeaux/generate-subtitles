@@ -10,6 +10,7 @@ const {createServer} = require('http');
 const sessions = require('express-session');
 const _ = require('lodash');
 l = console.log;
+const { deleteOldFiles } = require('./scripts/deleteTranscriptionUploads');
 
 // Load the .env file
 require('dotenv').config();
@@ -26,6 +27,20 @@ require('./lib/stats');
 if (!fs.existsSync('.env')) {
   // If the .env file does not exist, copy the .env.sample file to .env
   fs.copyFileSync('.env.sample', '.env');
+}
+
+const hourInMilliseconds = 1000 * 60 * 60;
+
+function runDeleteLoop() {
+  setTimeout(() => {
+    deleteOldFiles(true);
+    runDeleteLoop();
+  }, hourInMilliseconds);  // repeat every 1000 milliseconds (1 second)
+}
+
+if(process.env.NODE_ENV === 'production'){
+  deleteOldFiles(true);
+  runDeleteLoop();
 }
 
 l(`FILES PASSWORD: ${process.env.FILES_PASSWORD}`);
