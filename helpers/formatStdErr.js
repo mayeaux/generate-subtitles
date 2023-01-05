@@ -4,7 +4,7 @@ const ten = ' 10%|█         | 5332/52135 [00:10<01:25, 545.77frames/s]';
 
 function formatStdErr (stdErrData) {
   // if a progress output
-  if (stdErrData.includes('frames')) {
+  if (stdErrData.includes('frames/s')) {
     // looks like: '█         '
     const progressBar = stdErrData.split('|')[1].split('|')[0]
 

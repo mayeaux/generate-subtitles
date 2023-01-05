@@ -64,7 +64,7 @@ async function transcribe ({
   fileSizeInMB,
   user,
   downloadLink,
-  totalOutstanding, // not actually useful
+  // totalOutstanding, // not actually useful
   processNumber,
 }) {
   return new Promise(async (resolve, reject) => {
@@ -223,16 +223,16 @@ async function transcribe ({
       whisperProcess.stderr.on('data', data => {
         const currentlyRunningJobs = amountOfRunningJobs();
         const amountInQueue = global.newQueue.length
-        const totalOutstanding = currentlyRunningJobs + amountInQueue - maxConcurrentJobs + 1;
+        const totalOutstanding = currentlyRunningJobs + amountInQueue;
 
-        // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
-        let outputString = `STDERR: ${data},
+        let outputString = `
+         STDERR: ${data},
          Duration: ${uploadDurationInSecondsHumanReadable},
          Model: ${model}, 
          Language: ${displayLanguage},
-          Filename: ${directorySafeFileNameWithExtension}, 
-          Queue: ${totalOutstanding}, 
-          Translating: ${shouldTranslate}`;
+         Filename: ${directorySafeFileNameWithExtension}, 
+         Queue: ${totalOutstanding}, 
+         Translating: ${shouldTranslate}`;
 
         outputString = outputString.replace(/\s+/g, ' ');
         l(outputString);
