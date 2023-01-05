@@ -12,10 +12,13 @@ block content
 
         h2 Job Processes
         each val, key in jobProcesses
-          p #{key}: #{val}
-          br
+            p Process Number: #{key}
+            br
+            if val
+                each val2, key2 in val
+                    p #{key2}: #{val2}
 
-        h2 New Queue Items (#{queueItems.length})
+        h2 New Queue Items (#{newQueue.length})
         each item in newQueue
           each val, key in item
               p #{key}: #{val}

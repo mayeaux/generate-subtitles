@@ -26,10 +26,15 @@ l(global.jobProcesses);
 // find process number of job to clear it when done
 function findProcessNumber(websocketNumber) {
   for (let processNumber in global.jobProcesses) {
-    if (global.jobProcesses.hasOwnProperty(processNumber) && global.jobProcesses[processNumber] === websocketNumber) {
+
+    const hasOwnProperty = global.jobProcesses.hasOwnProperty(processNumber)
+    const matchesByWebsocket = global.jobProcesses[processNumber].websocketNumber === websocketNumber;
+
+    if (hasOwnProperty && matchesByWebsocket) {
       return processNumber;
     }
   }
+  // TODO: throw an error here?
 }
 function sendOutQueuePositionUpdate(){
   // loop through websockets and tell them one less is processing
@@ -80,9 +85,10 @@ async function runJob(jobObject){
   // run the next item from the queue
   if(global.newQueue.length){
     const nextQueueItem = global.newQueue.shift();
-    const { websocketNumber } = nextQueueItem;
-    global.jobProcesses[processNumber] = websocketNumber;
+
     nextQueueItem.processNumber = Number(processNumber);
+
+    global.jobProcesses[processNumber] = nextQueueItem;
     runJob(nextQueueItem);
   } else {
     global.jobProcesses[processNumber] = undefined;
@@ -103,8 +109,9 @@ function addToJobObjectOrQueue(jobObject){
     const propValue = global.jobProcesses[processNumber];
 
     if(propValue === undefined){
-      global.jobProcesses[processNumber] = websocketNumber;
       jobObject.processNumber = Number(processNumber);
+
+      global.jobProcesses[processNumber] = jobObject;
       runJob(jobObject);
       return
     }
