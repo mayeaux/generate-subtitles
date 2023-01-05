@@ -9,6 +9,7 @@ block content
 
     div
         h1 Admin
+        br
 
         h2 Job Processes
         each val, key in jobProcesses
@@ -18,17 +19,21 @@ block content
                 each val2, key2 in val
                     p #{key2}: #{val2}
 
+        br
         h2 New Queue Items (#{newQueue.length})
         each item in newQueue
           each val, key in item
               p #{key}: #{val}
           br
+        br
 
-        h2 Transcriptions
+        br
+        h2 Transcription/Download Processes
         each item in transcriptions
           each val, key in item
               p #{key}: #{val}
           br
+        br
 
         h2 Websocket Connections
         each item in websocketItems

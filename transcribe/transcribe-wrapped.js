@@ -176,8 +176,9 @@ async function transcribe ({
         websocketNumber,
         spawnedProcess: whisperProcess,
         serverNumber,
+        type: 'whisper',
       }
-      global['transcriptions'].push(process)
+      global.transcriptions.push(process)
 
       // find auto-detected language
       let foundLanguage;

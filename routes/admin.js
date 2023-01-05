@@ -106,28 +106,28 @@ router.get('/admin', async function (req, res, next) {
       l('jobProcesses')
       l(jobProcesses)
 
-      const newObject = {};
+      const cleanedUpJobProcessObject = {};
 
       for(const jobProcessNumber in jobProcesses){
         let value = jobProcesses[jobProcessNumber];
         if(!value){
-          newObject[jobProcessNumber] = {};
+          cleanedUpJobProcessObject[jobProcessNumber] = {};
           continue
         };
         delete value.directorySafeFileNameWithoutExtension;
         delete value.directorySafeFileNameWithExtension;
         delete value.fileSafeNameWithDateTimestamp
         delete value.fileSafeNameWithDateTimestampAndExtension
-        newObject[jobProcessNumber] = value;
+        cleanedUpJobProcessObject[jobProcessNumber] = value;
       }
 
-      l('newObject')
-      l(newObject)
+      l('cleanedUpJobProcessObject')
+      l(cleanedUpJobProcessObject)
 
 
       return res.render('admin', {
         title: 'Admin',
-        jobProcesses: newObject || [],
+        processes: cleanedUpJobProcessObject || [],
         newQueue: global.newQueue,
         transcriptions: global.transcriptions,
         websocketItems: global.webSocketData,
