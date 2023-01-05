@@ -79,17 +79,17 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     l(downloadLink);
 
+    function matchByWebsocketNumber(item) {
+      return item.websocketNumber === websocketNumber;
+    }
+
     // websocket number is pushed when it connects on page load
-    if (global.webSocketData) {
-      // l(global.webSocketData);
-      const websocket = global.webSocketData.find(function (websocket) {
-        return websocketNumber === websocket.websocketNumber;
-      })
-      if (websocket) {
-        websocketConnection = websocket.websocket;
-      } else {
-        throw new Error('no websocket!');
-      }
+    // l(global.webSocketData);
+    const websocket = global.webSocketData.find(matchByWebsocketNumber)
+    if (websocket) {
+      websocketConnection = websocket.websocket;
+    } else {
+      throw new Error('no websocket!');
     }
 
     let originalFileNameWithExtension, uploadedFilePath, uploadGeneratedFilename;
