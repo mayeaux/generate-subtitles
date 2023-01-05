@@ -16,7 +16,7 @@ const { languagesToTranslateTo } = require('../constants/constants');
 const {forHumansNoSeconds} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
 const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
-const { addToJobObjectOrQueue, amountOfRunningJobs } = require('../queue/newQueue');
+const { addToJobProcessOrQueue, amountOfRunningJobs } = require('../queue/newQueue');
 
 
 const nodeEnv = process.env.NODE_ENV || 'development';
@@ -243,6 +243,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       ...(downloadLink && { downloadLink }),
       skipToFront: skipToFront === 'true',
       totalOutstanding,
+      ip,
 
       // websocket/queue
       websocketConnection,
@@ -252,7 +253,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     // l('transcriptionJobItem');
     // l(transcriptionJobItem);
-    addToJobObjectOrQueue(transcriptionJobItem);
+    addToJobProcessOrQueue(transcriptionJobItem);
 
     const obj = JSON.parse(JSON.stringify(req.body));
     l(obj);

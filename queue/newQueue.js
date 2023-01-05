@@ -98,7 +98,7 @@ async function runJob(jobObject){
 global.newQueue = [];
 
 // add job to process if available otherwise add to queue
-function addToJobObjectOrQueue(jobObject){
+function addToJobProcessOrQueue(jobObject){
   const { websocketNumber, skipToFront } = jobObject;
 
   l('skipToFront');
@@ -170,18 +170,18 @@ function getQueueInformationByWebsocketNumber(websocketNumber){
 }
 
 module.exports = {
-  addToJobObjectOrQueue,
+  addToJobProcessOrQueue,
   amountOfRunningJobs,
   getQueueInformationByWebsocketNumber
 }
 
 // function main(){
-//   addToJobObjectOrQueue({websocketNumber: 0, skipToFront: false});
-//   addToJobObjectOrQueue({websocketNumber: 1, skipToFront: true});
-//   addToJobObjectOrQueue({websocketNumber: 2, skipToFront: false});
+//   addToJobProcessOrQueue({websocketNumber: 0, skipToFront: false});
+//   addToJobProcessOrQueue({websocketNumber: 1, skipToFront: true});
+//   addToJobProcessOrQueue({websocketNumber: 2, skipToFront: false});
 //
-//   addToJobObjectOrQueue({websocketNumber: 3, skipToFront: false});
-//   addToJobObjectOrQueue({websocketNumber: 4, skipToFront: true});
+//   addToJobProcessOrQueue({websocketNumber: 3, skipToFront: false});
+//   addToJobProcessOrQueue({websocketNumber: 4, skipToFront: true});
 //
 //   l(global.newQueue);
 // }
@@ -197,13 +197,13 @@ module.exports = {
 // }
 
 // async function main(){
-//   addToJobObjectOrQueue({ websocketNumber: '1234', seconds: 15 });
+//   addToJobProcessOrQueue({ websocketNumber: '1234', seconds: 15 });
 //   await delay(generateRandomNumber());
 //   // l('delay done')
-//   addToJobObjectOrQueue({ websocketNumber: '2345', seconds: 8 });
+//   addToJobProcessOrQueue({ websocketNumber: '2345', seconds: 8 });
 //   await delay(generateRandomNumber());
 //   // l('delay done')
-//   addToJobObjectOrQueue({ websocketNumber: '5678', seconds: 5 });
+//   addToJobProcessOrQueue({ websocketNumber: '5678', seconds: 5 });
 // }
 
 // main();
@@ -237,7 +237,7 @@ module.exports = {
 //
 // }
 
-// async function addToJobObjectOrQueue({ websocketNumber, seconds }){
+// async function addToJobProcessOrQueue({ websocketNumber, seconds }){
 //   let startedJob = false;
 //   for (let prop in jobProcesses) {
 //     const propValue = jobProcesses[prop];

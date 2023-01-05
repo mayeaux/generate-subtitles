@@ -176,7 +176,7 @@ async function transcribe ({
         websocketNumber,
         spawnedProcess: whisperProcess,
         serverNumber,
-        type: 'whisper',
+        type: 'transcription',
       }
       global.transcriptions.push(process)
 
@@ -435,6 +435,7 @@ async function transcribe ({
               wordCount,
               wordsPerMinute,
               fileSizeInMB,
+              characterCount: strippedText.length,
             }
 
             if(downloadLink) fileDetailsObject.downloadLink = downloadLink;
