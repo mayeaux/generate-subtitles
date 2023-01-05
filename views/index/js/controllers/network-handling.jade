@@ -315,7 +315,7 @@ script.
     $('#processingData').html(data.languageUpdate);
   }
 
-  const renderCompletionFeedback = ({data, wsConnection}) => {
+  const renderCompletionFeedback = ({data}) => {
     l('completed data');
     if (window.decrementInterval) clearInterval(window.decrementInterval);
     $('#latestData').html(`Congratulations, you're done!`);
@@ -325,7 +325,6 @@ script.
     // show refresh button
     $('#refreshButton').hide();
     $('#startNewUpload').hide();
-    wsConnection.close();
     // redirect to the player page
     // 2 seconds to let the user see the completion message
     setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);

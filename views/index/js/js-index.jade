@@ -24,14 +24,25 @@ script.
   let receivedPlaceInQueue, myProcessingStarted = false;
   let placeInQueue = 0;
   const oneHourInSeconds = 60 * 60;
+
+  // setup endpoints to hit
   const ipAndPort = location.host;
   const randomNumber = Math.round(Math.random() * 1_000_000_000_000);
   const protocol = window.location.protocol;
   const servedWithSSL = protocol.slice(0, -1) === 'https';
   const httpPrepend = protocol === 'https:' ? 'https' : 'http';
   const wssPrepend = protocol === 'https:' ? 'wss' : 'ws';
-  const websocketConnection = new WebSocket(`${wssPrepend}://${ipAndPort}/${randomNumber}`);
+
+  // websocket server
+  const websocketAndServerEndpoint = `${wssPrepend}://${ipAndPort}/${randomNumber}`
+
+  // connect to server
+  const websocketConnection = new WebSocket(websocketAndServerEndpoint);
+
+  // file endpoint
   const uploadUrl = `${httpPrepend}://${ipAndPort}/file`;
+
+  // check outstanding jobs endpoint
   const checkAmountOfOutstandingJobsUrl = `${httpPrepend}://${ipAndPort}/checkingOutstandingProcesses`;
 
   // passed from server
@@ -342,7 +353,8 @@ script.
     /** WHEN WEBSOCKET SAYS COMPLETED **/
     if (transcriptionHasCompleted) {
       uploadFinished = true;
-      renderCompletionFeedback({data, wsConnection: websocketConnection});
+      renderCompletionFeedback({data});
+      websocketConnection.close();
     }
 
     isErrorMessage && renderError(data);
