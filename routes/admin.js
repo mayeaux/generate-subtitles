@@ -107,7 +107,7 @@ router.get('/admin', async function (req, res, next) {
       return res.render('admin', {
         title: 'Admin',
         jobProcesses: global.jobProcesses,
-        queueItems: global.newQueue,
+        newQueue: global.newQueue,
         transcriptions: global.transcriptions,
         websocketItems: global.webSocketData,
       })

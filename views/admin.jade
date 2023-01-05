@@ -15,8 +15,8 @@ block content
           p #{key}: #{val}
           br
 
-        h2 New Queue Items
-        each item in queueItems
+        h2 New Queue Items (#{queueItems.length})
+        each item in newQueue
           each val, key in item
               p #{key}: #{val}
           br

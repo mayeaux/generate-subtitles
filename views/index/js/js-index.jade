@@ -247,8 +247,7 @@ script.
 
     ajax.addEventListener('error', err => ce(err), false);
 
-    // handle request to backend failing
-    ajax.addEventListener('readystatechange', () => {
+    function handleReadyStateChange(){
       l('ready state change');
       if (ajax.readyState === XMLHttpRequest.DONE) {
         if (ajax.status === 200) {
@@ -261,20 +260,25 @@ script.
           return errorsMap['transcription-error'](ajax.responseText);
         }
       }
-    });
+    };
 
-    // once backend is hit
-    ajax.addEventListener('load', () => {
+    // handle request to backend failing
+    ajax.addEventListener('readystatechange', handleReadyStateChange)
+
+    function loadEvent(){
       l('hit the backend!');
       hitTheBackend = true;
       const response = ajax.responseText;
-      if(response === 'download'){
+      if (response === 'download') {
 
       } else {
         loadAjax({response, circleProgress});
 
       }
-    });
+    }
+
+    // once backend is hit
+    ajax.addEventListener('load', loadEvent)
 
     // TODO: implement these
     // ajax.addEventListener("abort", abortHandler, false);
@@ -332,16 +336,7 @@ script.
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
-    // if(sendingQueueInformation){
-    //   receivedPlaceInQueue = true;
-    //   placeInQueue = data.placeInQueue;
-    // }
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
-
-    // if(differentUserHasFinishedProcessing && receivedPlaceInQueue){
-    //   placeInQueue = placeInQueue - 1;
-    //   renderQueue({place: placeInQueue, log: 'finished processing'});
-    // }
 
     transcriptionIsStarting && renderStartingFeedback({ data, circleProgress });
 

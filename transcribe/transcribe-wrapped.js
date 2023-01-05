@@ -13,6 +13,21 @@ const { formatStdErr } = require('../helpers/formatStdErr')
 const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
 const { stripOutTextAndTimestamps } = require('../translate/helpers')
 const { updateQueueItemStatus } = require('../queue/queue');
+// const {amountOfRunningJobs} = require("../queue/newQueue");
+const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
+
+function amountOfRunningJobs(){
+  let amount = 0;
+  for (let processNumber in global.jobProcesses) {
+    const propValue = global.jobProcesses[processNumber];
+
+    if(propValue !== undefined){
+      amount++;
+    }
+  }
+
+  return amount;
+}
 
 const l = console.log;
 
@@ -49,7 +64,7 @@ async function transcribe ({
   fileSizeInMB,
   user,
   downloadLink,
-  totalOutstanding,
+  totalOutstanding, // not actually useful
   processNumber,
 }) {
   return new Promise(async (resolve, reject) => {
@@ -205,9 +220,23 @@ async function transcribe ({
 
       // log output from bash (it all comes through stderr for some reason?)
       whisperProcess.stderr.on('data', data => {
+        const currentlyRunningJobs = amountOfRunningJobs();
+        const amountInQueue = global.newQueue.length
+        const totalOutstanding = currentlyRunningJobs + amountInQueue - maxConcurrentJobs + 1;
+
         // websocketConnection.send(JSON.stringify(`stderr: ${data}`), function () {});
-        l(`STDERR: ${data},
-         Duration: ${uploadDurationInSecondsHumanReadable} Model: ${model}, Language: ${displayLanguage}, Filename: ${directorySafeFileNameWithExtension}, Queue: ${totalOutstanding}, Translating: ${shouldTranslate}  `);
+        let outputString = `STDERR: ${data},
+         Duration: ${uploadDurationInSecondsHumanReadable},
+         Model: ${model}, 
+         Language: ${displayLanguage},
+          Filename: ${directorySafeFileNameWithExtension}, 
+          Queue: ${totalOutstanding}, 
+          Translating: ${shouldTranslate}`;
+
+        outputString = outputString.replace(/\s+/g, ' ');
+        l(outputString);
+
+
 
         // loop through and do with websockets
         for (let [, websocket] of global['webSocketData'].entries() ) {
