@@ -176,8 +176,9 @@ async function transcribe ({
         websocketNumber,
         spawnedProcess: whisperProcess,
         serverNumber,
+        type: 'transcription',
       }
-      global['transcriptions'].push(process)
+      global.transcriptions.push(process)
 
       // find auto-detected language
       let foundLanguage;
@@ -434,6 +435,7 @@ async function transcribe ({
               wordCount,
               wordsPerMinute,
               fileSizeInMB,
+              characterCount: strippedText.length,
             }
 
             if(downloadLink) fileDetailsObject.downloadLink = downloadLink;

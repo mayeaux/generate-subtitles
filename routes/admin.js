@@ -106,29 +106,49 @@ router.get('/admin', async function (req, res, next) {
       l('jobProcesses')
       l(jobProcesses)
 
-      const newObject = {};
+      const cleanedUpJobProcessObject = {};
 
       for(const jobProcessNumber in jobProcesses){
         let value = jobProcesses[jobProcessNumber];
         if(!value){
-          newObject[jobProcessNumber] = {};
+          cleanedUpJobProcessObject[jobProcessNumber] = {};
           continue
         };
         delete value.directorySafeFileNameWithoutExtension;
         delete value.directorySafeFileNameWithExtension;
         delete value.fileSafeNameWithDateTimestamp
         delete value.fileSafeNameWithDateTimestampAndExtension
-        newObject[jobProcessNumber] = value;
+        cleanedUpJobProcessObject[jobProcessNumber] = value;
       }
 
-      l('newObject')
-      l(newObject)
+      l('cleanedUpJobProcessObject')
+      l(cleanedUpJobProcessObject)
 
+      const cleanedUpNewQueue = [];
+
+      l('global newqueue')
+      l(global.newQueue);
+
+      // cleanup new queue items
+      for(const queueItem of global.newQueue){
+
+        if(!queueItem) continue
+
+        delete queueItem.directorySafeFileNameWithoutExtension;
+        delete queueItem.directorySafeFileNameWithExtension;
+        delete queueItem.fileSafeNameWithDateTimestamp
+        delete queueItem.fileSafeNameWithDateTimestampAndExtension
+
+        cleanedUpNewQueue.push(queueItem);
+      }
+
+      l('cleanedUpNewQueue')
+      l(cleanedUpNewQueue)
 
       return res.render('admin', {
         title: 'Admin',
-        jobProcesses: newObject || [],
-        newQueue: global.newQueue,
+        processes: cleanedUpJobProcessObject,
+        newQueue: cleanedUpNewQueue || [],
         transcriptions: global.transcriptions,
         websocketItems: global.webSocketData,
       })

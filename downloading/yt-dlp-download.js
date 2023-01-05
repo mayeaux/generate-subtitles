@@ -31,12 +31,18 @@ function extractDataFromString(string){
 // delete from transcription array (used to get rid of the yt-dlp process)
 function deleteFromGlobalTranscriptionsBasedOnWebsocketNumber(websocketNumber) {
   // find transcription based on websocketNumber
-  const closerTranscription = global['transcriptions'].find(function (transcription) {
+  const closerTranscription = global.transcriptions.find(function (transcription) {
     return transcription.websocketNumber === websocketNumber;
   })
 
-  // TODO bug: this should be based on the websocketNumber
-  const transcriptionIndex = global.transcriptions.indexOf(closerTranscription);
+  global.transcriptions.findIndex(transcriptionProcess => transcriptionProcess.websocketNumber === websocketNumber);
+
+  function matchProcessByWebsocketNumber(transcriptionProcess){
+    return transcriptionProcess.websocketNumber === websocketNumber;
+  }
+
+  // TODO should rename this as processes not transcriptions:
+  const transcriptionIndex = global.transcriptions.indexOf(matchProcessByWebsocketNumber);
   if (transcriptionIndex > -1) { // only splice array when item is found
     global.transcriptions.splice(transcriptionIndex, 1); // 2nd parameter means remove one item only
   }
@@ -93,8 +99,9 @@ async function downloadFile ({
       const process = {
         websocketNumber,
         spawnedProcess: ytdlProcess,
+        type: 'download'
       }
-      global['transcriptions'].push(process)
+      global.transcriptions.push(process)
 
       ytdlProcess.stdout.on('data', (data) => {
         l(`STDOUT: ${data}`);

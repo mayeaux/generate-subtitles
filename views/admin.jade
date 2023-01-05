@@ -9,8 +9,9 @@ block content
 
     div
         h1 Admin
+        br
 
-        h2 Job Processes
+        h2 Job Processes (#{Object.keys(jobProcesses).length})
         each val, key in jobProcesses
             p Process Number: #{key}
             br
@@ -18,19 +19,24 @@ block content
                 each val2, key2 in val
                     p #{key2}: #{val2}
 
-        h2 New Queue Items (#{newQueue.length})
-        each item in newQueue
-          each val, key in item
-              p #{key}: #{val}
-          br
+        br
+        h2 New Queue Items (#{newQueue && newQueue.length})
+        each item, index in newQueue
+            p Place In Queue: #{index}
+            each val, key in item
+                p #{key}: #{val}
+                br
+        br
 
-        h2 Transcriptions
+        br
+        h2 Transcription/Download Processes (#{transcriptions && transcriptions.length})
         each item in transcriptions
           each val, key in item
               p #{key}: #{val}
           br
+        br
 
-        h2 Websocket Connections
+        h2 Websocket Connections (#{websocketItems && websocketItems.length})
         each item in websocketItems
             each val, key in item
                 p #{key}: #{val}
