@@ -12,12 +12,14 @@ block content
         br
 
         h2 Job Processes (#{Object.keys(jobProcesses).length})
+        br
         each val, key in jobProcesses
             p Process Number: #{key}
             br
             if val
                 each val2, key2 in val
                     p #{key2}: #{val2}
+            br
 
         br
         h2 New Queue Items (#{newQueue && newQueue.length})
@@ -25,7 +27,7 @@ block content
             p Place In Queue: #{index}
             each val, key in item
                 p #{key}: #{val}
-                br
+            br
         br
 
         br
