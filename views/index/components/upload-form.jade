@@ -92,12 +92,14 @@ form.form#form
       }
     });
 
+    // TODO: add this download link
+    function isValidLink(input) {
+      const pattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+      return pattern.test(input);
+    }
+
     $('.paste-button').click(function(event) {
       l('clicked!');
-
-
-      event.preventDefault();
-
       l('pasteButtonTurnedOff', pasteButtonTurnedOff);
 
       if(pasteButtonTurnedOff) {

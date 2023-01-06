@@ -227,7 +227,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       ...(user && { user }),
       ...(downloadLink && { downloadLink }),
       ...(skipToFront && { skipToFront }),
-      totalOutstanding
+      totalOutstanding,
     })
 
     const transcriptionJobItem = {
