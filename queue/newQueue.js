@@ -28,12 +28,18 @@ function findProcessNumber(websocketNumber) {
   for (let processNumber in global.jobProcesses) {
 
     const hasOwnProperty = global.jobProcesses.hasOwnProperty(processNumber)
-    const matchesByWebsocket = global.jobProcesses[processNumber].websocketNumber === websocketNumber;
 
-    if (hasOwnProperty && matchesByWebsocket) {
-      return processNumber;
+    if (hasOwnProperty) {
+
+      const matchesByWebsocket = global.jobProcesses[processNumber]?.websocketNumber === websocketNumber;
+      if(matchesByWebsocket){
+        return processNumber
+      }
     }
   }
+
+  return false
+
   // TODO: throw an error here?
 }
 function sendOutQueuePositionUpdate(){
@@ -81,6 +87,8 @@ async function runJob(jobObject){
   }
 
   const processNumber = findProcessNumber(websocketNumber);
+  l('processNumber');
+  l(processNumber);
 
   // run the next item from the queue
   if(global.newQueue.length){

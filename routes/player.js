@@ -26,8 +26,8 @@ router.get('/player/:filename' , async function (req, res, next) {
 
     const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${processingData.directoryFileName}`;
 
-    l('filePathWithoutExtension')
-    l(filePathWithoutExtension);
+    // l('filePathWithoutExtension')
+    // l(filePathWithoutExtension);
 
     const translatedLanguages = processingData.translatedLanguages;
 
@@ -39,11 +39,11 @@ router.get('/player/:filename' , async function (req, res, next) {
     delete processingData.strippedText;
     delete processingData.timestampsArray;
 
-    l('processing data');
-    l(processingData);
-
-    l('languages to loop');
-    l(languagesToLoop);
+    // l('processing data');
+    // l(processingData);
+    //
+    // l('languages to loop');
+    // l(languagesToLoop);
 
     let allLanguages = languagesToLoop.slice();
 
@@ -52,8 +52,8 @@ router.get('/player/:filename' , async function (req, res, next) {
       languageCode: processingData.languageCode
     })
 
-    l('all languages');
-    l(allLanguages);
+    // l('all languages');
+    // l(allLanguages);
 
     res.render('player/player', {
       filePath: filePathWithoutExtension,

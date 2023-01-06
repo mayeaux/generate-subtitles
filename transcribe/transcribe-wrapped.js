@@ -448,6 +448,19 @@ async function transcribe ({
             const renamedDirectory = `./transcriptions/${fileSafeNameWithDateTimestamp}`;
             await fs.rename(originalContainingDir, renamedDirectory)
 
+            function matchByWebsocketNumber(item) {
+              return item.websocketNumber === websocketNumber;
+            }
+
+            const queueIndex = global.newQueue.findIndex(matchByWebsocketNumber);
+
+            if (queueIndex > -1) { // only splice array when item is found
+              global.newQueue.splice(queueIndex, 1); // 2nd parameter means remove one item only
+
+              l(`${websocketNumber} Deleted from global.newQueue`);
+            }
+
+
           } else {
             l('FAILED!');
             reject();
