@@ -94,7 +94,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     let originalFileNameWithExtension, uploadedFilePath, uploadGeneratedFilename;
     if (passedFile) {
-      originalFileNameWithExtension = req.file.originalname;
+
+      originalFileNameWithExtension = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
       uploadedFilePath = req.file.path;
       uploadGeneratedFilename = req.file.filename;
       l('uploadedFilePath');

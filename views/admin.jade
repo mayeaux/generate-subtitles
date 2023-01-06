@@ -23,12 +23,12 @@ block content
             br
 
         br
-        h2 New Queue Items (#{newQueue && newQueue.length + 1})
+        h2 New Queue Items (#{newQueue && newQueue.length})
         p global.newQueue
         br
 
         each item, index in newQueue
-            p Place In Queue: #{index}
+            p Place In Queue: #{index + 1}
             each val, key in item
                 p #{key}: #{val}
             br
