@@ -85,6 +85,8 @@ form.form#form
 
       event.preventDefault();
 
+      l('pasteButtonTurnedOff', pasteButtonTurnedOff);
+
       if(pasteButtonTurnedOff) {
         return;
       }
@@ -98,19 +100,27 @@ form.form#form
     function updateCss(){
       const currentInputValue = $('#downloadLink').val();
 
-      // re-enable file input and paste button
-      if (currentInputValue === '') {
-        pasteButtonTurnedOff = false;
-        $('#file').removeClass('file-turned-off');
+      l('currentInputValue', currentInputValue);
 
+      // if downloadlink is empty
+      const inputIsEmpty = currentInputValue === '';
+
+      // re-enable file input
+      if (inputIsEmpty) {
+        $('#file').removeClass('file-turned-off');
       } else {
+      // disable file input
+        l('turning off paste button')
         // re-enable file input and paste button
-        pasteButtonTurnedOff = true;
         $('#file').addClass('file-turned-off');
       }
     }
 
     $('#downloadLink').keyup(() => {
+      updateCss()
+    });
+
+    $('#downloadLink').change(() => {
       updateCss()
     });
 
@@ -121,6 +131,7 @@ form.form#form
         $('.paste-button').addClass('file-turned-off');
 
         $('#downloadLink').attr('placeholder', 'You have selected a file to upload');
+        pasteButtonTurnedOff = true;
 
         l('file added')
       // a file that was there was removed
@@ -129,6 +140,9 @@ form.form#form
         $('.paste-button').removeClass('file-turned-off');
 
         $('#downloadLink').attr('placeholder', 'Enter a link to a video here');
+
+        pasteButtonTurnedOff = false;
+
 
         l('file removed')
       }
