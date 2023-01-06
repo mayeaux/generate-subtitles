@@ -1,12 +1,47 @@
+style.
+
+  .disabled-paste-button, .paste-button {
+    display: inline-block;
+    margin: 0;
+    margin-left: 5px;
+    cursor: pointer;
+    color: #339233;
+  }
+
+  #downloadLinkLabel, .paste-button {
+    /*pointer-events: none;*/
+
+  }
+
+  #disable-download-link {
+    cursor: pointer !important;
+  }
+
+  .paste-button {
+    /*pointer-events: ;*/
+  }
+
+  .file-turned-off {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+
+
 form.form#form
   p(style="margin:0;margin-bottom:6px;") File Limits: Video Or Audio, Max 300 MB, Max 1 Hour Duration
   .group
     label(for='file') Select (or drop) file
     input#file(type='file')
-  if ytdlp
+  if !ytdlp
     .group
-      label(for='downloadLink') Enter a link for automatic download (PASTE)
-      input#downloadLink(type='text' value="https://www.youtube.com/watch?v=jXVcLVQ4FTg&ab_channel=HighlightHeaven")
+      label#disable-download-link(for='downloadLink') Enter a link for automatic download
+        p.disabled-paste-button PASTE
+      input(disabled #downloadLink style="cursor:pointer;")(type='text' value="Paid Feature")
+  if ytdlp
+    label(for='downloadLink') Enter a link for automatic download
+      p.paste-button PASTE
+    input#downloadLink(type='text' placeholder="Enter a link to a video here")
   .group
     label(for='languageSelect')#languageLabel Language (#{languagesArray.length} Options)
     .wrapper
@@ -37,3 +72,65 @@ form.form#form
     label#translateLabel(for='translate') Translate to different languages
     input#translate(type='checkbox' name='translate')
   button#upload-button.submit-btn(type='submit') Upload
+
+
+  script.
+    let l = console.log;
+
+    let pasteButtonTurnedOff = false;
+
+    $('.paste-button').click(function(event) {
+      l('clicked!');
+
+
+      event.preventDefault();
+
+      if(pasteButtonTurnedOff) {
+        return;
+      }
+
+      navigator.clipboard.readText().then(clipText => {
+        $('#downloadLink').val(clipText);
+        updateCss()
+      });
+    });
+
+    function updateCss(){
+      const currentInputValue = $('#downloadLink').val();
+
+      // re-enable file input and paste button
+      if (currentInputValue === '') {
+        pasteButtonTurnedOff = false;
+        $('#file').removeClass('file-turned-off');
+
+      } else {
+        // re-enable file input and paste button
+        pasteButtonTurnedOff = true;
+        $('#file').addClass('file-turned-off');
+      }
+    }
+
+    $('#downloadLink').keyup(() => {
+      updateCss()
+    });
+
+    $('#file').change(function () {
+      // there was a file present
+      if ($('#file')[0]?.files?.length > 0) {
+        $('#downloadLink').addClass('file-turned-off');
+        $('.paste-button').addClass('file-turned-off');
+
+        $('#downloadLink').attr('placeholder', 'You have selected a file to upload');
+
+        l('file added')
+      // a file that was there was removed
+      } else {
+        $('#downloadLink').removeClass('file-turned-off');
+        $('.paste-button').removeClass('file-turned-off');
+
+        $('#downloadLink').attr('placeholder', 'Enter a link to a video here');
+
+        l('file removed')
+      }
+    });
+
