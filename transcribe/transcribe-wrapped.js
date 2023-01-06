@@ -1,19 +1,20 @@
 const which = require('which');
-const spawn = require('child_process').spawn;
+const {spawn} = require('child_process');
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 const path = require('path');
-const projectConstants = require('../constants/constants');
-const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
-const forHumans = require('../helpers/helpers').forHumans;
+
+const {shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages} = require('../constants/constants');
+const {forHumans} = require('../helpers/helpers');
+const {formatStdErr} = require('../helpers/formatStdErr');
 const createTranslatedFiles = require('../translate/create-translated-files');
+const {convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin} = require('../lib/convertText');
+const {stripOutTextAndTimestamps} = require('../translate/helpers');
+const {updateQueueItemStatus} = require('../queue/queue');
+// const {amountOfRunningJobs} = require('../queue/newQueue');
+
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
-const { formatStdErr } = require('../helpers/formatStdErr')
-const { convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin } = require('../lib/convertText');
-const { stripOutTextAndTimestamps } = require('../translate/helpers')
-const { updateQueueItemStatus } = require('../queue/queue');
-// const {amountOfRunningJobs} = require("../queue/newQueue");
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
 function amountOfRunningJobs () {

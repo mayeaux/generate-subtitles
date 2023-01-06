@@ -1,16 +1,16 @@
 const which = require('which');
-const spawn = require('child_process').spawn;
+const {spawn} = require('child_process');
 const fs = require('fs-extra');
 const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
-let convert = require('cyrillic-to-latin')
-const projectConstants = require('../constants/constants');
-const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
-const forHumans = require('../helpers/helpers').forHumans;
+let convert = require('cyrillic-to-latin');
+
+const {shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages} = require('../constants/constants');
+const {forHumans} = require('../helpers/helpers');
 const createTranslatedFiles = require('../translate/translate-files-api');
 const {formatStdErr} = require('../helpers/formatStdErr');
-const LTHost = process.env.LIBRETRANSLATE;
 const { handleStdErr, handleStdOut, handleProcessClose } = require('../lib/transcribing')
+const LTHost = process.env.LIBRETRANSLATE;
 
 function getCodeFromLanguageName (languageName) {
   return translationLanguages.find(function (filteredLanguage) {
