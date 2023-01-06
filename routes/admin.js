@@ -103,8 +103,8 @@ router.get('/admin', async function (req, res, next) {
       res.redirect('/404')
     } else {
 
-      l('jobProcesses')
-      l(jobProcesses)
+      // l('jobProcesses')
+      // l(jobProcesses)
 
       const cleanedUpJobProcessObject = {};
 
@@ -123,13 +123,13 @@ router.get('/admin', async function (req, res, next) {
         cleanedUpJobProcessObject[jobProcessNumber] = newItem;
       }
 
-      l('cleanedUpJobProcessObject')
-      l(cleanedUpJobProcessObject)
+      // l('cleanedUpJobProcessObject')
+      // l(cleanedUpJobProcessObject)
 
       const cleanedUpNewQueue = [];
 
-      l('global newqueue')
-      l(global.newQueue);
+      // l('global newqueue')
+      // l(global.newQueue);
 
       // cleanup new queue items
       for(const queueItem of global.newQueue){
@@ -145,8 +145,8 @@ router.get('/admin', async function (req, res, next) {
         cleanedUpNewQueue.push(newItem);
       }
 
-      l('cleanedUpNewQueue')
-      l(cleanedUpNewQueue)
+      // l('cleanedUpNewQueue')
+      // l(cleanedUpNewQueue)
 
       return res.render('admin', {
         title: 'Admin',
