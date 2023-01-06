@@ -60,10 +60,10 @@ createWebSocketServer(server);
 
 l = console.log;
 
-// l = function(l){
+// l = function(l) {
 //   var stack = (new Error()).stack.split(/\n/);
 //   // Chrome includes a single "Error" line, FF doesn't.
-//   if(stack[0].indexOf('Error') === 0){
+//   if (stack[0].indexOf('Error') === 0) {
 //     stack = stack.slice(1);
 //   }
 //   var args = [].slice.apply(arguments).concat([stack[1].trim()]);
@@ -79,7 +79,7 @@ fs.mkdirSync('transcriptions', { recursive: true })
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 
 app.use(favicon(path.join(__dirname,'public','images','favicon.ico')));
 app.use(logger('dev'));
