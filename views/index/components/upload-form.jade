@@ -37,7 +37,7 @@ form.form#form
     .group
       label#disable-download-link(for='downloadLink') Enter a link for automatic download
         p.disabled-paste-button PASTE
-      input(disabled #downloadLink style="cursor:pointer;")(type='text' value="Paid Feature")
+      input(disabled #disable-download-link style="cursor:pointer;")(type='text' value="Paid Feature, More Info Coming Soon")
   if ytdlp
     label(for='downloadLink') Enter a link for automatic download
       p.paste-button PASTE
@@ -78,6 +78,19 @@ form.form#form
     let l = console.log;
 
     let pasteButtonTurnedOff = false;
+
+    $(document).on('click', function (e) {
+
+      // workaround since element is diabled
+      if (e.target.attributes.getNamedItem('#disable-download-link')) {
+        Swal.fire({
+          title: `Restricted access feature`,
+          text: 'This feature is too powerful for public use, reach out on one of the social media for access',
+          icon: 'info',
+          confirmButtonText: 'Back to Upload'
+        })
+      }
+    });
 
     $('.paste-button').click(function(event) {
       l('clicked!');
