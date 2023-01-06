@@ -13,10 +13,10 @@ const fs = require('fs-extra');
 const { downloadFile, getFilename } = require('../downloading/yt-dlp-download');
 const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 const { languagesToTranslateTo } = require('../constants/constants');
-const {forHumansNoSeconds} = require('../helpers/helpers');
+const {forHumansNoSeconds, getamountOfRunningJobs} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
 const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
-const { addToJobProcessOrQueue, amountOfRunningJobs } = require('../queue/newQueue');
+const {addToJobProcessOrQueue} = require('../queue/newQueue');
 
 
 const nodeEnv = process.env.NODE_ENV || 'development';
@@ -181,7 +181,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     // load websocket by passed number
 
 
-    const currentlyRunningJobs = amountOfRunningJobs();
+    const currentlyRunningJobs = getamountOfRunningJobs();
     const amountInQueue = global.newQueue.length
     const totalOutstanding = currentlyRunningJobs + amountInQueue - maxConcurrentJobs + 1;
 

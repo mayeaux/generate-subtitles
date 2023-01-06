@@ -153,20 +153,6 @@ function addToJobProcessOrQueue (jobObject) {
   sendOutQueuePositionUpdate();
 }
 
-// get amount of running jobs (used to calculate queue position)
-function amountOfRunningJobs () {
-  let amount = 0;
-  for (let processNumber in global.jobProcesses) {
-    const propValue = global.jobProcesses[processNumber];
-
-    if (propValue !== undefined) {
-      amount++;
-    }
-  }
-
-  return amount;
-}
-
 // get position in queue based on websocketNumber
 function getQueueInformationByWebsocketNumber (websocketNumber) {
   for (const [index, queueItem] of global.newQueue.entries()) {
@@ -184,7 +170,6 @@ function getQueueInformationByWebsocketNumber (websocketNumber) {
 
 module.exports = {
   addToJobProcessOrQueue,
-  amountOfRunningJobs,
   getQueueInformationByWebsocketNumber
 }
 

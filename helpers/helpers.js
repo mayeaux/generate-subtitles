@@ -86,9 +86,15 @@ const decrementBySecond = timeRemainingValues => {
   }
 }
 
+const getamountOfRunningJobs = () => 
+  Object.values(global.jobProcesses)
+  .filter(propValue => propValue !== undefined)
+  .length;
+
 module.exports = {
   forHumans,
   forHumansNoSeconds,
   decrementBySecond,
-  forHumansHoursAndMinutes
+  forHumansHoursAndMinutes,
+  getamountOfRunningJobs
 }

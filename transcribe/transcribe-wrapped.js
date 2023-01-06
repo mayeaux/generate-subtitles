@@ -6,41 +6,26 @@ const WebSocket = require('ws');
 const path = require('path');
 
 const {shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages} = require('../constants/constants');
-const {forHumans} = require('../helpers/helpers');
+const {forHumans, getamountOfRunningJobs} = require('../helpers/helpers');
 const {formatStdErr} = require('../helpers/formatStdErr');
 const createTranslatedFiles = require('../translate/create-translated-files');
 const {convertChineseTraditionalToSimplified, convertSerbianCyrillicToLatin} = require('../lib/convertText');
 const {stripOutTextAndTimestamps} = require('../translate/helpers');
 const {updateQueueItemStatus} = require('../queue/queue');
-// const {amountOfRunningJobs} = require('../queue/newQueue');
 
 const multipleGpusEnabled = process.env.MULTIPLE_GPUS === 'true';
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
-
-function amountOfRunningJobs () {
-  let amount = 0;
-  for (let processNumber in global.jobProcesses) {
-    const propValue = global.jobProcesses[processNumber];
-
-    if (propValue !== undefined) {
-      amount++;
-    }
-  }
-
-  return amount;
-}
-
-const l = console.log;
-
 const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 const nodeEnvironment = process.env.NODE_ENV;
 const libreTranslateHostPath = process.env.LIBRETRANSLATE;
+
+const l = console.log;
 
 // l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
 
 const isProd = nodeEnvironment === 'production';
 
-const whisperPath = which.sync('whisper')
+const whisperPath = which.sync('whisper');
 
 global.transcriptions = [];
 
@@ -222,7 +207,7 @@ async function transcribe ({
 
       // log output from bash (it all comes through stderr for some reason?)
       whisperProcess.stderr.on('data', data => {
-        const currentlyRunningJobs = amountOfRunningJobs();
+        const currentlyRunningJobs = getamountOfRunningJobs();
         const amountInQueue = global.newQueue.length
         const totalOutstanding = currentlyRunningJobs + amountInQueue;
 
