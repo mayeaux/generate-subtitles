@@ -452,13 +452,14 @@ async function transcribe ({
               return item.websocketNumber === websocketNumber;
             }
 
-            const queueIndex = global.newQueue.findIndex(matchByWebsocketNumber);
-
-            if (queueIndex > -1) { // only splice array when item is found
-              global.newQueue.splice(queueIndex, 1); // 2nd parameter means remove one item only
-
-              l(`${websocketNumber} Deleted from global.newQueue`);
+            function removeFromArrayByWebsocketNumber(array) {
+              const index = array.findIndex(matchByWebsocketNumber);
+              if (index > -1) {
+                array.splice(index, 1);
+              }
             }
+
+            removeFromArrayByWebsocketNumber(global.transcriptions, websocketNumber);
 
 
           } else {

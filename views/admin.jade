@@ -12,6 +12,7 @@ block content
         br
 
         h2 Job Processes (#{Object.keys(jobProcesses).length})
+        p global.jobProcesses
         br
         each val, key in jobProcesses
             p Process Number: #{key}
@@ -23,6 +24,8 @@ block content
 
         br
         h2 New Queue Items (#{newQueue && newQueue.length})
+        p global.newQueue
+
         each item, index in newQueue
             p Place In Queue: #{index}
             each val, key in item
@@ -32,14 +35,18 @@ block content
 
         br
         h2 Transcription/Download Processes (#{transcriptions && transcriptions.length})
+        p global.transcriptions
+        br
         each item in transcriptions
           each val, key in item
               p #{key}: #{val}
           br
         br
 
-        h2 Websocket Connections (#{websocketItems && websocketItems.length})
-        each item in websocketItems
+        h2 Websocket Connections (#{webSocketData && webSocketData.length})
+        p global.webSocketData
+        br
+        each item in webSocketData
             each val, key in item
                 p #{key}: #{val}
             br
