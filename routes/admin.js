@@ -153,7 +153,7 @@ router.get('/admin', async function (req, res, next) {
         processes: cleanedUpJobProcessObject,
         newQueue: cleanedUpNewQueue || [],
         transcriptions: global.transcriptions,
-        websocketItems: global.webSocketData,
+        webSocketData: global.webSocketData,
       })
     }
 
