@@ -1,62 +1,38 @@
-const l = console.log;
+// example of stdErrData: ' 10%|█         | 5332/52135 [00:10<01:25, 545.77frames/s]'
 
-const ten = ' 10%|█         | 5332/52135 [00:10<01:25, 545.77frames/s]';
+const formatStdErr = stdErrData => {
+  // a cleaner and more concise approach
+  const dataRegex = /^\D*((\d+)%)\|([\u2588\u258C\s]+)\|\s*\d+\/\d+\s\[(\d\d:\d\d)<((?:(\d\d):)?(\d\d):(\d\d)|\?),\s*(\d+\.\d\d|\?)frames\/s\]/;
 
-function formatStdErr (stdErrData) {
-  // if a progress output
-  if (stdErrData.includes('frames/s')) {
-    // looks like: '█         '
-    const progressBar = stdErrData.split('|')[1].split('|')[0]
+  // if not a progress output
+  if (!dataRegex.test(stdErrData)) return false;
 
-    // looks like: '10%'
-    let percentDone = stdErrData.split('|')[0].trim();
-
-    // looks like: 10
-    let percentDoneAsNumber = Number(stdErrData.split('%')[0].trim());
-
-    // looks like: '00:10<01:25, 545.77frames/s]'
-    let timeLeftPortion = stdErrData.split('[')[1].split('[')[0]
-
-    // looks like: '00:10<01:25'
-    const firstPortion = timeLeftPortion.split(',')[0]
-
-    // looks like: '00:10'
-    const timeElapsed = firstPortion.split('<')[0]
-
-    // looks like: '01:25'
-    const timeRemainingString = timeLeftPortion.split('<')[1].split(',')[0]
-
-    // looks like: '545.77'
-    const speed = timeLeftPortion.split('<')[1].split(',')[1].split('frames')[0].trim()
-
-    // looks like: '545.77'
-    const splitTimeRemaining = timeRemainingString.split(':')
-
-    // looks like: '01'
-    const secondsRemaining = Number(splitTimeRemaining.pop());
-
-    // looks like: '25'
-    const minutesRemaining = Number(splitTimeRemaining.pop());
-
-    // looks like: 'NaN'
-    const hoursRemaining = Number(splitTimeRemaining.pop());
-
-    // format for lib
-    return {
-      progressBar,
-      percentDone,
-      timeElapsed,
-      speed,
-      percentDoneAsNumber,
-      timeRemaining: {
-        string: timeRemainingString,
-        hoursRemaining,
-        minutesRemaining,
-        secondsRemaining
-      },
-    }
-  } else {
-    return false
+  const [
+    wholeMatch,
+    percentDone, // looks like: '10%'
+    percentDoneAsNumber, // looks like: '10'
+    progressBar, // looks like: '█         '
+    timeElapsed, // looks like: '00:10'
+    timeRemaining, // looks like: '01:25'
+    hoursRemaining, // looks like: 'undefined'
+    minutesRemaining, // looks like: '25'
+    secondsRemaining, // looks like: '01'
+    speed // looks like: '545.77'
+  ] = stdErrData.match(dataRegex);
+  
+  // format for lib
+  return {
+    progressBar,
+    percentDone,
+    timeElapsed,
+    speed,
+    percentDoneAsNumber: +percentDoneAsNumber,
+    timeRemaining: {
+      string: timeRemaining,
+      hoursRemaining: +hoursRemaining,
+      minutesRemaining: +minutesRemaining,
+      secondsRemaining: +secondsRemaining
+    },
   }
 }
 
