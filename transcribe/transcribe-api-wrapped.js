@@ -9,7 +9,7 @@ const {shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLang
 const {forHumans} = require('../helpers/helpers');
 const createTranslatedFiles = require('../translate/translate-files-api');
 const {formatStdErr} = require('../helpers/formatStdErr');
-const { handleStdErr, handleStdOut, handleProcessClose } = require('../lib/transcribing')
+const { handleStdErr, handleStdOut, handleProcessClose, buildWhisperArguments } = require('../lib/transcribing')
 const LTHost = process.env.LIBRETRANSLATE;
 
 function getCodeFromLanguageName (languageName) {
@@ -21,7 +21,6 @@ function getCodeFromLanguageName (languageName) {
 
 const {
   // autoDetectLanguage,
-  buildArguments,
   // moveAndRenameFilesAndFolder,
   // saveTranscriptionCompletedInformation,
   // writeToProcessingDataFile,
@@ -51,15 +50,11 @@ async function transcribe ({
       const startingDate = new Date();
       l(startingDate);
 
-      const whisperArguments = buildArguments({
-        uploadedFilePath: originalUpload, // file to use
-        language, //
-        model,
-        randomNumber,
-      })
+      const whisperArguments = buildWhisperArguments({
+        language, model, filePath: originalUpload, randomNumber
+      });
 
-      l('whisperArguments');
-      l(whisperArguments);
+      l({whisperArguments});
 
       // start whisper process
       const whisperProcess = spawn(whisperPath, whisperArguments);

@@ -91,10 +91,15 @@ const getamountOfRunningJobs = () =>
   .filter(propValue => propValue !== undefined)
   .length;
 
+const sendToWebsocket = (websocketConnection, data) => {
+  websocketConnection.send(JSON.stringify(data), function () {});
+}
+
 module.exports = {
   forHumans,
   forHumansNoSeconds,
   decrementBySecond,
   forHumansHoursAndMinutes,
-  getamountOfRunningJobs
+  getamountOfRunningJobs,
+  sendToWebsocket,
 }

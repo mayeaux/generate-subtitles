@@ -10,35 +10,6 @@ const libreTranslateHostPath = process.env.LIBRETRANSLATE;
 
 const isProd = nodeEnvironment === 'production';
 
-function buildArguments ({
-  uploadedFilePath,
-  language,
-  model,
-  randomNumber
-}) {
-  /** INSTANTIATE WHISPER PROCESS **/
-    // queue up arguments, path is the first one
-  let arguments = [];
-
-  // first argument is path to file
-  arguments.push(uploadedFilePath);
-
-  // these don't have to be defined
-  if (language) arguments.push('--language', language);
-  if (model) arguments.push('--model', model);
-
-  // dont show the text output but show the progress thing
-  arguments.push('--verbose', 'False');
-
-  // folder to save .txt, .vtt and .srt
-  arguments.push('-o', `transcriptions/${randomNumber}`);
-
-  l('transcribe arguments');
-  l(arguments);
-
-  return arguments
-}
-
 async function translateIfNeeded ({ language, shouldTranslate, processingDataPath, directoryAndFileName}) {
   const shouldTranslateFromLanguage = shouldTranslateFrom(language);
   l(`should translate from language: ${shouldTranslateFromLanguage}`)
@@ -115,7 +86,6 @@ module.exports = {
   moveAndRenameFilesAndFolder,
   saveTranscriptionCompletedInformation,
   translateIfNeeded,
-  buildArguments,
   // autoDetectLanguage,
   // writeToProcessingDataFile
 }
