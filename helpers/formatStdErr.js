@@ -2,7 +2,7 @@
 
 const formatStdErr = stdErrData => {
   // a cleaner and more concise approach
-  const dataRegex = /^\D*((\d+)%)\|([\u2588\u258C\s]+)\|\s*\d+\/\d+\s\[(\d\d:\d\d)<((?:(\d\d):)?(\d\d):(\d\d)|\?),\s*(\d+\.\d\d|\?)frames\/s\]/;
+  const dataRegex = /^\D*((\d+)%)\|([\u2580-\u2590\s]+)\|\s*\d+\/\d+\s\[(\d\d:\d\d)<((?:(\d\d):)?(\d\d):(\d\d)|\?),\s*(\d+\.\d\d|\?)frames\/s\]/;
 
   // if not a progress output
   if (!dataRegex.test(stdErrData)) return false;
