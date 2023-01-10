@@ -7,9 +7,11 @@ Under the hood, `generate-subtitles` uses Whisper AI for creating transcripts an
 
 You can find the installation instructions for Whisper here: https://github.com/openai/whisper#setup
 
-Optionally, you can install Libretranslate here: https://github.com/LibreTranslate/LibreTranslate#install-and-run
-
 Once Whisper is installed and working properly, you can start the web server.
+
+Make sure you are running Node.js 16+
+
+`$``nvm use 16`
 
 `git clone https://github.com/mayeaux/generate`
 
