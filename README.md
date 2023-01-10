@@ -11,9 +11,9 @@ Once Whisper is installed and working properly, you can start the web server.
 
 Make sure you are running Node.js 14+
 
-`nvm use 16`
+`nvm use 14`
 
-You can install `nvm` with
+You can install Node 14 with `nvm`:
 
 ```shell
 # install nvm
@@ -24,6 +24,8 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+nvm install 14
+nvm use 14
 ```
 
 Currently the app uses `yt-dlp` as well, you can install it with:
@@ -35,13 +37,12 @@ sudo chmod a+rx /usr/local/bin/yt-dlp  # Make executable
 
 Then:
 
-`git clone https://github.com/mayeaux/generate`
-
-`cd generate-subtitles`
-
-`npm install`
-
-`npm start`
+```shell
+git clone https://github.com/mayeaux/generate-subtitles
+cd generate-subtitles
+npm install
+npm start
+```
 
 This should start the server at localhost:3000, at which point if you navigate to there with a browser you should be able to see and use the app.
 
