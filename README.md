@@ -9,9 +9,31 @@ You can find the installation instructions for Whisper here: https://github.com/
 
 Once Whisper is installed and working properly, you can start the web server.
 
-Make sure you are running Node.js 16+
+Make sure you are running Node.js 14+
 
-`$``nvm use 16`
+`nvm use 16`
+
+You can install `nvm` with
+
+```shell
+# install nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
+
+# setup nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+```
+
+Currently the app uses `yt-dlp` as well, you can install it with:
+
+```shell
+sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp #download yt-dlp
+sudo chmod a+rx /usr/local/bin/yt-dlp  # Make executable
+```
+
+Then:
 
 `git clone https://github.com/mayeaux/generate`
 
