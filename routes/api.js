@@ -125,9 +125,6 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
     const newPath = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`;
 
-    // move transcribed file to the correct location (TODO: do this before transcribing)
-    await fs.move(uploadFilePath, newPath)
-
     // setup path for processing data
     const processingDataPath = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
 
@@ -166,6 +163,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       // get matching file (I don't think we always know the extension)
       matchingFile = files.filter((file) => file.startsWith(numberToUse))[0];
       l(matchingFile);
+
+      uploadFilePath = `${process.cwd()}/uploads/${matchingFile}`;
     } else {
       res.send({
         message: 'starting-transcription',
@@ -175,9 +174,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       });
     }
 
-    if(matchingFile){
-      uploadFilePath = `${process.cwd()}/uploads/${matchingFile}`;
-    }
+    // move transcribed file to the correct location (TODO: do this before transcribing)
+    await fs.move(uploadFilePath, newPath)
 
     await writeToProcessingDataFile(processingDataPath, {
       status: 'starting-transcription',

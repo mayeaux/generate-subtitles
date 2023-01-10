@@ -140,7 +140,7 @@ async function downloadFileApi ({
   filepath,
   randomNumber,
   filename,
-  websocketNumber
+  numberToUse
 }) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -168,7 +168,7 @@ async function downloadFileApi ({
         '-f',
         'bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         '-o',
-        `./uploads/${randomNumber}`
+        `./uploads/${numberToUse}`
       ]);
 
       ytdlProcess.stdout.on('data', (data) => {
