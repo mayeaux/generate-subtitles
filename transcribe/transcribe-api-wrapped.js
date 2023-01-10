@@ -1,30 +1,9 @@
 const which = require('which');
 const spawn = require('child_process').spawn;
-const fs = require('fs-extra');
-const ffprobe = require('ffprobe');
-const WebSocket = require('ws');
-let convert = require('cyrillic-to-latin')
-const projectConstants = require('../constants/constants');
-const { shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages } = projectConstants;
-const forHumans = require('../helpers/helpers').forHumans;
-const createTranslatedFiles = require('../translate/translate-files-api');
-const {formatStdErr} = require('../helpers/formatStdErr');
-const LTHost = process.env.LIBRETRANSLATE;
 const { handleStdErr, handleStdOut, handleProcessClose } = require('../lib/transcribing')
 
-function getCodeFromLanguageName (languageName) {
-  return translationLanguages.find(function (filteredLanguage) {
-    return languageName === filteredLanguage.name;
-  }).code
-}
-
-
 const {
-  // autoDetectLanguage,
   buildArguments,
-  // moveAndRenameFilesAndFolder,
-  // saveTranscriptionCompletedInformation,
-  // writeToProcessingDataFile,
 } = require('./transcribing');
 
 l = console.log;
@@ -37,25 +16,29 @@ async function transcribe ({
   originalFileExtension,
   uploadFileName,
   originalFileName,
-  randomNumber // standin for claimId or something like that
+  uploadFilePath,
+  numberToUse, // random or websocket number (websocket if being used from frontend)
 }) {
   return new Promise(async (resolve, reject) => {
     try {
+      // where app.js is running from
+      const processDir = process.cwd()
+
       // original upload file path
-      const originalUpload = `${process.cwd()}/uploads/${uploadFileName}`;
+      const originalUpload = `${processDir}/uploads/${uploadFileName}`;
 
       //
-      const processingDataPath = `${process.cwd()}/transcriptions/${randomNumber}/processing_data.json`
+      const processingDataPath = `${processDir}/transcriptions/${numberToUse}/processing_data.json`
 
       // save date when starting to see how long it's taking
       const startingDate = new Date();
       l(startingDate);
 
       const whisperArguments = buildArguments({
-        uploadedFilePath: originalUpload, // file to use
+        uploadedFilePath: uploadFilePath, // file to use
         language, //
         model,
-        randomNumber,
+        numberToUse,
       })
 
       l('whisperArguments');
@@ -64,6 +47,7 @@ async function transcribe ({
       // start whisper process
       const whisperProcess = spawn(whisperPath, whisperArguments);
 
+      // TODO: implement foundLanguagae here
       // let foundLanguage;
       whisperProcess.stdout.on('data',  (data) => l(`STDOUT: ${data}`));
 
@@ -71,7 +55,7 @@ async function transcribe ({
       whisperProcess.stderr.on('data', handleStdErr({ model, language, originalFileName, processingDataPath }));
 
       /** whisper responds with 0 or 1 process code **/
-      whisperProcess.on('close', handleProcessClose({ processingDataPath, originalUpload, randomNumber }))
+      whisperProcess.on('close', handleProcessClose({ processingDataPath, originalUpload, numberToUse }))
 
 
     } catch (err) {

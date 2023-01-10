@@ -89,6 +89,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 // assumes nginx
 // if(!isProd){
+  // TODO: this isn't secure if the API key is there
   app.use(express.static(__dirname));
 // }
 

@@ -14,7 +14,7 @@ function buildArguments ({
   uploadedFilePath,
   language,
   model,
-  randomNumber
+  numberToUse
 }) {
   /** INSTANTIATE WHISPER PROCESS **/
     // queue up arguments, path is the first one
@@ -31,7 +31,7 @@ function buildArguments ({
   arguments.push('--verbose', 'False');
 
   // folder to save .txt, .vtt and .srt
-  arguments.push('-o', `transcriptions/${randomNumber}`);
+  arguments.push('-o', `transcriptions/${numberToUse}`);
 
   l('transcribe arguments');
   l(arguments);

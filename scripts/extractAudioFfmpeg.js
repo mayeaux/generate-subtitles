@@ -13,13 +13,17 @@ const inputVideoPath = './trimmed.mp4';
 
 const ffprobePath = which.sync('ffprobe')
 
+l(process.cwd())
+
+// return
 
 function extractAudio (inputVideoPath, outputAudioPath) {
   return new Promise((resolve, reject) => {
     const ffmpegArguments = [
       '-i', inputVideoPath, // input video path
-      '-vn',
-      '-acodec', 'copy',
+      '-y', // overwrite output file if it exists
+      '-vn', // no video
+      '-acodec', 'copy', // copy audio codec (don't re-encode)
       `./${outputAudioPath}`
     ]
 

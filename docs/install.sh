@@ -2,11 +2,12 @@ wget -qO - http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x8
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo add-apt-repository ppa:deadsnakes/ppa -y
-sudo apt install nodejs npm nginx ffmpeg software-properties-common python3 python3.9 python3-pip python3.9-distutils python3.9-dev pkg-config libicu-dev lsof -y
+sudo apt install nodejs npm nginx ffmpeg software-properties-common python3 python3.9 python3-pip python3.9-distutils python3.9-dev pkg-config libicu-dev lsof nano -y
 sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1000
 pip3 install setuptools-rust
 pip3 install --upgrade setuptools
 curl https://sh.rustup.rs -sSf | sh -s -- -y
+# setting alias this way doesn't work
 alias pip=pip3
 alias python=python3.9
 python -m pip install --upgrade pip
@@ -16,6 +17,7 @@ pip install git+https://github.com/openai/whisper.git
 whisper
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
 
+# this is broken I believe
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

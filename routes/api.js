@@ -36,14 +36,30 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
     // get file names
     const file = req.file;
-    let originalFileName, uploadFileName;
+    let originalFileName, uploadFileName, uploadFilePath;
     if(file){
       originalFileName = file.originalname;
       uploadFileName = file.filename;
+      uploadFilePath = file.path;
     }
 
+    l('originalFileName');
+    l(originalFileName);
+
+    l('uploadFileName');
+    l(uploadFileName)
+
+    l(req.file);
+
     // get language and model
-    const { model, language, downloadLink, apiToken } = postBodyData;
+    const { model, language, downloadLink, apiToken, websocketNumber } = postBodyData;
+
+    let numberToUse;
+    if(downloadLink){
+      numberToUse = generateRandomNumber();
+    } else {
+      numberToUse = websocketNumber;
+    }
 
     l('postBodyData');
     l(postBodyData);
@@ -85,12 +101,13 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       } = createFileNames(originalFileName));
     }
 
-    // random ten digit number
-    const randomNumber = generateRandomNumber();
-
-    // hit yt-dlp and get file title name
-    const filename =  await getFilename(downloadLink);
-
+    let filename;
+    if(downloadLink){
+      // hit yt-dlp and get file title name
+      filename =  await getFilename(downloadLink);
+    } else {
+      filename = originalFileNameWithExtension
+    }
 
     const directoryName = makeFileNameSafe(filename)
 
@@ -104,10 +121,15 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
 
     // create directory for transcriptions
-    await fs.mkdirp(`${process.cwd()}/transcriptions/${randomNumber}`);
+    await fs.mkdirp(`${process.cwd()}/transcriptions/${numberToUse}`);
+
+    const newPath = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`;
+
+    // move transcribed file to the correct location (TODO: do this before transcribing)
+    await fs.move(uploadFilePath, newPath)
 
     // setup path for processing data
-    const processingDataPath = `${process.cwd()}/transcriptions/${randomNumber}/processing_data.json`;
+    const processingDataPath = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
 
     // save initial data
     await writeToProcessingDataFile(processingDataPath, {
@@ -118,29 +140,44 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       apiToken
     })
 
-    res.send({
-      message: 'starting-download',
-      // where the data will be sent from
-      transcribeDataEndpoint: `${host}/api/${randomNumber}`,
-      fileTitle: filename,
-    });
+    let matchingFile;
+    if(downloadLink){
 
-    await writeToProcessingDataFile(processingDataPath, {
-      status: 'downloading',
-    })
+      res.send({
+        message: 'starting-download',
+        // where the data will be sent from
+        transcribeDataEndpoint: `${host}/api/${numberToUse}`,
+        fileTitle: filename,
+      });
 
-    // download file with name as the random number
-    await downloadFileApi({
-      videoUrl: downloadLink,
-      randomNumber,
-    });
+      await writeToProcessingDataFile(processingDataPath, {
+        status: 'downloading',
+      })
 
-    // check uploads directory
-    const files = await fs.promises.readdir(`${process.cwd()}/uploads`);
+      // download file with name as the random number
+      await downloadFileApi({
+        videoUrl: downloadLink,
+        numberToUse,
+      });
 
-    // get matching file (I don't think we always know the extension)
-    const matchingFile = files.filter((file) => file.startsWith(randomNumber))[0];
-    l(matchingFile);
+      // check uploads directory
+      const files = await fs.promises.readdir(`${process.cwd()}/uploads`);
+
+      // get matching file (I don't think we always know the extension)
+      matchingFile = files.filter((file) => file.startsWith(numberToUse))[0];
+      l(matchingFile);
+    } else {
+      res.send({
+        message: 'starting-transcription',
+        // where the data will be sent from
+        transcribeDataEndpoint: `${host}/api/${numberToUse}`,
+        fileTitle: filename,
+      });
+    }
+
+    if(matchingFile){
+      uploadFilePath = `${process.cwd()}/uploads/${matchingFile}`;
+    }
 
     await writeToProcessingDataFile(processingDataPath, {
       status: 'starting-transcription',
@@ -151,25 +188,12 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       language,
       model,
       originalFileExtension,
-      uploadFileName: matchingFile,
+      uploadFileName: matchingFile || originalFileName, //
+      uploadFilePath: newPath,
       originalFileName,
-      randomNumber
+      numberToUse,
     })
 
-    // tell the client it's started
-    // if (response === 'started') {
-    //   const port = req.socket.localPort;
-    //   let apiPath = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port ) + req.path;
-    //   if (process.env.NODE_ENV === 'production') {
-    //     apiPath = req.protocol + '://' + req.hostname + req.path;
-    //   }
-    //
-    //   // return res.redirect(`/api/${sixDigitNumber}`)
-    //   res.send({
-    //     status: 'started',
-    //     url: `${apiPath}/${sdHash}`,
-    //   });
-    // }
   } catch (err) {
     l('err')
     l(err);
@@ -185,6 +209,9 @@ router.get('/api/:sdHash', async function (req, res, next) {
 
     // TODO: should rename this
     const sdHash = req.params.sdHash;
+
+    l('sd hash')
+    l(sdHash);
 
     // get processing data path
     const processingData = JSON.parse(await fs.readFile(`./transcriptions/${sdHash}/processing_data.json`, 'utf8'));
