@@ -23,6 +23,8 @@ block content
           button.btn#decreaseSize Subtitle Text Size -
           button.btn#increaseLineHeight Subtitle Spacing +
           button.btn#decreaseLineHeight Subtitle Spacing -
+          button.btn#darkBg Subtitle Background Opacity +
+          button.btn#lightBg Subtitle Background Opacity -
           button.btn#showHideControls Hide Text
         .downloadLinks
           a.btn.startAnotherTranscription(href='/') Start Another Transcription
@@ -81,7 +83,7 @@ block content
       l = console.log;
 
       let player;
-      let subtitlesFontSize, subtitlesLineHeight;
+      let subtitlesFontSize, subtitlesLineHeight, subtitlesBgOpacity;
 
       const language = '#{processingData.language}';
       const languagesToLoop = !{JSON.stringify(languagesToLoop)};
@@ -135,6 +137,14 @@ block content
           adjustLineHeight('decrease');
         });
 
+        $('#lightBg').click(function (event) {
+          adjustCaptionsBackground('decrease');
+        });
+
+        $('#darkBg').click(function (event) {
+          adjustCaptionsBackground('increase');
+        });
+
         console.log("ready!");
         var controls =
           [
@@ -171,6 +181,7 @@ block content
           // without this timeout it doesn't work properly
           setTimeout(function(){
             setStoredLineHeightAndFontSizeIfExists();
+            setCaptionBgOpacityIfExists();
           }, 200)
 
         });

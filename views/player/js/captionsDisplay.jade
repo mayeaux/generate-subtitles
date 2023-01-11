@@ -22,6 +22,15 @@ script.
     }
   }
 
+  function setCaptionBgOpacityIfExists() {
+    const storedBgOpacity = localStorage.getItem("storedBgOpacity");
+
+    if(storedBgOpacity) {
+      subtitlesBgOpacity = storedBgOpacity;
+      $('.plyr__caption').css("background", `rgba(0, 0, 0, ${storedBgOpacity}`);
+    }
+  }
+
   function adjustFontSize(direction) {
 
     const currentLineHeight = $('.plyr__caption').css('line-height');
@@ -64,4 +73,19 @@ script.
     localStorage.setItem('storedLineHeight', newLineHeightWithPx);
 
     subtitlesLineHeight = newLineHeightWithPx;
+  }
+
+  function adjustCaptionsBackground (direction) {
+    let bgColors, bgAlpha;
+    const currentBgOpacity = $('.plyr__caption').css('background');
+    bgColors = currentBgOpacity.split(',');
+    bgAlpha = bgColors[3] ? bgColors[3].split(')')[0] : bgColors[3] = 1;
+
+    const newBgOpacity = parseFloat(bgAlpha) + (direction === 'increase' ? 0.15 : -0.15);
+
+    // Saving the new background opacity into localStorage.
+    localStorage.setItem("storedBgOpacity", newBgOpacity);
+    subtitlesBgOpacity = newBgOpacity;
+
+    $('.plyr__caption').css("background", `rgba(0, 0, 0, ${newBgOpacity}`);
   }
