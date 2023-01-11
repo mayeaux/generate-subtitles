@@ -152,13 +152,17 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       apiToken
     })
 
+    const port = req.socket.localPort;
+    const endpoint  = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port );
+    const transcribeDataEndpoint = `${endpoint}/api/${numberToUse}`;
+
     let matchingFile;
     if(downloadLink){
 
       res.send({
         message: 'starting-download',
         // where the data will be sent from
-        transcribeDataEndpoint: `${host}/api/${numberToUse}`,
+        transcribeDataEndpoint,
         fileTitle: originalFileName,
       });
 
@@ -184,7 +188,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       res.send({
         message: 'starting-transcription',
         // where the data will be sent from
-        transcribeDataEndpoint: `${host}/api/${numberToUse}`,
+        transcribeDataEndpoint,
         fileTitle: originalFileName,
       });
     }

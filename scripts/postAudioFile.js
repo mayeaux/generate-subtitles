@@ -34,6 +34,125 @@ async function getNewData(dataUrl){
   return dataResponse.data
 }
 
+
+const machineApiKey = '';
+
+/**
+ * Transcribe a file on a remote server
+ * @param pathToAudioFile
+ * @param language
+ * @param model
+ * @param websocketNumber
+ */
+async function transcribeRemoteServer({
+  pathToAudioFile,
+  language,
+  model,
+  numberToUse,
+  fullApiEndpoint
+}){
+  // Create a new form instance
+  const form = new FormData();
+
+  // add the audio to the form as 'file'
+  form.append('file', fs.createReadStream(pathToAudioFile));
+
+  // load in language, model, and websocket number (which we have from the frontend)
+  form.append('language', language);
+  form.append('model', model);
+  form.append('numberToUse', numberToUse);
+
+  const response = await hitRemoteApiEndpoint(form, fullApiEndpoint);
+
+  // l('response');
+  // l(response);
+
+  const dataEndpoint = response.data.transcribeDataEndpoint;
+
+  return dataEndpoint;
+
+}
+
+const delayPromise = (delayTime) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, delayTime);
+  });
+};
+
+async function createOriginalSrt(){
+
+}
+
+async function createProcessingData(){
+
+}
+
+async function changeFolderName(){
+
+}
+
+async function createTranslatedVtts(){
+
+}
+
+
+
+/***
+ * Allows a frontend to transcribe to via the API of a remote server
+ * @param filePath
+ * @param language
+ * @param model
+ * @param websocketNumber
+ * @param fullApiEndpoint
+ * @returns {Promise<void>}
+ */
+async function transcribeViaRemoteApi({ filePath, language, model, numberToUse, remoteServerApiUrl }){
+  const dataEndpoint = await transcribeRemoteServer({
+    pathToAudioFile: filePath,
+    language,
+    model,
+    numberToUse,
+    fullApiEndpoint: remoteServerApiUrl
+  });
+
+  // repeatedly check endpoint until failure/completion
+  return await checkLatestData(dataEndpoint, remoteServerApiUrl)
+}
+
+
+
+
+
+
+async function realMain(){
+  const filePath = './output-audio.aac';
+  const language = 'Serbian';
+  const model = 'tiny';
+  const websocketNumber = generateRandomNumber()
+  const remoteServerApiUrl = 'http://localhost:3001/api'
+   await transcribeViaRemoteApi({
+    filePath,
+    language,
+    model,
+    websocketNumber,
+    remoteServerApiUrl
+  });
+
+  // DECREMENT THING FROM QUEUE
+
+  // HANDLE RESPONSE
+
+  // TODO: build files locally based on response
+  l('completed response');
+  // l(response);
+}
+
+// realMain()
+
+// main();
+
 function parseData(dataResponse) {
   const transcriptionStatus = dataResponse?.status;
 
@@ -73,69 +192,6 @@ function parseData(dataResponse) {
   }
 
   return false
-}
-
-
-const machineApiKey = '';
-
-/**
- * Transcribe a file on a remote server
- * @param pathToAudioFile
- * @param language
- * @param model
- * @param websocketNumber
- */
-async function transcribeRemoteServer({
-  pathToAudioFile,
-  language,
-  model,
-  numberToUse,
-  fullApiEndpoint
-}){
-  // Create a new form instance
-  const form = new FormData();
-
-  // add the audio to the form as 'file'
-  form.append('file', fs.createReadStream(pathToAudioFile));
-
-  // load in language, model, and websocket number (which we have from the frontend)
-  form.append('language', language);
-  form.append('model', model);
-  form.append('numberToUse', numberToUse);
-
-  const response = await hitRemoteApiEndpoint(form, fullApiEndpoint);
-
-  l('response');
-  l(response);
-
-  const dataEndpoint = response.data.transcribeDataEndpoint;
-
-  return dataEndpoint;
-
-}
-
-const delayPromise = (delayTime) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, delayTime);
-  });
-};
-
-async function createOriginalSrt(){
-
-}
-
-async function createProcessingData(){
-
-}
-
-async function changeFolderName(){
-
-}
-
-async function createTranslatedVtts(){
-
 }
 
 async function checkLatestData(dataEndpoint){
@@ -188,61 +244,5 @@ async function checkLatestData(dataEndpoint){
     return await checkLatestData(dataEndpoint);
   }
 }
-
-
-
-/***
- * Allows a frontend to transcribe to via the API of a remote server
- * @param filePath
- * @param language
- * @param model
- * @param websocketNumber
- * @param fullApiEndpoint
- * @returns {Promise<void>}
- */
-async function transcribeViaRemoteApi({ filePath, language, model, numberToUse, remoteServerApiUrl }){
-  const dataEndpoint = await transcribeRemoteServer({
-    pathToAudioFile: filePath,
-    language,
-    model,
-    numberToUse,
-    fullApiEndpoint: remoteServerApiUrl
-  });
-
-  // repeatedly check endpoint until failure/completion
-  return await checkLatestData(dataEndpoint)
-}
-
-
-
-
-
-
-async function realMain(){
-  const filePath = './output-audio.aac';
-  const language = 'Serbian';
-  const model = 'tiny';
-  const websocketNumber = generateRandomNumber()
-  const remoteServerApiUrl = 'http://localhost:3001/api'
-   await transcribeViaRemoteApi({
-    filePath,
-    language,
-    model,
-    websocketNumber,
-    remoteServerApiUrl
-  });
-
-  // DECREMENT THING FROM QUEUE
-
-  // HANDLE RESPONSE
-
-  // TODO: build files locally based on response
-  l('completed response');
-  // l(response);
-}
-
-// realMain()
-
-// main();
 
 module.exports = transcribeViaRemoteApi;
