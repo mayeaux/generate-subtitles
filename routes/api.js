@@ -132,9 +132,6 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l('originalFileName');
     l(originalFileName);
 
-    // build this properly
-    const host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
-
     // create directory for transcriptions
     await fs.mkdirp(`${process.cwd()}/transcriptions/${numberToUse}`);
 
@@ -152,7 +149,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       apiToken
     })
 
-    const port = req.socket.localPort;
+    // build endpoint to hit
+    const port = req.socket.remotePort;
     const endpoint  = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port );
     const transcribeDataEndpoint = `${endpoint}/api/${numberToUse}`;
 
