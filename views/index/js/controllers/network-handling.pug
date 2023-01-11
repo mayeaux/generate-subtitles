@@ -355,7 +355,7 @@ script.
     $('#startNewUpload').hide();
     // redirect to the player page
     // 2 seconds to let the user see the completion message
-    //- setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
+    setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
   }
 
   const renderError = data => {
