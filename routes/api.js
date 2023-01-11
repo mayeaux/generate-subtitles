@@ -22,10 +22,13 @@ const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 const l = console.log;
 
 const serverType = process.env.SERVER_TYPE || 'both';
-
-
 l('serverType');
 l(serverType)
+
+const transcribeHost = process.env.TRANSCRIBE_HOST || 'http://localhost:3002';
+
+l('transcribeHost');
+l(transcribeHost)
 
 
 // generate random 10 digit number
@@ -149,10 +152,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       apiToken
     })
 
-    const host = process.env.HOST || process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
-
     // build endpoint to hit
-    const transcribeDataEndpoint = `${host}/api/${numberToUse}`;
+    const transcribeDataEndpoint = `${transcribeHost}/api/${numberToUse}`;
 
     let matchingFile;
     if(downloadLink){
