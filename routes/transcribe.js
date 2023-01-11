@@ -249,6 +249,10 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       totalOutstanding,
       ip,
 
+      uploadFilePath: uploadedFilePath, // transcribe-api-wrapped
+      filePath: uploadedFilePath, // transcribe remote server
+      numberToUse: websocketNumber,
+
       // websocket/queue
       websocketConnection,
       websocketNumber,
