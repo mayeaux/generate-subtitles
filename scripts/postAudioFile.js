@@ -51,6 +51,15 @@ async function transcribeRemoteServer({
   numberToUse,
   fullApiEndpoint
 }){
+
+  l({
+    pathToAudioFile,
+    language,
+    model,
+    numberToUse,
+    fullApiEndpoint
+  })
+
   // Create a new form instance
   const form = new FormData();
 
@@ -61,11 +70,12 @@ async function transcribeRemoteServer({
   form.append('language', language);
   form.append('model', model);
   form.append('numberToUse', numberToUse);
+  form.append('apiEndpoint', fullApiEndpoint)
 
   const response = await hitRemoteApiEndpoint(form, fullApiEndpoint);
 
-  // l('response');
-  // l(response);
+  l('response');
+  l(response.data);
 
   const dataEndpoint = response.data.transcribeDataEndpoint;
 

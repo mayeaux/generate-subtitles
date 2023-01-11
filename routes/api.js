@@ -82,6 +82,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       numberToUse = passedNumberToUse
     }
 
+    if(!numberToUse) numberToUse = generateRandomNumber()
+
 
     l('postBodyData');
     l(postBodyData);
