@@ -13,11 +13,11 @@ const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
 
 
 const remoteServerData = [{
-  endpoint: 'http://localhost:3001/api',
+  endpoint: 'http://localhost:3002/api',
   maxConcurrentJobs: 2,
 }]
 
-let newQueueArray = [];
+let newJobProcessArray = [];
 
 let currentIndex = 0;
 
@@ -25,6 +25,7 @@ let currentIndex = 0;
 // if file, then set it up based on that, otherwise max_concurrent
 // also change which function is called
 
+// TODO: otherwise use max_concurrent if it's just local
 for(const server of remoteServerData){
   const { endpoint, maxConcurrentJobs } = server;
 
@@ -32,7 +33,7 @@ for(const server of remoteServerData){
     currentIndex++;
     const processNumber = currentIndex;
 
-    newQueueArray.push({
+    newJobProcessArray.push({
       endpoint,
       processNumber,
       job : undefined
@@ -40,29 +41,13 @@ for(const server of remoteServerData){
   }
 }
 
-l('newQueueArray');
-l(newQueueArray);
+l('newJobProcessArray');
+l(newJobProcessArray);
 
-global.jobProcesses = newQueueArray;
-
-// create set of numbers from x, such as 1,2,3
-function createNumberSet(x) {
-  return Array.from({length: x}, (_, i) => i + 1);
-}
-
-l('maxConcurrentJobs');
-l(maxConcurrentJobs);
-const numberSet = createNumberSet(maxConcurrentJobs);
-
-global.oldJobProcesses = {};
-
-for(const number of numberSet){
-  global.oldJobProcesses[number] = undefined;
-}
-
-l(global.oldJobProcesses);
+global.jobProcesses = newJobProcessArray;
 
 // find process number of job to clear it when done
+// TODO: change to numberToUse?
 function findProcessNumber(websocketNumber) {
   for (let processNumber in global.oldJobProcesses) {
 
@@ -82,6 +67,8 @@ function findProcessNumber(websocketNumber) {
   // TODO: throw an error here?
 }
 function sendOutQueuePositionUpdate(){
+  // TODO: have to add it to change API jobs in the queue
+
   // loop through websockets and tell them one less is processing
   for (let [, websocket] of global['webSocketData'].entries() ) {
     // the actual websocket
@@ -111,16 +98,6 @@ function sendOutQueuePositionUpdate(){
 
 const serverType = process.env.SERVER_TYPE || 'both';
 
-let transcribeFunction;
-if(serverType === 'frontend'){
-  transcribeFunction = transcribeRemoteServer;
-  l('Using: transcribeRemoteServer');
-
-} else {
-  transcribeFunction = transcribeWrapped;
-  l('Using: transcribeWrapped');
-}
-
 function determineTranscribeFunctionToUse(jobObject){
   const { websocketNumber, apiToken } = jobObject;
 
@@ -144,6 +121,9 @@ async function runJob(jobObject){
 
   // simulate job running
   try {
+
+    l('running job');
+    l(jobObject);
 
     const transcribeFunctionToUse = determineTranscribeFunctionToUse(jobObject);
 
@@ -200,9 +180,11 @@ function addToJobProcessOrQueue(jobObject){
     const index = 0;
     const processNumber = jobProcess.processNumber;
     const job = jobProcess.job;
+    const endpoint = jobProcess.endpoint;
 
     if(job === undefined){
       jobObject.processNumber = Number(processNumber);
+      jobObject.remoteServerApiUrl = endpoint;
 
       global.jobProcesses[index] = jobObject;
       runJob(jobObject);

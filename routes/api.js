@@ -66,12 +66,19 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // get language and model
     const { model, language, downloadLink, apiToken, websocketNumber } = postBodyData;
 
+    const passedNumberToUse = postBodyData.numberToUse;
+
     let numberToUse;
-    if(downloadLink){
-      numberToUse = generateRandomNumber();
+    if(!passedNumberToUse){
+      if(downloadLink){
+        numberToUse = generateRandomNumber();
+      } else {
+        numberToUse = websocketNumber;
+      }
     } else {
-      numberToUse = websocketNumber;
+      numberToUse = passedNumberToUse
     }
+
 
     l('postBodyData');
     l(postBodyData);
@@ -183,7 +190,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     }
 
     // move transcribed file to the correct location (TODO: do this before transcribing)
-    await fs.move(uploadFilePath, newPath)
+    await fs.move(uploadFilePath, newPath, { overwrite: true });
 
     await writeToProcessingDataFile(processingDataPath, {
       status: 'starting-transcription',
@@ -230,7 +237,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
         totalOutstanding,
         ip,
 
-        uploadFilePath: newPath,
+        uploadFilePath: newPath, // transcribe-api-wrapped
+        filePath: newPath, // transcribe remote server
 
         websocketNumber,
 
@@ -256,6 +264,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
   } catch (err) {
     l('err')
     l(err);
+    l(err.stack)
     return res.status(500).send({error: `Something went wrong: ${err}`});
   }
 });

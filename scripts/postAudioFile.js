@@ -85,7 +85,13 @@ const machineApiKey = '';
  * @param model
  * @param websocketNumber
  */
-async function transcribeRemoteServer(pathToAudioFile, language, model, websocketNumber, fullApiEndpoint){
+async function transcribeRemoteServer({
+  pathToAudioFile,
+  language,
+  model,
+  numberToUse,
+  fullApiEndpoint
+}){
   // Create a new form instance
   const form = new FormData();
 
@@ -95,7 +101,7 @@ async function transcribeRemoteServer(pathToAudioFile, language, model, websocke
   // load in language, model, and websocket number (which we have from the frontend)
   form.append('language', language);
   form.append('model', model);
-  form.append('websocketNumber', websocketNumber);
+  form.append('numberToUse', numberToUse);
 
   const response = await hitRemoteApiEndpoint(form, fullApiEndpoint);
 
@@ -194,12 +200,23 @@ async function checkLatestData(dataEndpoint){
  * @param fullApiEndpoint
  * @returns {Promise<void>}
  */
-async function transcribeViaRemoteApi({ filePath, language, model, websocketNumber, remoteServerApiUrl }){
-  const dataEndpoint = await transcribeRemoteServer(filePath, language, model, websocketNumber, remoteServerApiUrl);
+async function transcribeViaRemoteApi({ filePath, language, model, numberToUse, remoteServerApiUrl }){
+  const dataEndpoint = await transcribeRemoteServer({
+    pathToAudioFile: filePath,
+    language,
+    model,
+    numberToUse,
+    fullApiEndpoint: remoteServerApiUrl
+  });
 
   // repeatedly check endpoint until failure/completion
   return await checkLatestData(dataEndpoint)
 }
+
+
+
+
+
 
 async function realMain(){
   const filePath = './output-audio.aac';
