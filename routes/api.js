@@ -12,7 +12,12 @@ const createTranslatedFiles = require('../translate/translate-files-api');
 const { downloadFileApi, getFilename} = require("../downloading/yt-dlp-download");
 const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
 const { modelsArray, whisperLanguagesHumanReadableArray } = constants;
-const { writeToProcessingDataFile, createFileNames, makeFileNameSafe } = require('../lib/transcribing');
+const {
+  writeToProcessingDataFile,
+  createFileNames,
+  makeFileNameSafe,
+  getOriginalFilesObject
+} = require('../lib/transcribing');
 const {addToJobProcessOrQueue, amountOfRunningJobs} = require("../queue/newQueue");
 const ffprobe = require("ffprobe");
 const which = require("which");
@@ -191,6 +196,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
         // where the data will be sent from
         transcribeDataEndpoint,
         fileTitle: originalFileName,
+        numberToUse,
       });
     }
 
@@ -199,6 +205,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
     await writeToProcessingDataFile(processingDataPath, {
       status: 'starting-transcription',
+      numberToUse,
     })
 
     // TODO: push onto job processing
@@ -275,22 +282,22 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 });
 
 // get info about the transcription via api
-router.get('/api/:sdHash', async function (req, res, next) {
+router.get('/api/:numberToUse', async function (req, res, next) {
   try {
 
-    l('Getting info by SDHash');
+    l('Getting info by numberToUse');
 
     // TODO: should rename this
-    const sdHash = req.params.sdHash;
+    const numberToUse = req.params.numberToUse;
 
     l('sd hash')
-    l(sdHash);
+    l(numberToUse);
 
     // if serverType === 'frontend'
     // check the queue
 
     // get processing data path
-    const processingData = JSON.parse(await fs.readFile(`./transcriptions/${sdHash}/processing_data.json`, 'utf8'));
+    const processingData = JSON.parse(await fs.readFile(`./transcriptions/${numberToUse}/processing_data.json`, 'utf8'));
 
     // get data from processing data
     const {
@@ -298,7 +305,11 @@ router.get('/api/:sdHash', async function (req, res, next) {
       languageCode,
       translatedLanguages,
       status: transcriptionStatus,
-      progress
+      progress,
+      model,
+      filename,
+      downloadLink,
+      apiToken,
     } = processingData;
 
     // TODO: if smart (local) endpoint, check the queue position
@@ -308,41 +319,22 @@ router.get('/api/:sdHash', async function (req, res, next) {
       // send current processing data
       return res.send({
         status: transcriptionStatus,
-        sdHash,
+        sdHash: numberToUse,
         progress,
-        processingData
+        processingData,
+        numberToUse
       })
 
     /** transcription successfully completed, attach VTT files **/
     } else if (transcriptionStatus === 'completed') {
-      let subtitles = [];
-
-      // add original vtt
-      const originalVtt = await fs.readFile(`./transcriptions/${sdHash}/${sdHash}.vtt`, 'utf8');
-      subtitles.push({
-        language,
-        languageCode,
-        webVtt: originalVtt
-      })
-
-      // for (const translatedLanguage of translatedLanguages) {
-      //   const originalVtt = await fs.readFile(`./transcriptions/${sdHash}/${sdHash}_${translatedLanguage}.vtt`, 'utf8');
-      //   subtitles.push({
-      //     language: translatedLanguage,
-      //     languageCode: getCodeFromLanguageName(translatedLanguage),
-      //     webVtt: originalVtt
-      //   })
-      // }
 
       // send response as json
       const responseObject = {
         status: 'completed',
-        sdHash,
+        sdHash: numberToUse,
+        numberToUse,
         processingData,
-        subtitles
       }
-      // l('responseObject');
-      // l(responseObject);
 
       return res.send(responseObject)
     }

@@ -11,15 +11,20 @@ block content
         h1 Admin
         br
 
-        h2 Job Processes (#{Object.keys(oldJobProcesses).length})
+        h2 Job Processes (#{Object.keys(processes).length})
         p global.jobProcesses
         br
-        each val, key in oldJobProcesses
-            p Process Number: #{key}
+        each process in processes
+            p Process Number: #{process.processNumber}
             br
-            if val
-                each val2, key2 in val
-                    p #{key2}: #{val2}
+            each val2, key2 in process
+                p #{key2}: #{val2}
+            br
+            p Job:
+            if process.job
+                each val3, key3 in process.job
+                  p #{key3}: #{val3}
+
             br
 
         br

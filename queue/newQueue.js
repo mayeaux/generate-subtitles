@@ -12,15 +12,62 @@ const transcribeRemoteServer = require('../scripts/postAudioFile');
 const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
 
 
+const remoteServerData = [{
+  endpoint: 'http://localhost:3002/api',
+  maxConcurrentJobs: 2,
+}]
+
 // const remoteServerData = [{
-//   endpoint: 'http://localhost:3002/api',
-//   maxConcurrentJobs: 2,
+//   endpoint: 'http://31.12.82.146:11460/api',
+//   maxConcurrentJobs: 1,
 // }]
 
-const remoteServerData = [{
-  endpoint: 'http://31.12.82.146:11460/api',
-  maxConcurrentJobs: 1,
-}]
+
+
+// get position in queue based on websocketNumber
+function getQueueInformationByWebsocketNumber(websocketNumber){
+  for (const [index, queueItem] of global.newQueue.entries()) {
+    if(queueItem.websocketNumber === websocketNumber){
+      return {
+        queuePosition: index + 1, // 1
+        queueLength: global.newQueue.length, // 4
+        aheadOfYou: index,
+        behindYou: global.newQueue.length - index - 1
+      }
+    }
+  }
+  return false
+}
+
+function sendOutQueuePositionUpdate(){
+  // TODO: have to add it to change API jobs in the queue
+
+  // loop through websockets and tell them one less is processing
+  for (let [, websocket] of global.webSocketData.entries() ) {
+    // the actual websocket
+    // l(websocket.websocketNumber)
+    const websocketConnection = websocket.websocket;
+    const websocketNumber = websocket.websocketNumber;
+
+    if (websocketConnection.readyState === WebSocket.OPEN) {
+
+      const { queuePosition } = getQueueInformationByWebsocketNumber(websocketNumber);
+
+      // l('queuePosition');
+      // l(queuePosition);
+
+      if(queuePosition) {
+        websocketConnection.send(JSON.stringify({
+          message: 'queue',
+          placeInQueue: queuePosition
+        }), function () {});
+      }
+
+      // // TODO: send queue messages here
+      // websocketConnection.send(JSON.stringify('finishedProcessing'));
+    }
+  }
+}
 
 let newJobProcessArray = [];
 
@@ -56,36 +103,6 @@ global.jobProcesses = newJobProcessArray;
 // remove before merge
 global.webSocketData = [];
 
-function sendOutQueuePositionUpdate(){
-  // TODO: have to add it to change API jobs in the queue
-
-  // loop through websockets and tell them one less is processing
-  for (let [, websocket] of global.webSocketData.entries() ) {
-    // the actual websocket
-    // l(websocket.websocketNumber)
-    const websocketConnection = websocket.websocket;
-    const websocketNumber = websocket.websocketNumber;
-
-    if (websocketConnection.readyState === WebSocket.OPEN) {
-
-      const { queuePosition } = getQueueInformationByWebsocketNumber(websocketNumber);
-
-      // l('queuePosition');
-      // l(queuePosition);
-
-      if(queuePosition) {
-        websocketConnection.send(JSON.stringify({
-          message: 'queue',
-          placeInQueue: queuePosition
-        }), function () {});
-      }
-
-      // // TODO: send queue messages here
-      // websocketConnection.send(JSON.stringify('finishedProcessing'));
-    }
-  }
-}
-
 const serverType = process.env.SERVER_TYPE || 'both';
 
 function determineTranscribeFunctionToUse(jobObject){
@@ -119,33 +136,6 @@ function amountOfRunningJobs(){
   return amount;
 }
 
-// get position in queue based on websocketNumber
-function getQueueInformationByWebsocketNumber(websocketNumber){
-  for (const [index, queueItem] of global.newQueue.entries()) {
-    if(queueItem.websocketNumber === websocketNumber){
-      return {
-        queuePosition: index + 1, // 1
-        queueLength: global.newQueue.length, // 4
-        aheadOfYou: index,
-        behindYou: global.newQueue.length - index - 1
-      }
-    }
-  }
-  return false
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 // run transcribe job and remove from queue and run next queue item if available
 async function runJob(jobObject){
   // load info from passed jobObject
@@ -162,7 +152,7 @@ async function runJob(jobObject){
     l('starting job from runJob');
     l(jobObject);
 
-    // await delay(6);
+    // await delay(10);
 
     // determine how to transcribe function based on server type
     const transcribeFunctionToUse = determineTranscribeFunctionToUse(jobObject);
