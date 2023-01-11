@@ -149,10 +149,10 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       apiToken
     })
 
+    const host = process.env.HOST || process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
+
     // build endpoint to hit
-    const port = req.socket.remotePort;
-    const endpoint  = req.protocol + '://' + req.hostname  + ( port === 80 || port === 443 ? '' : ':'+port );
-    const transcribeDataEndpoint = `${endpoint}/api/${numberToUse}`;
+    const transcribeDataEndpoint = `${host}/api/${numberToUse}`;
 
     let matchingFile;
     if(downloadLink){
