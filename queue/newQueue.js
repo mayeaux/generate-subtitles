@@ -6,45 +6,44 @@ const l = console.log;
 
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
-// create set of numbers from x, such as 1,2,3
-function createNumberSet(x) {
-  return Array.from({length: x}, (_, i) => i + 1);
-}
+// const remoteServerSetup =
 
-l('maxConcurrentJobs');
-l(maxConcurrentJobs);
-const numberSet = createNumberSet(maxConcurrentJobs);
+const transcribeRemoteServer = require('../scripts/postAudioFile');
+const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
 
-global.jobProcesses = {};
 
-for(const number of numberSet){
-  global.jobProcesses[number] = undefined;
-}
+const remoteServerData = [{
+  endpoint: 'http://localhost:3002/api',
+  maxConcurrentJobs: 2,
+}]
 
-l(global.jobProcesses);
+// const remoteServerData = [{
+//   endpoint: 'http://31.12.82.146:11460/api',
+//   maxConcurrentJobs: 1,
+// }]
 
-// find process number of job to clear it when done
-function findProcessNumber(websocketNumber) {
-  for (let processNumber in global.jobProcesses) {
 
-    const hasOwnProperty = global.jobProcesses.hasOwnProperty(processNumber)
 
-    if (hasOwnProperty) {
-
-      const matchesByWebsocket = global.jobProcesses[processNumber]?.websocketNumber === websocketNumber;
-      if(matchesByWebsocket){
-        return processNumber
+// get position in queue based on websocketNumber
+function getQueueInformationByWebsocketNumber(websocketNumber){
+  for (const [index, queueItem] of global.newQueue.entries()) {
+    if(queueItem.websocketNumber === websocketNumber){
+      return {
+        queuePosition: index + 1, // 1
+        queueLength: global.newQueue.length, // 4
+        aheadOfYou: index,
+        behindYou: global.newQueue.length - index - 1
       }
     }
   }
-
   return false
-
-  // TODO: throw an error here?
 }
+
 function sendOutQueuePositionUpdate(){
+  // TODO: have to add it to change API jobs in the queue
+
   // loop through websockets and tell them one less is processing
-  for (let [, websocket] of global['webSocketData'].entries() ) {
+  for (let [, websocket] of global.webSocketData.entries() ) {
     // the actual websocket
     // l(websocket.websocketNumber)
     const websocketConnection = websocket.websocket;
@@ -70,42 +69,125 @@ function sendOutQueuePositionUpdate(){
   }
 }
 
+let newJobProcessArray = [];
+
+// READ THE FILE SYNC HERE
+// if file, then set it up based on that, otherwise max_concurrent
+// also change which function is called
+
+let currentIndex = 0;
+
+// TODO: otherwise use max_concurrent if it's just local
+for(const server of remoteServerData){
+  const { endpoint, maxConcurrentJobs } = server;
+
+  for (let i = 0; i < maxConcurrentJobs; i++) {
+    l('adding here')
+    currentIndex++;
+    const processNumber = currentIndex;
+
+    newJobProcessArray.push({
+      endpoint,
+      processNumber,
+      job : undefined,
+      index: i,
+    })
+  }
+}
+
+l('newJobProcessArray');
+l(newJobProcessArray);
+
+global.jobProcesses = newJobProcessArray;
+
+// remove before merge
+global.webSocketData = [];
+
+const serverType = process.env.SERVER_TYPE || 'both';
+
+function determineTranscribeFunctionToUse(jobObject){
+  const { websocketNumber, apiToken } = jobObject;
+
+  if(serverType === 'frontend'){
+    l('using transcribeRemoteServer');
+    return transcribeRemoteServer;
+  } else if (serverType === 'both'){
+    if(apiToken){
+      l('using transcribeApiWrapped');
+      return transcribeApiWrapped;
+    }
+    l('using transcribeWrapped');
+    return transcribeWrapped;
+  }
+}
+
+
+global.newQueue = [];
+
+// get amount of running jobs (used to calculate queue position)
+function amountOfRunningJobs(){
+  let amount = 0;
+  for (const process of global.jobProcesses) {
+    if(process.job){
+      amount++;
+    }
+  }
+
+  return amount;
+}
 
 // run transcribe job and remove from queue and run next queue item if available
 async function runJob(jobObject){
-  const { websocketNumber } = jobObject;
+  // load info from passed jobObject
+  const {
+    websocketNumber,
+    processNumber,
+    remoteServerApiUrl,
+    index
+  } = jobObject;
 
   // simulate job running
   try {
-    await transcribeWrapped(jobObject);
+
+    l('starting job from runJob');
+    l(jobObject);
+
+    // await delay(10);
+
+    // determine how to transcribe function based on server type
+    const transcribeFunctionToUse = determineTranscribeFunctionToUse(jobObject);
+
+    // start transcription
+    await transcribeFunctionToUse(jobObject);
 
     l('job done');
 
   } catch (err){
-    l('error from runjob');
+    l('error from runJob');
     l(err);
   }
 
-  const processNumber = findProcessNumber(websocketNumber);
-  l('processNumber');
-  l(processNumber);
-
   // run the next item from the queue
   if(global.newQueue.length){
-    const nextQueueItem = global.newQueue.shift();
+    // get next item from queue (lacks server/process info)
+    const nextJobObject = global.newQueue.shift();
 
-    nextQueueItem.processNumber = Number(processNumber);
+    // load server/process info into jobObject
+    nextJobObject.processNumber = Number(processNumber);
+    nextJobObject.index = index;
+    nextJobObject.remoteServerApiUrl = remoteServerApiUrl;
 
-    global.jobProcesses[processNumber] = nextQueueItem;
+    // mark job process as still taken with next job
+    global.jobProcesses[index].job = nextJobObject;
 
     // TODO: add got out of queue time here
-    runJob(nextQueueItem);
+    runJob(nextJobObject);
   } else {
-    global.jobProcesses[processNumber] = undefined;
+    // indicate that the job process is free
+    global.jobProcesses[index].job = undefined;
   }
 }
 
-global.newQueue = [];
 
 // add job to process if available otherwise add to queue
 function addToJobProcessOrQueue(jobObject){
@@ -115,13 +197,28 @@ function addToJobProcessOrQueue(jobObject){
   l(skipToFront);
 
   // put job on process if there is an available process
-  for (let processNumber in global.jobProcesses) {
-    const propValue = global.jobProcesses[processNumber];
+  for (let jobProcess of global.jobProcesses) {
+    // get index here
+    const { processNumber, job, endpoint, index } = jobProcess;
 
-    if(propValue === undefined){
+    l(`jobProcess ${index}`);
+
+    // process waiting for job
+    const processCanTakeJob = job === undefined;
+
+    // found a free process
+    if(processCanTakeJob){
+      // add process info to jobObject
       jobObject.processNumber = Number(processNumber);
 
-      global.jobProcesses[processNumber] = jobObject;
+      // add remote url to api
+      jobObject.remoteServerApiUrl = endpoint;
+
+      jobObject.index = index;
+
+      // give process a job
+      global.jobProcesses[index].job = jobObject;
+
       runJob(jobObject);
       return
     }
@@ -129,6 +226,7 @@ function addToJobProcessOrQueue(jobObject){
 
   // TODO: add got in queue time here
 
+  /** ADD TO QUEUE FUNCTIONALITY **/
   // push to newQueue if all processes are busy
   if(skipToFront){
     // last skip to front item
@@ -153,57 +251,34 @@ function addToJobProcessOrQueue(jobObject){
   sendOutQueuePositionUpdate();
 }
 
-// get amount of running jobs (used to calculate queue position)
-function amountOfRunningJobs(){
-  let amount = 0;
-  for (let processNumber in global.jobProcesses) {
-    const propValue = global.jobProcesses[processNumber];
-
-    if(propValue !== undefined){
-      amount++;
-    }
-  }
-
-  return amount;
-}
-
-// get position in queue based on websocketNumber
-function getQueueInformationByWebsocketNumber(websocketNumber){
-  for (const [index, queueItem] of global.newQueue.entries()) {
-    if(queueItem.websocketNumber === websocketNumber){
-      return {
-        queuePosition: index + 1, // 1
-        queueLength: global.newQueue.length, // 4
-        aheadOfYou: index,
-        behindYou: global.newQueue.length - index - 1
-      }
-    }
-  }
-  return false
-}
-
 module.exports = {
   addToJobProcessOrQueue,
   amountOfRunningJobs,
   getQueueInformationByWebsocketNumber
 }
 
-// function main(){
-//   addToJobProcessOrQueue({websocketNumber: 0, skipToFront: false});
-//   addToJobProcessOrQueue({websocketNumber: 1, skipToFront: true});
-//   addToJobProcessOrQueue({websocketNumber: 2, skipToFront: false});
-//
-//   addToJobProcessOrQueue({websocketNumber: 3, skipToFront: false});
-//   addToJobProcessOrQueue({websocketNumber: 4, skipToFront: true});
-//
-//   l(global.newQueue);
-// }
+
+/** TESTING **/
+
+function main(){
+  addToJobProcessOrQueue({websocketNumber: 0, skipToFront: false});
+  addToJobProcessOrQueue({websocketNumber: 1, skipToFront: false});
+  // addToJobProcessOrQueue({websocketNumber: 2, skipToFront: false});
+  //
+  // addToJobProcessOrQueue({websocketNumber: 3, skipToFront: false});
+  // addToJobProcessOrQueue({websocketNumber: 4, skipToFront: true});
+
+  l('global.jobProcesses');
+  l(global.jobProcesses)
+  l('global.newQueue');
+  l(global.newQueue);
+}
 
 // main();
 
-// async function delay(delayInSeconds) {
-//   await new Promise(resolve => setTimeout(resolve, delayInSeconds * 1000));
-// }
+async function delay(delayInSeconds) {
+  await new Promise(resolve => setTimeout(resolve, delayInSeconds * 1000));
+}
 //
 // function generateRandomNumber(){
 //   return Math.floor(Math.random() * 4 + 3);

@@ -150,6 +150,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     l(uploadedFilePath);
 
     // get upload duration
+    // TODO: pull out into function
     const ffprobeResponse = await ffprobe(uploadedFilePath, { path: ffprobePath });
 
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
@@ -209,9 +210,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}${originalFileExtension}`;
 
     // pass ip to queue
-    const ip = req.headers['x-forwarded-for'] ||
-      req.socket.remoteAddress ||
-      null;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
 
     // allow admin to see items in the queue
     addItemToQueue({
@@ -249,6 +248,10 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       skipToFront: skipToFront === 'true',
       totalOutstanding,
       ip,
+
+      uploadFilePath: uploadedFilePath, // transcribe-api-wrapped
+      filePath: uploadedFilePath, // transcribe remote server
+      numberToUse: websocketNumber,
 
       // websocket/queue
       websocketConnection,
