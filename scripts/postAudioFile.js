@@ -1,6 +1,7 @@
 const FormData = require("form-data");
 const fs = require("fs-extra");
 const axios = require("axios");
+const {cu} = require("language-name-map/map");
 
 const l = console.log;
 
@@ -33,7 +34,7 @@ async function getNewData(dataUrl){
   return dataResponse.data
 }
 
-function checkResponse(dataResponse) {
+function parseData(dataResponse) {
   const transcriptionStatus = dataResponse?.status;
 
   const transcriptionComplete = transcriptionStatus === 'completed';
@@ -115,31 +116,74 @@ const delayPromise = (delayTime) => {
   });
 };
 
-async function getResult(dataEndpoint){
+async function createOriginalSrt(){
+
+}
+
+async function createProcessingData(){
+
+}
+
+async function changeFolderName(){
+
+}
+
+async function createTranslatedVtts(){
+
+}
+
+async function checkLatestData(dataEndpoint){
   let dataResponse = await getNewData(dataEndpoint);
-  let response = checkResponse(dataResponse);
+  let organizedData = parseData(dataResponse);
 
   l('response');
-  l(response);
+  l(organizedData);
 
-  if(response.status === 'failed'){
+  if(organizedData.status === 'failed'){
     l('detected that failed')
+    // throw an error here instead
     return {
       status: 'failed'
     }
-  } else if(response.status === 'completed'){
+  } else if(organizedData.status === 'completed'){
+    // TODO: create files locally
+    await createOriginalSrt()
+    await createProcessingData()
+    await createTranslatedVtts()
+    await changeFolderName()
 
     l('detected that completed')
     return {
       status: 'completed'
       // TODO: attach all the data
     }
-  } else {
+  } else if(organizedData.status === 'inTheQueue'){
+    // if queue position changed, send an update
+
+    const formerQueuePosition = 4;
+    const currentQueuePosition = 2
+    const decectedQueueChange = currentQueuePosition !== formerQueuePosition;
+
+    // TODO: SEND OUT ALERT TO FRONTEND VIA WEBSOCKET
+
+    // call itself again
+
+    l('detected that completed')
+    return {
+      // TODO: attach all the data
+      status: 'completed'
+    }
+  } else { // TODO: ACTUALLY DETECT THIS PROPERLY
+
+    // update local processing.data.json
+    // TODO: SEND OUT ALERT TO FRONTEND VIA WEBSOCKET
     l('detected that processing')
     await delayPromise(5000);
-    return await getResult(dataEndpoint);
+    return await checkLatestData(dataEndpoint);
   }
 }
+
+
 
 /***
  * Allows a frontend to transcribe to via the API of a remote server
@@ -153,7 +197,8 @@ async function getResult(dataEndpoint){
 async function transcribeViaRemoteApi({ filePath, language, model, websocketNumber, remoteServerApiUrl }){
   const dataEndpoint = await transcribeRemoteServer(filePath, language, model, websocketNumber, remoteServerApiUrl);
 
-  return await getResult(dataEndpoint)
+  // repeatedly check endpoint until failure/completion
+  return await checkLatestData(dataEndpoint)
 }
 
 async function realMain(){
@@ -162,17 +207,25 @@ async function realMain(){
   const model = 'tiny';
   const websocketNumber = generateRandomNumber()
   const remoteServerApiUrl = 'http://localhost:3001/api'
-  const response = await transcribeViaRemoteApi({
+   await transcribeViaRemoteApi({
     filePath,
     language,
     model,
     websocketNumber,
     remoteServerApiUrl
   });
+
+  // DECREMENT THING FROM QUEUE
+
+  // HANDLE RESPONSE
+
+  // TODO: build files locally based on response
   l('completed response');
-  l(response);
+  // l(response);
 }
 
-realMain()
+// realMain()
 
 // main();
+
+module.exports = transcribeViaRemoteApi;

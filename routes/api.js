@@ -13,8 +13,20 @@ const { downloadFileApi, getFilename} = require("../downloading/yt-dlp-download"
 const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
 const { modelsArray, whisperLanguagesHumanReadableArray } = constants;
 const { writeToProcessingDataFile, createFileNames, makeFileNameSafe } = require('../lib/transcribing');
+const {addToJobProcessOrQueue, amountOfRunningJobs} = require("../queue/newQueue");
+const ffprobe = require("ffprobe");
+const which = require("which");
+const ffprobePath = which.sync('ffprobe')
+const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
 const l = console.log;
+
+const serverType = process.env.SERVER_TYPE || 'both';
+
+
+l('serverType');
+l(serverType)
+
 
 // generate random 10 digit number
 function generateRandomNumber () {
@@ -90,32 +102,28 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       return res.status(400).send({error: `Your language of '${language}' is not valid. Please choose one of the following: ${whisperLanguagesHumanReadableArray.join(', ')}`});
     }
 
-    // TODO: implement this
-    let originalFileNameWithExtension, originalFileExtension, originalFileNameWithoutExtension, directorySafeFileNameWithoutExtension;
-    if(file){
-      ({
-        originalFileNameWithExtension,
-        originalFileExtension,
-        originalFileNameWithoutExtension,
-        directorySafeFileNameWithoutExtension
-      } = createFileNames(originalFileName));
-    }
-
-    let filename;
     if(downloadLink){
       // hit yt-dlp and get file title name
-      filename =  await getFilename(downloadLink);
-    } else {
-      filename = originalFileNameWithExtension
+      originalFileName =  await getFilename(downloadLink);
     }
 
-    const directoryName = makeFileNameSafe(filename)
+    const {
+      originalFileNameWithExtension,
+      originalFileExtension,
+      originalFileNameWithoutExtension,
+      directorySafeFileNameWithoutExtension,
+      directorySafeFileNameWithExtension,
+      fileSafeNameWithDateTimestamp,
+      fileSafeNameWithDateTimestampAndExtension,
+    } = createFileNames(originalFileName)
+
+    const directoryName = makeFileNameSafe(originalFileName)
 
     l('directoryName');
     l(directoryName);
 
-    l('filename');
-    l(filename);
+    l('originalFileName');
+    l(originalFileName);
 
     // build this properly
     const host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
@@ -133,7 +141,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       model,
       language,
       downloadLink,
-      filename,
+      filename: originalFileName,
       apiToken
     })
 
@@ -144,7 +152,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
         message: 'starting-download',
         // where the data will be sent from
         transcribeDataEndpoint: `${host}/api/${numberToUse}`,
-        fileTitle: filename,
+        fileTitle: originalFileName,
       });
 
       await writeToProcessingDataFile(processingDataPath, {
@@ -170,7 +178,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
         message: 'starting-transcription',
         // where the data will be sent from
         transcribeDataEndpoint: `${host}/api/${numberToUse}`,
-        fileTitle: filename,
+        fileTitle: originalFileName,
       });
     }
 
@@ -181,16 +189,69 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       status: 'starting-transcription',
     })
 
-    // todo: rename to transcribeAndTranslate
-    await transcribe({
-      language,
-      model,
-      originalFileExtension,
-      uploadFileName: matchingFile || originalFileName, //
-      uploadFilePath: newPath,
-      originalFileName,
-      numberToUse,
-    })
+    // TODO: push onto job processing
+    // if serverType === 'both' or serverType === 'frontend'
+    // add to queue
+    // otherwise just run it because we don't have to worry about queue if it's coded correctly
+
+    const ffprobeResponse = await ffprobe(newPath, { path: ffprobePath });
+
+    const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
+    const uploadDurationInSeconds = Math.round(audioStream.duration);
+
+    const stats = await fs.promises.stat(newPath);
+    const fileSizeInBytes = stats.size;
+    const fileSizeInMB = Number(fileSizeInBytes / 1048576).toFixed(1);
+
+    const currentlyRunningJobs = amountOfRunningJobs();
+    const amountInQueue = global.newQueue.length
+    const totalOutstanding = currentlyRunningJobs + amountInQueue - maxConcurrentJobs + 1;
+
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+
+    const shouldUseAQueue = serverType === 'both' || serverType === 'frontend';
+    if(shouldUseAQueue){
+      const transcriptionJobItem = {
+        uploadedFilePath: newPath, // TODO: rename newPath
+        language,
+        model,
+        directorySafeFileNameWithoutExtension,
+        directorySafeFileNameWithExtension,
+        originalFileNameWithExtension,
+        fileSafeNameWithDateTimestamp,
+        fileSafeNameWithDateTimestampAndExtension,
+        uploadGeneratedFilename: numberToUse, // TODO: refactor to use number by default
+
+        shouldTranslate: false, // not supported by API yet
+        uploadDurationInSeconds,
+        fileSizeInMB,
+        ...(downloadLink && { downloadLink }),
+        skipToFront: true,
+        totalOutstanding,
+        ip,
+
+        uploadFilePath: newPath,
+
+        websocketNumber,
+
+        languagesToTranslateTo,
+        apiToken,
+        numberToUse
+      }
+
+      addToJobProcessOrQueue(transcriptionJobItem);
+    } else {
+      // todo: rename to transcribeAndTranslate
+      await transcribe({
+        language,
+        model,
+        originalFileExtension,
+        uploadFileName: matchingFile || originalFileName, //
+        uploadFilePath: newPath,
+        originalFileName,
+        numberToUse,
+      })
+    }
 
   } catch (err) {
     l('err')
@@ -211,6 +272,9 @@ router.get('/api/:sdHash', async function (req, res, next) {
     l('sd hash')
     l(sdHash);
 
+    // if serverType === 'frontend'
+    // check the queue
+
     // get processing data path
     const processingData = JSON.parse(await fs.readFile(`./transcriptions/${sdHash}/processing_data.json`, 'utf8'));
 
@@ -222,6 +286,8 @@ router.get('/api/:sdHash', async function (req, res, next) {
       status: transcriptionStatus,
       progress
     } = processingData;
+
+    // TODO: if smart (local) endpoint, check the queue position
 
     // transcription processing or translating
     if (transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {

@@ -6,6 +6,45 @@ const l = console.log;
 
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
+// const remoteServerSetup =
+
+const transcribeRemoteServer = require('../scripts/postAudioFile');
+const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
+
+
+const remoteServerData = [{
+  endpoint: 'http://localhost:3001/api',
+  maxConcurrentJobs: 2,
+}]
+
+let newQueueArray = [];
+
+let currentIndex = 0;
+
+// READ THE FILE SYNC HERE
+// if file, then set it up based on that, otherwise max_concurrent
+// also change which function is called
+
+for(const server of remoteServerData){
+  const { endpoint, maxConcurrentJobs } = server;
+
+  for (let i = 0; i < maxConcurrentJobs; i++) {
+    currentIndex++;
+    const processNumber = currentIndex;
+
+    newQueueArray.push({
+      endpoint,
+      processNumber,
+      job : undefined
+    })
+  }
+}
+
+l('newQueueArray');
+l(newQueueArray);
+
+global.jobProcesses = newQueueArray;
+
 // create set of numbers from x, such as 1,2,3
 function createNumberSet(x) {
   return Array.from({length: x}, (_, i) => i + 1);
@@ -15,23 +54,23 @@ l('maxConcurrentJobs');
 l(maxConcurrentJobs);
 const numberSet = createNumberSet(maxConcurrentJobs);
 
-global.jobProcesses = {};
+global.oldJobProcesses = {};
 
 for(const number of numberSet){
-  global.jobProcesses[number] = undefined;
+  global.oldJobProcesses[number] = undefined;
 }
 
-l(global.jobProcesses);
+l(global.oldJobProcesses);
 
 // find process number of job to clear it when done
 function findProcessNumber(websocketNumber) {
-  for (let processNumber in global.jobProcesses) {
+  for (let processNumber in global.oldJobProcesses) {
 
-    const hasOwnProperty = global.jobProcesses.hasOwnProperty(processNumber)
+    const hasOwnProperty = global.oldJobProcesses.hasOwnProperty(processNumber)
 
     if (hasOwnProperty) {
 
-      const matchesByWebsocket = global.jobProcesses[processNumber]?.websocketNumber === websocketNumber;
+      const matchesByWebsocket = global.oldJobProcesses[processNumber]?.websocketNumber === websocketNumber;
       if(matchesByWebsocket){
         return processNumber
       }
@@ -70,6 +109,34 @@ function sendOutQueuePositionUpdate(){
   }
 }
 
+const serverType = process.env.SERVER_TYPE || 'both';
+
+let transcribeFunction;
+if(serverType === 'frontend'){
+  transcribeFunction = transcribeRemoteServer;
+  l('Using: transcribeRemoteServer');
+
+} else {
+  transcribeFunction = transcribeWrapped;
+  l('Using: transcribeWrapped');
+}
+
+function determineTranscribeFunctionToUse(jobObject){
+  const { websocketNumber, apiToken } = jobObject;
+
+  if(serverType === 'frontend'){
+    l('using transcribeRemoteServer');
+    return transcribeRemoteServer;
+  } else if (serverType === 'both'){
+    if(apiToken){
+      l('using transcribeApiWrapped');
+      return transcribeApiWrapped;
+    }
+    l('using transcribeWrapped');
+    return transcribeWrapped;
+  }
+}
+
 
 // run transcribe job and remove from queue and run next queue item if available
 async function runJob(jobObject){
@@ -77,7 +144,18 @@ async function runJob(jobObject){
 
   // simulate job running
   try {
-    await transcribeWrapped(jobObject);
+
+    const transcribeFunctionToUse = determineTranscribeFunctionToUse(jobObject);
+
+    // refactor to just pass jobObject
+    // await transcribeRemoteServer({
+    //   websocketNumber,
+    //   language: jobObject.language,
+    //   model: jobObject.language,
+    //   filePath: jobObject.filePath,
+    //   endpoint: jobObject.endpoint,
+    // })
+    await transcribeFunctionToUse(jobObject);
 
     l('job done');
 
@@ -86,7 +164,9 @@ async function runJob(jobObject){
     l(err);
   }
 
+  // TODO: replace this with finding the index
   const processNumber = findProcessNumber(websocketNumber);
+  const index = 0;
   l('processNumber');
   l(processNumber);
 
@@ -96,12 +176,12 @@ async function runJob(jobObject){
 
     nextQueueItem.processNumber = Number(processNumber);
 
-    global.jobProcesses[processNumber] = nextQueueItem;
+    global.jobProcesses[index] = nextQueueItem;
 
     // TODO: add got out of queue time here
     runJob(nextQueueItem);
   } else {
-    global.jobProcesses[processNumber] = undefined;
+    global.jobProcesses[index].job = undefined;
   }
 }
 
@@ -115,13 +195,16 @@ function addToJobProcessOrQueue(jobObject){
   l(skipToFront);
 
   // put job on process if there is an available process
-  for (let processNumber in global.jobProcesses) {
-    const propValue = global.jobProcesses[processNumber];
+  for (let jobProcess of global.jobProcesses) {
+    // get index here
+    const index = 0;
+    const processNumber = jobProcess.processNumber;
+    const job = jobProcess.job;
 
-    if(propValue === undefined){
+    if(job === undefined){
       jobObject.processNumber = Number(processNumber);
 
-      global.jobProcesses[processNumber] = jobObject;
+      global.jobProcesses[index] = jobObject;
       runJob(jobObject);
       return
     }
@@ -156,8 +239,8 @@ function addToJobProcessOrQueue(jobObject){
 // get amount of running jobs (used to calculate queue position)
 function amountOfRunningJobs(){
   let amount = 0;
-  for (let processNumber in global.jobProcesses) {
-    const propValue = global.jobProcesses[processNumber];
+  for (let processNumber in global.oldJobProcesses) {
+    const propValue = global.oldJobProcesses[processNumber];
 
     if(propValue !== undefined){
       amount++;

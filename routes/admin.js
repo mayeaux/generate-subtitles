@@ -108,8 +108,8 @@ router.get('/admin', async function (req, res, next) {
 
       const cleanedUpJobProcessObject = {};
 
-      for(const jobProcessNumber in jobProcesses){
-        let value = jobProcesses[jobProcessNumber];
+      for(const jobProcessNumber in oldJobProcesses){
+        let value = oldJobProcesses[jobProcessNumber];
         if(!value){
           cleanedUpJobProcessObject[jobProcessNumber] = {};
           continue
