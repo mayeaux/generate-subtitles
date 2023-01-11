@@ -184,11 +184,20 @@ script.
     let loopStarted;
     //- destructure the data object -osb910
     let {
+      filename,
+      processingTime,
+      language,
+      model,
+      upload,
+      uploadDuration,
+      processingRatio,
+      startedAt,
+      finishedAt,
+      processingData,
       ownershipPerson,
       processNumber,
       percentDone,
       timeRemaining,
-      processingData,
       formattedProgress
     } = data;
     const myUpload = ownershipPerson === 'you';
@@ -251,7 +260,7 @@ script.
             const progressUpdate =
             `[${latestProgress.percentDone}] ${globalTimeRemaining.string} Remaining, Speed ${latestProgress.speed}f/s`;
 
-            $('#processingData').html(`${processFeedback}${progressUpdate}`);
+            $('#processingData').html(`${processFeedback}${processingData}`);
           }, 1000);
         }
 
@@ -294,11 +303,16 @@ script.
     // $('#latestData').css("font-size", "20px");
   }
 
-  const renderFileDetails = data => {
+  const renderFileDetails = ({filename, language, model, uploadDuration, isAutoDetected = false}) => {
     l('file details data');
     const niceDate = new Date().toString().replace(/GMT.*/g, '');
-    const niceString = `Started At: ${niceDate}`;
-    $('#finishedData').html(data.fileDetails + niceString);
+    $('#finishedData').html(`
+      <p>Filename: ${filename}</p>
+      <p>Language: ${language}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
+      <p>Model: ${model}</p>
+      <p>Upload Duration: ${uploadDuration}</p>
+      <p>Started At: ${niceDate}</p>
+    `);
   }
 
   const renderTranslationUpdate = data => {
@@ -316,10 +330,24 @@ script.
   }
 
   const renderCompletionFeedback = ({data}) => {
+    const {
+      filename, processingTime, language, model, upload, uploadDuration, processingRatio, startedAt, finishedAt, isAutoDetected = false
+    } = data;
+    l({finishedAt});
     l('completed data');
     if (window.decrementInterval) clearInterval(window.decrementInterval);
     $('#latestData').html(`Congratulations, you're done!`);
-    $('#finishedData').html(data.detailsString);
+    $('#finishedData').html(`
+      <p>Filename: ${filename}</p>
+      <p>Processing Time: ${processingTime}</p>
+      <p>Language: ${language}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
+      <p>Model: ${model}</p>
+      <p>Upload Name: ${upload}</p>
+      <p>Upload Duration: ${uploadDuration}</p>
+      <p>Processing Ratio: ${processingRatio}</p>
+      <p>Started At: ${startedAt}</p>
+      <p>Finished At: ${finishedAt}</p>
+    `);
     $('#header').html('Transcription Completed');
     $('#processingData').hide();
     // show refresh button
@@ -327,7 +355,7 @@ script.
     $('#startNewUpload').hide();
     // redirect to the player page
     // 2 seconds to let the user see the completion message
-    setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
+    //- setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
   }
 
   const renderError = data => {

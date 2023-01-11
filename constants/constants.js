@@ -13,6 +13,7 @@ const languagesArray = whisperLanguagesHumanReadableArray.map(lang => ({value: l
 languagesArray.unshift({value: 'auto-detect', name: 'Auto-Detect'});
 
 function getLanguageCodeForAllLanguages (languageName) {
+  l(Object.values(languageNameMap));
   let foundLanguageCode;
   Object.keys(languageNameMap).forEach(languageCode =>{
     if (languageNameMap[languageCode].name === languageName) {

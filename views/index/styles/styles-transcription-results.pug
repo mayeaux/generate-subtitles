@@ -20,13 +20,22 @@ style.
     text-align: center;
   }
 
+  .info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+
+  .info p {
+    margin: 0;
+  }
+
   #finishedData {
     text-align: left;
+    margin-left: -44px;
+    margin-block: 0.5em;
     font-size: 1.125rem;
     color: white;
-    margin-top: -12px;
-    margin-left: -44px;
-    margin-bottom: 7px;
   }
 
   #latestData, #processingData, #secondProcessingData, #refreshButton, #startNewUpload, .downloadLink {
@@ -44,7 +53,7 @@ style.
     margin-top: -10px;
   }
 
-  #latestData, #processingData, #secondProcessingData, #timeEstimator, #finishedData {
+  #latestData, #processingData, #secondProcessingData, #timeEstimator {
     white-space: pre;
   }
 
