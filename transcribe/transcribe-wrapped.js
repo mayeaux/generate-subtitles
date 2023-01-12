@@ -5,11 +5,10 @@ const ffprobe = require('ffprobe');
 const WebSocket = require('ws');
 const path = require('path');
 
-const {shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLanguageCodeForAllLanguages} = require('../constants/constants');
+const {languagesToTranscribe, getLanguageCodeForAllLanguages} = require('../constants/constants');
 const {forHumans, getamountOfRunningJobs, sendToWebsocket} = require('../helpers/helpers');
 const {formatStdErr} = require('../helpers/formatStdErr');
-const createTranslatedFiles = require('../translate/create-translated-files');
-const {buildWhisperArguments, convertLanguageText, updateFileDetails, removeFromArrayByWsNumber, updateDetectedLanguage, handleTranslation} = require('../lib/transcribing');
+const {buildWhisperArguments, convertLanguageText, removeFromArrayByWsNumber, updateDetectedLanguage, handleTranslation, moveSubtitleFiles} = require('../lib/transcribing');
 const {stripOutTextAndTimestamps} = require('../translate/helpers');
 const {updateQueueItemStatus} = require('../queue/queue');
 
@@ -18,9 +17,6 @@ const concurrentAmount = process.env.CONCURRENT_AMOUNT;
 const libreTranslateHostPath = process.env.LIBRETRANSLATE;
 
 const l = console.log;
-
-// l(`libreTranslateHostPath: ${libreTranslateHostPath}`)
-
 
 const whisperPath = which.sync('whisper');
 
@@ -60,7 +56,6 @@ async function transcribe ({
     }
 
     try {
-
       // inform frontend their processing has started
       sendToWebsocket(websocketConnection, {
         message: 'starting',
@@ -82,6 +77,7 @@ async function transcribe ({
       const fileInfo = {
         filename: directorySafeFileNameWithExtension,
         fileExtension: path.parse(directorySafeFileNameWithExtension).ext,
+        fileSafeNameWithExt: directorySafeFileNameWithExtension,
         fileSafeNameWithDateTimestamp,
         fileSizeInMB,
         directoryFileName: directorySafeFileNameWithoutExtension,
@@ -89,8 +85,12 @@ async function transcribe ({
         languageCode: getLanguageCodeForAllLanguages(language),
         model,
         upload: uploadFolderFileName,
+        uploadGeneratedFilename,
+        originalContainingDir: `./transcriptions/${uploadGeneratedFilename}`,
+        originalDirectoryAndNewFileName: `./transcriptions/${uploadGeneratedFilename}/${directorySafeFileNameWithoutExtension}`,
         uploadDurationInSeconds,
         uploadDuration: uploadDurationInSecondsHumanReadable,
+        originalUpload,
         user,
         downloadLink,
         processNumber,
@@ -109,26 +109,18 @@ async function transcribe ({
       const whisperProcess = spawn(whisperPath, whisperArguments);
 
       // add process globally to kill it when user leaves
-      const process = {
+      global.transcriptions.push({
         websocketNumber,
         spawnedProcess: whisperProcess,
         processNumber,
         type: 'transcription',
-      }
-      
-      global.transcriptions.push(process);
+      });
 
       //  console output from stdout
       whisperProcess.stdout.on('data', data => {
         sendToWebsocket(websocketConnection, `stdout: ${data}`);
         l(`STDOUT: ${data}`);
-
-        // TODO: pull this out into own function
-        // check if language is autodetected)
-        const dataAsString = data.toString();
-        if (dataAsString.includes('Detected language:')) {
-          foundLanguage = updateDetectedLanguage({dataAsString, fileInfo, websocketConnection});
-        }
+        updateDetectedLanguage({data, fileInfo, websocketConnection});
       });
 
       // log output from bash (it all comes through stderr for some reason?)
@@ -176,35 +168,8 @@ async function transcribe ({
 
           // successful output
           if (processFinishedSuccessfully) {
-            // TODO: pull out all this moving stuff into its own function
-            
-            const originalContainingDir = `./transcriptions/${uploadGeneratedFilename}`;
-            
-            fileInfo.originalDirectoryAndNewFileName = `${originalContainingDir}/${directorySafeFileNameWithoutExtension}`;
-            // await fs.move(originalUpload, `${fileSafeNameWithDateTimestamp}`, {overwrite: true});
-            await fs.move(originalUpload, `${originalContainingDir}/${directorySafeFileNameWithExtension}`, {overwrite: true});
 
-            // turn this to a loop
-            /** COPY TO BETTER NAME, SRT, VTT, TXT **/
-            const fileTypes = ['srt', 'vtt', 'txt'];
-            // doesn't work
-            // fileTypes.forEach(async fileType => {
-            // await fs.move(`${originalContainingDir}/${uploadFolderFileName}.${fileType}`, `${fileInfo.originalDirectoryAndNewFileName}.${fileType}`, { overwrite: true });
-            // });
-            const srtPath = `${fileInfo.originalDirectoryAndNewFileName}.srt`;
-
-            const vttPath = `${fileInfo.originalDirectoryAndNewFileName}.vtt`;
-
-            const txtPath = `${fileInfo.originalDirectoryAndNewFileName}.txt`;
-
-            // copy srt with the original filename
-            // SOURCE, ORIGINAL
-            // TODO: could probably move here instead of copy
-            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.srt`, srtPath, { overwrite: true })
-
-            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.vtt`, vttPath, { overwrite: true })
-
-            await fs.move(`${originalContainingDir}/${uploadFolderFileName}.txt`, txtPath, { overwrite: true })
+            await moveSubtitleFiles(fileInfo);            
 
             await convertLanguageText(fileInfo.language, fileInfo.originalDirectoryAndNewFileName);
 
@@ -213,13 +178,11 @@ async function transcribe ({
             // return await so queue moves on, don't need to wait for translations
             resolve(code);
 
-            l({shouldTranslate});
-
             // copy original as copied
-            await fs.copy(vttPath, `${fileInfo.originalDirectoryAndNewFileName}_${fileInfo.language}.vtt`)
+            await fs.copy(fileInfo.vttPath, `${fileInfo.originalDirectoryAndNewFileName}_${fileInfo.language}.vtt`)
 
             // strip out text and timestamps here to save in processing_data.json
-            const {strippedText, timestampsArray} = await stripOutTextAndTimestamps(vttPath);
+            const {strippedText, timestampsArray} = await stripOutTextAndTimestamps(fileInfo.vttPath);
             fileInfo.strippedText = strippedText;
             fileInfo.characterCount = strippedText.length;
             fileInfo.timestampsArray = timestampsArray;
@@ -252,11 +215,11 @@ async function transcribe ({
 
             l({fileInfo});
             // save processing_data.json
-            await fs.appendFile(`${originalContainingDir}/processing_data.json`, JSON.stringify(fileInfo), 'utf8');
+            await fs.appendFile(`${fileInfo.originalContainingDir}/processing_data.json`, JSON.stringify(fileInfo), 'utf8');
 
             // TODO: if no link passed, because if link was passed no need to rename directory
             const renamedDirectory = `./transcriptions/${fileSafeNameWithDateTimestamp}`;
-            await fs.rename(originalContainingDir, renamedDirectory)
+            await fs.rename(fileInfo.originalContainingDir, renamedDirectory)
 
             // remove from global.transcriptions
             global.transcriptions = removeFromArrayByWsNumber(global.transcriptions, websocketNumber);
@@ -264,9 +227,6 @@ async function transcribe ({
             // tell frontend upload is done
             sendToWebsocket(websocketConnection, {
               status: 'Completed',
-              urlSrt: srtPath,
-              urlVtt: vttPath,
-              urlTxt: txtPath,
               ...fileInfo
             });
 
@@ -290,9 +250,8 @@ async function transcribe ({
             })
             websocketConnection.terminate()
           }
-          l('err here');
           l(err.stack);
-          l(err);
+          l({err});
           throw err;
         }
       });
@@ -311,9 +270,7 @@ async function transcribe ({
 
       throw err;
     }
-
   });
-
 }
 
 module.exports = transcribe;
