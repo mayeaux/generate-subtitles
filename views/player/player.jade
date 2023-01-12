@@ -14,7 +14,7 @@ block content
           if languagesToLoop.length > 0
             each loopLanguage in languagesToLoop
               track(kind='captions' label=loopLanguage.name srclang=loopLanguage.languageCode src=`${filePathWithoutExtension}_${loopLanguage.name}.vtt` default='')
-            track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
+            //track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
           else
             track(kind='captions' label=processingData.language srclang=processingData.languageCode src=vttFilePath default=true)
       section.bottomSection
