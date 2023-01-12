@@ -7,13 +7,15 @@ let router = express.Router();
 
 
 /** PLYR PLAYER **/
-router.get('/player/:filename' , async function (req, res, next) {
+router.get('/player/:timestampedFileName' , async function (req, res, next) {
   try {
     const { password } = req.query;
 
     const userAuthed = password === process.env.FILES_PASSWORD
 
-    const fileNameWithoutExtension = req.params.filename
+    const fileNameWithoutExtension = req.params.timestampedFileName
+
+    const timestampedFileName = req.params.timestampedFileName
 
     const processDirectory = process.cwd();
 
@@ -23,6 +25,7 @@ router.get('/player/:filename' , async function (req, res, next) {
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
+    const safeFileNameWithoutExtension = processingData.directorySafeFileNameWithoutExtension
 
     const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${processingData.directoryFileName}`;
 
@@ -30,6 +33,10 @@ router.get('/player/:filename' , async function (req, res, next) {
     // l(filePathWithoutExtension);
 
     const translatedLanguages = processingData.translatedLanguages;
+
+    const mediaFile = `/transcriptions/${fileNameWithoutExtension}/${processingData.directorySafeFileNameWithExtension}`;
+
+    const vttFilePath = `/transcriptions/${timestampedFileName}/${safeFileNameWithoutExtension}.vtt`
 
     // TODO: check that it doesn't include the original language? or it never will?
     const languagesToLoop = newLanguagesMap.filter(function (language) {
@@ -66,14 +73,17 @@ router.get('/player/:filename' , async function (req, res, next) {
       allLanguages,
       renderedFilename: req.params.filename,
       userAuthed,
-      password
+      password,
+      mediaFile,
+      vttFilePath
       // vttPath,
       // fileSource
     })
   } catch (err) {
     l('err');
     l(err);
-    res.redirect('/404')
+    res.send(err);
+    // res.redirect('/404')
   }
 });
 

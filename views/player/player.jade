@@ -9,14 +9,14 @@ block content
       section.video-container
         video#player(playsinline controls='' autoplay='true' name='media' preload="auto")
           // file extension includes the .
-          source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
+          source(src=mediaFile)
           // TODO: replace with loop (has to fix on the backend)
           if languagesToLoop.length > 0
             each loopLanguage in languagesToLoop
               track(kind='captions' label=loopLanguage.name srclang=loopLanguage.languageCode src=`${filePathWithoutExtension}_${loopLanguage.name}.vtt` default='')
             track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
           else
-            track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}.vtt` default=true)
+            track(kind='captions' label=processingData.language srclang=processingData.languageCode src=vttFilePath default=true)
       section.bottomSection
         .buttons
           button.btn#increaseSize Subtitle Text Size +

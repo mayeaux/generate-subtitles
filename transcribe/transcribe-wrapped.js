@@ -240,7 +240,7 @@ async function transcribe ({
 
 
         // loop through and do with websockets
-        for (let [, websocket] of global['webSocketData'].entries() ) {
+        for (let [, websocket] of global.webSocketData.entries() ) {
           const websocketConnection = websocket.websocket;
           const clientWebsocketNumber = websocket.websocketNumber;
           const websocketFromProcess = websocketNumber;

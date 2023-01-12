@@ -19,10 +19,16 @@ const remoteServerData = [{
 
 // const remoteServerData = [{
 //   endpoint: 'http://31.12.82.146:11460/api',
-//   maxConcurrentJobs: 1,
+//   maxConcurrentJobs: 3,
+// },{
+//   endpoint: 'http://localhost:3002/api',
+//   maxConcurrentJobs: 2,
 // }]
 
-
+// const remoteServerData = [{
+//   endpoint: 'http://localhost:3002/api',
+//   maxConcurrentJobs: 2,
+// }]
 
 // get position in queue based on websocketNumber
 function getQueueInformationByWebsocketNumber(websocketNumber){
@@ -69,6 +75,8 @@ function sendOutQueuePositionUpdate(){
   }
 }
 
+
+
 let newJobProcessArray = [];
 
 // READ THE FILE SYNC HERE
@@ -83,15 +91,16 @@ for(const server of remoteServerData){
 
   for (let i = 0; i < maxConcurrentJobs; i++) {
     l('adding here')
-    currentIndex++;
-    const processNumber = currentIndex;
+    const processNumber = currentIndex + 1;
 
     newJobProcessArray.push({
       endpoint,
       processNumber,
       job : undefined,
-      index: i,
+      index: currentIndex,
     })
+
+    currentIndex++;
   }
 }
 

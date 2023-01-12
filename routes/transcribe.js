@@ -192,6 +192,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     /** WEBSOCKET FUNCTIONALITY END **/
 
+      // TODO: create these with the lib
     const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
     const originalFileNameWithoutExtension = path.parse(originalFileNameWithExtension).name;
 
@@ -239,6 +240,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       originalFileNameWithExtension,
       fileSafeNameWithDateTimestamp,
       fileSafeNameWithDateTimestampAndExtension,
+      originalFileExtension,
       uploadGeneratedFilename,
       shouldTranslate,
       uploadDurationInSeconds,
