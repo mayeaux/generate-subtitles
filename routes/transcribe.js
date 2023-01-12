@@ -217,9 +217,16 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     const newUploadLocation = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`
 
-    await fs.move(uploadedFilePath, newUploadLocation);
+    const finalResting = `${process.cwd()}/transcriptions/${numberToUse}/${directorySafeFileNameWithExtension}`
 
-    uploadedFilePath = newUploadLocation;
+    await fs.move(uploadedFilePath, finalResting);
+
+    // await fs.copy(newUploadLocation, finalResting);
+
+
+    // TODO: extract audio here
+
+    uploadedFilePath = finalResting;
 
     // allow admin to see items in the queue
     addItemToQueue({

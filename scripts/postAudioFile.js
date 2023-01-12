@@ -6,6 +6,8 @@ const { createFileNames } = require('../lib/transcribing');
 const { formatStdErr } = require('../lib/transcribing');
 const path = require("path");
 const WebSocket = require('ws');
+const convert = require('cyrillic-to-latin');
+const extraAudioFromVideoIfNeeded = require('../scripts/extractAudioFfmpeg');
 
 const l = console.log;
 
@@ -111,6 +113,8 @@ async function transcribeRemoteServer({
     fullApiEndpoint
   })
 
+  // TODO: extract audio here
+
   // Create a new form instance
   const form = new FormData();
 
@@ -163,9 +167,16 @@ async function saveOriginalProcessingDataJson(jobObject){
  * @returns {Promise<void>}
  */
 async function transcribeViaRemoteApi({ filePath, language, model, numberToUse, remoteServerApiUrl }){
+  const whereWeWantAudio = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`;
+
+  await extraAudioFromVideoIfNeeded({
+    videoInputPath: filePath,
+    audioOutputPath: whereWeWantAudio
+  });
+
   // hit backend to start transcription and get data endpoint
   const dataEndpoint = await transcribeRemoteServer({
-    pathToAudioFile: filePath, // path to file to send (in future should always be audio)
+    pathToAudioFile: whereWeWantAudio, // path to file to send (in future should always be audio)
     numberToUse, // websocket number or auto-generated
     fullApiEndpoint: remoteServerApiUrl, // URL to run against (such as http://host:port/api)
 
@@ -248,6 +259,7 @@ function parseData(dataResponse, latestProgress) {
   const transcriptionIsProcessing = transcriptionStatus === 'starting-transcription' ||
     transcriptionStatus === 'transcribing' || transcriptionStatus === 'processing' || transcriptionIsTranslating;
 
+  // transcription is completed
   if (transcriptionCompleted) {
     const transcription = dataResponse?.transcription;
     const sdHash = dataResponse?.sdHash;
@@ -262,6 +274,8 @@ function parseData(dataResponse, latestProgress) {
     delete processingData.vttData;
     delete processingData.txtData;
 
+    // TODO: add translations here
+
     return {
       status: 'completed',
       transcription,
@@ -275,12 +289,14 @@ function parseData(dataResponse, latestProgress) {
     }
   }
 
+  // transaction is processing
   if(transcriptionIsProcessing){
     const percentDone = dataResponse?.processingData?.progress;
 
     // only do on change, otherwise you push out a new one every 5s
     // sendLatestData(percentDone, numberToUse);
 
+    // TODO: add better data here for frontend
     return {
       status: 'processing',
       percentDone,
@@ -288,6 +304,7 @@ function parseData(dataResponse, latestProgress) {
     }
   }
 
+  // transcription errored
   if(transcriptionErrored){
     return {
       status: 'failed',
@@ -343,32 +360,27 @@ async function checkLatestData(dataEndpoint, latestProgress){
   // TRANSCRIPTION IS PROCESSING
   if(transcriptionIsProcessing) {
 
+    // TODO: copy existing processingData
+    // TODO: pass progress as a parameter to the function
+    // note processing_data as processing
     await createOrUpdateProcessingData(processingJsonFile, {
-      // TODO: copy existing processingData
       status: 'processing',
-      // TODO: pass progress as a parameter to the function
     })
 
     // get the websocket connection for relevant upload
     const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
 
+    // TODO: send some better stuff to frontend
+    // send progress to relevant frontend (working)
     if(websocketConnection){
       // tell frontend upload is done
       websocketConnection.send(JSON.stringify({
         status: 'progress',
         percentDone
-        // filename: localProcessingData.fileSafeNameWithDateTimestamp,
-        // detailsString: outputText // implement later
       }), function () {});
     }
 
     // PASS LATEST PROGRESS OUT
-
-
-
-    // update local processing.data.json
-    // TODO: SEND OUT ALERT TO FRONTEND VIA WEBSOCKET
-    // DETECT WHETHER IT'S A CHANGE FROM LAST
 
     // not done yet
     // if(percentDone > latestProgress){
@@ -391,8 +403,23 @@ async function checkLatestData(dataEndpoint, latestProgress){
     const originalFileNameWithoutExtension = localProcessingData.directorySafeFileNameWithoutExtension;
     const originalFileName = localProcessingData.directorySafeFileNameWithExtension
 
-    const { srtData, vttData, txtData } = organizedData;
+    const { language } = localProcessingData;
 
+    // language undefined
+
+    let { srtData, vttData, txtData } = organizedData;
+
+    l('language');
+    l(language)
+
+    // convert cyrillic to latin characters
+    if(language === 'Serbian'){
+      srtData = convert(srtData)
+      vttData = convert(vttData)
+      txtData = convert(txtData)
+    }
+
+    // load number to use
     const numberToUse = localProcessingData.numberToUse
 
     const directoryBasedOnNumber = `${transcriptionDir}/${numberToUse}`;
@@ -448,7 +475,8 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
     const newMediaFile = `${directoryBasedOnNumber}/${directorySafeFileNameWithExtension}`
 
-    await fs.move(mediaFile, newMediaFile, options)
+    // assuming it's already landed
+    // await fs.move(mediaFile, newMediaFile, options)
 
     const newDirectoryName = localProcessingData.fileSafeNameWithDateTimestamp
 
