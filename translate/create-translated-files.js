@@ -38,24 +38,24 @@ async function createTranslatedFiles ({
     websocketConnection,
     strippedText,
     timestampsArray,
+    vttData
 }) {
 
-  const loopThrough = ['.srt', '.vtt', 'txt'];
+  // const loopThrough = ['.srt', '.vtt', 'txt'];
 
   const vttPath = `${directoryAndFileName}.vtt`;
 
   // TODO: translate the rest
-  const vttData = await fs.readFile(vttPath, 'utf-8');
+  if(!vttData){
+    vttData = await fs.readFile(vttPath, 'utf-8');
+  }
+
   l('vttData');
   l(vttData);
 
-  // TODO: pass this in from controller?
-  // const { strippedText, timestampsArray } = await stripOutTextAndTimestamps(vttPath)
-
-  // save stripped and timestamps to processing data
-
   l({languagesToTranscribe})
 
+  const translatedFiles = [];
 
   for (const languageToConvertTo of languagesToTranscribe) {
     l('languageToConvertTo');
@@ -67,10 +67,14 @@ async function createTranslatedFiles ({
     try {
       // no need to translate just copy the file
       if (languageToConvertTo !== language) {
-        websocketConnection.send(JSON.stringify({
-          languageUpdate: `Translating into ${languageToConvertTo}..`,
-          message: 'languageUpdate'
-        }), function () {});
+
+        // cool language frontend functionality
+        if(websocketConnection){
+          websocketConnection.send(JSON.stringify({
+            languageUpdate: `Translating into ${languageToConvertTo}..`,
+            message: 'languageUpdate'
+          }), function () {});
+        }
 
 
         const sourceLanguageCode = getCodeFromLanguageName(language);
@@ -111,7 +115,15 @@ async function createTranslatedFiles ({
 
         const reformattedVtt = reformatVtt(timestampsArray, translatedText);
 
+        // write them to a file
         await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, reformattedVtt, 'utf-8');
+
+        // but also format for response
+        translatedFiles.push({
+          language: languageToConvertTo,
+          translatedText: reformattedVtt
+        });
+
       }
     } catch (err) {
       l(err);
@@ -119,6 +131,8 @@ async function createTranslatedFiles ({
       return err
     }
   }
+
+  return translatedFiles
 }
 
 // const uploadDirectoryName = 'ef56767d5cba0ae421a9f6f570443205';

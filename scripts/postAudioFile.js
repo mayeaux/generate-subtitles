@@ -49,7 +49,19 @@ async function createOrUpdateProcessingData(processingPath, objectToMerge){
   fs.writeFileSync(processingPath, updatedData);
 }
 
-async function createTranslatedVtts(){
+async function createTranslatedVtts({
+  prependPath,
+  translatedFiles
+}){
+  for(const translatedFile of translatedFiles){
+    const { language, translatedText } = translatedFile;
+    const translatedPath = `${prependPath}_${language}.vtt`;
+
+    await createOriginalVtt({
+      vttPath: translatedPath,
+      vttData: translatedText
+    });
+  }
   // TODO: write
 }
 
@@ -393,7 +405,9 @@ async function checkLatestData(dataEndpoint, latestProgress){
     await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
 
-    // TRANSCRIPTION COMPLETED SUCCESSFULLY
+
+
+  /** TRANSCRIPTION COMPLETED SUCCESSFULLY **/
   } else if(transcriptionIsCompleted){
     l('detected that completed')
 
@@ -435,14 +449,22 @@ async function checkLatestData(dataEndpoint, latestProgress){
     await createOriginalVtt({ vttPath, vttData })
     await createOriginalTxt({ txtPath, txtData })
 
-    const originalFileExtension = path.parse(localProcessingData.directorySafeFileNameWithExtension).ext;
+    const { directorySafeFileNameWithoutExtension, directorySafeFileNameWithExtension } = localProcessingData
+
+    if(organizedData.processingData.translatedFiles?.length){
+      await createTranslatedVtts({
+        prependPath: `${directoryBasedOnNumber}/${directorySafeFileNameWithoutExtension}`,
+        translatedFiles: organizedData.processingData.translatedFiles
+      })
+    }
+
+    const originalFileExtension = path.parse(directorySafeFileNameWithExtension).ext;
 
     // update processing.data.json
     // TODO: bug here, could overwrite better data
     await createOrUpdateProcessingData(processingJsonFile, {
       status: 'completed',
       ... organizedData.processingData,
-      translatedLanguages: [],
       originalFileExtension // who do I have to do this
     })
 
@@ -461,22 +483,6 @@ async function checkLatestData(dataEndpoint, latestProgress){
         // detailsString: outputText // implement later
       }), function () {});
     }
-
-    // for(const translatedLanguage of translatedLanguages){
-    //   await createTranslatedVtts({ path, language, value })
-    // }
-
-    // to-do: rename to the nice name with timestamp
-    // await changeFolderName()
-
-    const directorySafeFileNameWithExtension = localProcessingData.directorySafeFileNameWithExtension;
-
-    const mediaFile = `${directoryBasedOnNumber}/${numberToUse}`
-
-    const newMediaFile = `${directoryBasedOnNumber}/${directorySafeFileNameWithExtension}`
-
-    // assuming it's already landed
-    // await fs.move(mediaFile, newMediaFile, options)
 
     const newDirectoryName = localProcessingData.fileSafeNameWithDateTimestamp
 
@@ -500,7 +506,11 @@ async function checkLatestData(dataEndpoint, latestProgress){
     // WHEN TRANSCRIPTION COMPLETED
   }else {
     l('UNDETECTED STATUS TYPE')
-    l()
+    l(dataResponse)
+
+    await delayPromise(delayInMillisecondsBetweenChecks);
+    return await checkLatestData(dataEndpoint, latestProgress);
+
   }
 }
 

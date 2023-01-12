@@ -17,18 +17,18 @@ const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
 //   maxConcurrentJobs: 2,
 // }]
 
-const remoteServerData = [{
-  endpoint: 'http://31.12.82.146:11460/api',
-  maxConcurrentJobs: 3,
-},{
-  endpoint: 'http://localhost:3002/api',
-  maxConcurrentJobs: 2,
-}]
-
 // const remoteServerData = [{
+//   endpoint: 'http://31.12.82.146:11460/api',
+//   maxConcurrentJobs: 3,
+// },{
 //   endpoint: 'http://localhost:3002/api',
 //   maxConcurrentJobs: 2,
 // }]
+
+const remoteServerData = [{
+  endpoint: 'http://localhost:3002/api',
+  maxConcurrentJobs: 2,
+}]
 
 // get position in queue based on websocketNumber
 function getQueueInformationByWebsocketNumber(websocketNumber){
