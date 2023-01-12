@@ -27,7 +27,7 @@ router.get('/player/:timestampedFileName' , async function (req, res, next) {
 
     const safeFileNameWithoutExtension = processingData.directorySafeFileNameWithoutExtension
 
-    const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${processingData.directoryFileName}`;
+    const filePathWithoutExtension = `/transcriptions/${timestampedFileName}/${safeFileNameWithoutExtension}`;
 
     // l('filePathWithoutExtension')
     // l(filePathWithoutExtension);
@@ -68,10 +68,10 @@ router.get('/player/:timestampedFileName' , async function (req, res, next) {
       fileNameWithoutExtension,
       filePathWithoutExtension,
       processingData,
-      title: processingData.filename,
+      title: timestampedFileName,
       languagesToLoop,
       allLanguages,
-      renderedFilename: req.params.filename,
+      renderedFilename: timestampedFileName,
       userAuthed,
       password,
       mediaFile,
@@ -88,24 +88,26 @@ router.get('/player/:timestampedFileName' , async function (req, res, next) {
 });
 
 /** player route to add translation  **/
-router.get("/player/:filename/add" , async function(req, res, next){
+router.get("/player/:timestampedFileName/add" , async function(req, res, next){
   try {
 
-    const fileNameWithoutExtension = req.params.filename
+    const timestampedFileName = req.params.timestampedFileName
 
     const processDirectory = process.cwd();
 
-    const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+    const containingFolder = `${processDirectory}/transcriptions/${timestampedFileName}`
 
     const processingDataPath = `${containingFolder}/processing_data.json`;
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
-    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.directoryFileName}.vtt`, 'utf8');
+    const originalFileNameWithoutExtension = processingData.directorySafeFileNameWithoutExtension
+
+    const originalVtt = await fs.readFile(`${containingFolder}/${originalFileNameWithoutExtension}.vtt`, 'utf8');
 
     res.render('addTranslation/addTranslation', {
       title: 'Add Translation',
-      renderedFilename: fileNameWithoutExtension,
+      renderedFilename: timestampedFileName,
       originalVtt
       // vttPath,
       // fileSource
@@ -118,26 +120,28 @@ router.get("/player/:filename/add" , async function(req, res, next){
 });
 
 /** PLYR PLAYER **/
-router.post('/player/:filename/add' , async function (req, res, next) {
+router.post('/player/:timestampedFileName/add' , async function (req, res, next) {
   try {
 
     const { language } = req.body;
 
-    const fileNameWithoutExtension = req.params.filename
+    const timestampedFileName = req.params.timestampedFileName
 
     const newVtt = req.body.message;
 
     const processDirectory = process.cwd();
 
-    const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+    const containingFolder = `${processDirectory}/transcriptions/${timestampedFileName}`
 
     const processingDataPath = `${containingFolder}/processing_data.json`;
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
-    const originalVttPath = `${containingFolder}/${processingData.directoryFileName}.vtt`;
+    const originalFileNameWithoutExtension = processingData.directorySafeFileNameWithoutExtension
 
-    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.directoryFileName}.vtt`, 'utf8');
+    const originalVttPath = `${containingFolder}/${originalFileNameWithoutExtension}.vtt`;
+
+    const originalVtt = await fs.readFile(originalVttPath, 'utf8');
 
     const inputStream = new Readable(newVtt);
 
@@ -162,9 +166,10 @@ router.post('/player/:filename/add' , async function (req, res, next) {
     l(reformatted);
     l('refomatted');
 
-    const newVttPath = `${containingFolder}/${processingData.directoryFileName}_${language}.vtt`;
+    const newVttPath = `${containingFolder}/${originalFileNameWithoutExtension}_${language}.vtt`;
 
-    const originalFileVtt = `${containingFolder}/${processingData.directoryFileName}_${processingData.language}.vtt`;
+    // copy language name
+    const originalFileVtt = `${containingFolder}/${originalFileNameWithoutExtension}_${processingData.language}.vtt`;
 
     await fs.writeFile(newVttPath, reformatted, 'utf-8');
 
@@ -176,7 +181,7 @@ router.post('/player/:filename/add' , async function (req, res, next) {
 
     await fs.writeFile(originalFileVtt, originalVtt, 'utf-8');
 
-    return res.redirect(`/player/${req.params.filename}`)
+    return res.redirect(`/player/${timestampedFileName}`)
 
   } catch (err) {
     l('err');
@@ -186,7 +191,7 @@ router.post('/player/:filename/add' , async function (req, res, next) {
 });
 
 /** CHANGE KEEP MEDIA **/
-router.post("/player/:filename/keepMedia" , async function(req, res, next){
+router.post("/player/:timestampedFileName/keepMedia" , async function(req, res, next){
   try {
     const { password } = req.query;
 
@@ -200,7 +205,7 @@ router.post("/player/:filename/keepMedia" , async function(req, res, next){
     l('password');
     l(password);
 
-    const fileNameWithoutExtension = req.params.filename
+    const fileNameWithoutExtension = timestampedFileName
 
     const processDirectory = process.cwd();
 
@@ -218,7 +223,7 @@ router.post("/player/:filename/keepMedia" , async function(req, res, next){
 
     await fs.writeFile(processingDataPath, JSON.stringify(processingData), 'utf-8');
 
-    return res.redirect(`/player/${req.params.filename}`)
+    return res.redirect(`/player/${timestampedFileName}`)
 
   } catch (err){
     l('err');

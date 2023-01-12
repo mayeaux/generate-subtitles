@@ -5,6 +5,7 @@ const {cu} = require("language-name-map/map");
 const { createFileNames } = require('../lib/transcribing');
 const { formatStdErr } = require('../lib/transcribing');
 const path = require("path");
+const WebSocket = require('ws');
 
 const l = console.log;
 
@@ -307,6 +308,13 @@ async function createOriginalVtt({ vttPath, vttData }){
 
 const delayInMillisecondsBetweenChecks = 5000;
 
+function getWebsocketConnectionByNumberToUse(numberToUse){
+  const foundWebsocketConnection = (global.webSocketData.find(connection => connection.websocketNumber === numberToUse)).websocket
+  if(foundWebsocketConnection.readyState === WebSocket.OPEN){
+    return foundWebsocketConnection
+  }
+}
+
 // check repeatedly and return when completed or failed
 async function checkLatestData(dataEndpoint, latestProgress){
   // get first data
@@ -326,18 +334,55 @@ async function checkLatestData(dataEndpoint, latestProgress){
   const transcriptionDir = `${process.cwd()}/transcriptions`;
   const processingJsonFile = `${containingFolder}/processing_data.json`;
 
-  // TRANSCRIPTION FAILED FOR SOME REASON
-  if(organizedData.status === 'failed'){
-    l('detected that failed')
-    // TODO: throw an error here instead
+  const transcriptionIsProcessing = status === 'processing'
+  const transcriptionIsCompleted = status === 'completed'
+  const transcriptionFailed = status === 'failed'
+
+
+
+  // TRANSCRIPTION IS PROCESSING
+  if(transcriptionIsProcessing) {
+
     await createOrUpdateProcessingData(processingJsonFile, {
-      status: 'failed'
+      // TODO: copy existing processingData
+      status: 'processing',
+      // TODO: pass progress as a parameter to the function
     })
-    throw new Error('Transcription failed from remote call')
+
+    // get the websocket connection for relevant upload
+    const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
+
+    if(websocketConnection){
+      // tell frontend upload is done
+      websocketConnection.send(JSON.stringify({
+        status: 'progress',
+        percentDone
+        // filename: localProcessingData.fileSafeNameWithDateTimestamp,
+        // detailsString: outputText // implement later
+      }), function () {});
+    }
+
+    // PASS LATEST PROGRESS OUT
 
 
-  // WHEN TRANSCRIPTION COMPLETED
-  } else if(organizedData.status === 'completed'){
+
+    // update local processing.data.json
+    // TODO: SEND OUT ALERT TO FRONTEND VIA WEBSOCKET
+    // DETECT WHETHER IT'S A CHANGE FROM LAST
+
+    // not done yet
+    // if(percentDone > latestProgress){
+    //   sendLatestData(data, numberToUse);
+    // }
+
+
+    l('detected that processing')
+    // DELAY 5 SECONDS AND
+    await delayPromise(delayInMillisecondsBetweenChecks);
+    return await checkLatestData(dataEndpoint, latestProgress);
+
+    // TRANSCRIPTION COMPLETED SUCCESSFULLY
+  } else if(transcriptionIsCompleted){
     l('detected that completed')
 
     let localProcessingData = await fs.readFile(processingJsonFile);
@@ -365,31 +410,30 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
     const originalFileExtension = path.parse(localProcessingData.directorySafeFileNameWithExtension).ext;
 
-    // TODO: add all the names here, and do the nice path
+    // update processing.data.json
+    // TODO: bug here, could overwrite better data
     await createOrUpdateProcessingData(processingJsonFile, {
       status: 'completed',
       ... organizedData.processingData,
       translatedLanguages: [],
       originalFileExtension // who do I have to do this
-
     })
 
-    // TODO: .websocket should be renamed to .websocketConnection
-    function getWebsocketConnectionByNumberToUse(numberToUse){
-      return (global.webSocketData.find(connection => connection.websocketNumber === numberToUse)).websocket
-    }
-
+    // get the websocket connection for relevant upload
     const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
 
-    // tell frontend upload is done
-    websocketConnection.send(JSON.stringify({
-      status: 'Completed',
-      urlSrt: srtPath,
-      urlVtt: vttPath,
-      urlTxt: txtPath,
-      filename: localProcessingData.fileSafeNameWithDateTimestamp,
-      // detailsString: outputText // implement later
-    }), function () {});
+    //
+    if(websocketConnection && websocketConnection.readyState === WebSocket.OPEN){
+      // tell frontend upload is done
+      websocketConnection.send(JSON.stringify({
+        status: 'Completed',
+        urlSrt: srtPath,
+        urlVtt: vttPath,
+        urlTxt: txtPath,
+        filename: localProcessingData.fileSafeNameWithDateTimestamp,
+        // detailsString: outputText // implement later
+      }), function () {});
+    }
 
     // for(const translatedLanguage of translatedLanguages){
     //   await createTranslatedVtts({ path, language, value })
@@ -416,33 +460,19 @@ async function checkLatestData(dataEndpoint, latestProgress){
       status: 'completed'
       // TODO: attach all the data
     }
-  } else {
-
-    // TODO: ACTUALLY DETECT THIS PROPERLY
-
+  } else if(transcriptionFailed){
+    l('detected that failed')
+    // TODO: throw an error here instead
     await createOrUpdateProcessingData(processingJsonFile, {
-      // TODO: just copy existing processingData
-      status: 'processing',
-      // TODO: pass progress as a parameter to the function
+      status: 'failed'
     })
-
-    // PASS LATEST PROGRESS OUT
-
+    throw new Error('Transcription failed from remote call')
 
 
-    // update local processing.data.json
-    // TODO: SEND OUT ALERT TO FRONTEND VIA WEBSOCKET
-    // DETECT WHETHER IT'S A CHANGE FROM LAST
-
-    // not done yet
-    // if(percentDone > latestProgress){
-    //   sendLatestData(data, numberToUse);
-    // }
-
-
-    l('detected that processing')
-    await delayPromise(delayInMillisecondsBetweenChecks);
-    return await checkLatestData(dataEndpoint, latestProgress);
+    // WHEN TRANSCRIPTION COMPLETED
+  }else {
+    l('UNDETECTED STATUS TYPE')
+    l()
   }
 }
 

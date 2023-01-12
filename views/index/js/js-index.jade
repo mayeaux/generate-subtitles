@@ -329,17 +329,26 @@ script.
 
     const downloadingIsFinished = message === 'downloadingFinished';
 
+    const progressData = status === 'progress';
+
+    progressData && handleProgressData({ data, circleProgress })
+
+    // download info (what is this?)
     isDownloadingInfo && renderDownloadInfo({data , circleProgress });
 
+    // finished download
     downloadingIsFinished && loadAjax({circleProgress})
 
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
+    // queue information
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
 
+    // transcription starting
     transcriptionIsStarting && renderStartingFeedback({ data, circleProgress });
 
+    // file details
     isFileDetailsMessage && renderFileDetails(data);
 
     //- updates about translations on backend

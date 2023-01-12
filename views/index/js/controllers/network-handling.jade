@@ -179,6 +179,16 @@ script.
 
   let latestProgress, globalTimeRemaining, myUploadStarted = false;
 
+  const handleProgressData = ({data, circleProgress}) => {
+
+    const { percentDone } = data;
+
+    circleProgress.attr({
+      max: 100,
+      value: percentDone,
+    });
+  }
+
   const renderProcessingFeedback = ({data, hitTheBackend}) => {
     l('websocket data');
     let loopStarted;

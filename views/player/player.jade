@@ -35,8 +35,8 @@ block content
             a(download href=`${filePathWithoutExtension}.srt`) Download
           .vttLinks.links
             span VTT (#{processingData.language})
-            a(href=`${filePathWithoutExtension}.vtt`) View
-            a(download href=`${filePathWithoutExtension}.vtt`) Download
+            a(href=vttFilePath) View
+            a(download href=vttFilePath) Download
           .txtLinks.links
             span TXT (#{processingData.language})
             a(href=`${filePathWithoutExtension}.txt`) View
@@ -281,6 +281,7 @@ block content
           })
         }, 200)
       });
+
     include js/secondCaptions
     include js/captionsDisplay
     include js/videoProgress
