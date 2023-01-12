@@ -77,7 +77,7 @@ router.get('/learnserbian', async function (req, res, next) {
     l(files);
 
     files = files.filter(function (file) {
-      return file.processingData.translatedLanguages.length;
+      return file.processingData.targetLanguages.length;
     });
 
     // TODO: finishedAT is misspelled

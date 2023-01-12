@@ -331,9 +331,10 @@ script.
 
   const renderCompletionFeedback = ({data}) => {
     const {
-      filename, processingTime, language, model, upload, uploadDuration, processingRatio, startedAt, finishedAt, isAutoDetected = false
+      filename, processingTime, language, model, upload, uploadDuration, processingRatio, startedAt, finishedAt, isAutoDetected = false,
+      fileSafeNameWithDateTimestamp,
     } = data;
-    l({finishedAt});
+    l({data});
     l('completed data');
     if (window.decrementInterval) clearInterval(window.decrementInterval);
     $('#latestData').html(`Congratulations, you're done!`);
@@ -355,7 +356,7 @@ script.
     $('#startNewUpload').hide();
     // redirect to the player page
     // 2 seconds to let the user see the completion message
-    setTimeout(() => window.location.href = `/player/${data.filename}`, 2000);
+    setTimeout(() => window.location.href = `/player/${fileSafeNameWithDateTimestamp}`, 2000);
   }
 
   const renderError = data => {

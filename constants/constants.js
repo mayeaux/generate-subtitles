@@ -68,7 +68,7 @@ const translationLanguages = [
   {'code':'uk','name':'Ukranian'}
 ];
 
-const languagesToTranslateTo = [
+const targetLanguages = [
   // {"code":"ar","name":"Arabic"}, // haven't got these two to work
   // {"code":"zh","name":"Chinese"}, // webvtt format is too broken after translate
   {'code':'en','name':'English'},
@@ -99,7 +99,7 @@ const languagesToTranscribe = [
 // }
 
 function shouldTranslateFrom (languageName) {
-  return languagesToTranslateTo.includes(languageName);
+  return targetLanguages.includes(languageName);
 }
 
 let newLanguagesMap = [];
@@ -136,6 +136,6 @@ module.exports = {
   newLanguagesMap,
   allLanguages,
   modelsArray,
-  languagesToTranslateTo,
+  targetLanguages,
   whisperLanguagesHumanReadableArray
 }

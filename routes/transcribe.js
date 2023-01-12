@@ -12,7 +12,7 @@ const fs = require('fs-extra');
 
 const { downloadFile, getFilename } = require('../downloading/yt-dlp-download');
 const transcribeWrapped = require('../transcribe/transcribe-wrapped');
-const { languagesToTranslateTo } = require('../constants/constants');
+const { targetLanguages } = require('../constants/constants');
 const {forHumansNoSeconds, getamountOfRunningJobs} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
 const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
@@ -252,7 +252,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       // websocket/queue
       websocketConnection,
       websocketNumber,
-      languagesToTranslateTo,
+      targetLanguages,
     }
 
     // l('transcriptionJobItem');

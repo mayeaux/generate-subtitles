@@ -18,6 +18,7 @@ router.get('/player/:filename' , async function (req, res, next) {
     const processDirectory = process.cwd();
 
     const containingFolder = `${processDirectory}/transcriptions/${fileNameWithoutExtension}`
+    l({containingFolder});
 
     const processingDataPath = `${containingFolder}/processing_data.json`;
 
@@ -29,11 +30,11 @@ router.get('/player/:filename' , async function (req, res, next) {
     // l('filePathWithoutExtension')
     // l(filePathWithoutExtension);
 
-    const translatedLanguages = processingData.translatedLanguages;
+    const targetLanguages = processingData.targetLanguages;
 
     // TODO: check that it doesn't include the original language? or it never will?
     const languagesToLoop = newLanguagesMap.filter(function (language) {
-      return translatedLanguages.includes(language.name)
+      return targetLanguages.includes(language.name)
     });
 
     delete processingData.strippedText;
@@ -158,7 +159,7 @@ router.post('/player/:filename/add' , async function (req, res, next) {
 
     await fs.writeFile(newVttPath, reformatted, 'utf-8');
 
-    processingData.translatedLanguages.push(language);
+    processingData.targetLanguages.push(language);
 
     processingData.keepMedia = true;
 

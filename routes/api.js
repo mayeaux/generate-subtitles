@@ -10,7 +10,7 @@ const constants = require('../constants/constants');
 const filenamify = require('filenamify');
 const createTranslatedFiles = require('../translate/translate-files-api');
 const { downloadFileApi, getFilename} = require('../downloading/yt-dlp-download');
-const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
+const { targetLanguages, newLanguagesMap, translationLanguages } = constants;
 const { modelsArray, whisperLanguagesHumanReadableArray } = constants;
 const { writeToProcessingDataFile, createFileNames, makeFileNameSafe } = require('../lib/transcribing');
 
@@ -194,7 +194,7 @@ router.get('/api/:sdHash', async function (req, res, next) {
     const {
       language,
       languageCode,
-      translatedLanguages,
+      targetLanguages,
       status: transcriptionStatus,
       progress
     } = processingData;
@@ -221,11 +221,11 @@ router.get('/api/:sdHash', async function (req, res, next) {
         webVtt: originalVtt
       })
 
-      // for (const translatedLanguage of translatedLanguages) {
-      //   const originalVtt = await fs.readFile(`./transcriptions/${sdHash}/${sdHash}_${translatedLanguage}.vtt`, 'utf8');
+      // for (const languages of targetLanguages) {
+      //   const originalVtt = await fs.readFile(`./transcriptions/${sdHash}/${sdHash}_${targetLanguage}.vtt`, 'utf8');
       //   subtitles.push({
-      //     language: translatedLanguage,
-      //     languageCode: getCodeFromLanguageName(translatedLanguage),
+      //     language: targetLanguage,
+      //     languageCode: getCodeFromLanguageName(targetLanguage),
       //     webVtt: originalVtt
       //   })
       // }

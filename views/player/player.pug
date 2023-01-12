@@ -28,7 +28,7 @@ block content
           a.btn.startAnotherTranscription(href='/') Start Another Transcription
 
           // ORIGINAL LANGUAGE FILES
-          if processingData.translatedLanguages.length > 1
+          if processingData.targetLanguages.length > 1
             span Original Language:
           .srtLinks.links
             span SRT (#{processingData.language})
@@ -43,10 +43,10 @@ block content
             a(download href=`${filePathWithoutExtension}.txt`) Download
 
           // TRANSLATED FILES //
-          if processingData.translatedLanguages.length > 0
+          if processingData.targetLanguages.length > 0
             p#translationsHeader Translations:
           // translated VTT files
-          each language in processingData.translatedLanguages
+          each language in processingData.targetLanguages
             .links
               span VTT (#{language})
               a(href=`${filePathWithoutExtension}_${language}.vtt`) View

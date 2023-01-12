@@ -9,7 +9,7 @@ const {shouldTranslateFrom, languagesToTranscribe, translationLanguages, getLang
 const {forHumans, getamountOfRunningJobs, sendToWebsocket} = require('../helpers/helpers');
 const {formatStdErr} = require('../helpers/formatStdErr');
 const createTranslatedFiles = require('../translate/create-translated-files');
-const {buildWhisperArguments, convertLanguageText, updateFileDetails, removeFromArrayByWsNumber, updateDetectedLanguage} = require('../lib/transcribing');
+const {buildWhisperArguments, convertLanguageText, updateFileDetails, removeFromArrayByWsNumber, updateDetectedLanguage, handleTranslation} = require('../lib/transcribing');
 const {stripOutTextAndTimestamps} = require('../translate/helpers');
 const {updateQueueItemStatus} = require('../queue/queue');
 
@@ -80,8 +80,9 @@ async function transcribe ({
       const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
 
       const fileInfo = {
-        filename: originalFileNameWithExtension,
-        fileExtension: path.parse(originalFileNameWithExtension).ext,
+        filename: directorySafeFileNameWithExtension,
+        fileExtension: path.parse(directorySafeFileNameWithExtension).ext,
+        fileSafeNameWithDateTimestamp,
         fileSizeInMB,
         directoryFileName: directorySafeFileNameWithoutExtension,
         language: language === 'auto-detect' ? 'Auto-Detect' : language,
@@ -145,14 +146,11 @@ async function transcribe ({
           fileInfo.ownershipPerson = ownershipPerson;
           const formattedProgress = formatStdErr(data.toString());
           fileInfo.formattedProgress = formattedProgress;
-
           const {percentDoneAsNumber, percentDone, speed, timeRemaining} = formattedProgress;
           fileInfo.percentDone = percentDoneAsNumber;
           fileInfo.timeRemaining = timeRemaining;
           fileInfo.speed = speed;
-
-          const processingString = timeRemaining ? `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s` : '';
-          fileInfo.processingData = processingString;
+          fileInfo.processingData = timeRemaining ? `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s` : '';
 
           // pass latest data to all the open sockets
           if (websocketConnection.readyState === WebSocket.OPEN) {
@@ -183,8 +181,7 @@ async function transcribe ({
             const originalContainingDir = `./transcriptions/${uploadGeneratedFilename}`;
             
             fileInfo.originalDirectoryAndNewFileName = `${originalContainingDir}/${directorySafeFileNameWithoutExtension}`;
-            
-            l({originalUpload, originalContainingDir, directorySafeFileNameWithExtension});
+            // await fs.move(originalUpload, `${fileSafeNameWithDateTimestamp}`, {overwrite: true});
             await fs.move(originalUpload, `${originalContainingDir}/${directorySafeFileNameWithExtension}`, {overwrite: true});
 
             // turn this to a loop
@@ -229,25 +226,11 @@ async function transcribe ({
             const wordCount = strippedText.split(' ').length;
             fileInfo.wordCount = wordCount;
             const wordsPerMinute = Math.round(wordCount / (uploadDurationInSeconds / 60));
+            fileInfo.wordsPerMinute = wordsPerMinute;
 
             /** TRANSLATION FUNCTIONALITY **/
             if (libreTranslateHostPath, shouldTranslate) {
-              // tell frontend that we're translating now
-              sendToWebsocket(websocketConnection, {
-                languageUpdate: 'Doing translations with LibreTranslate',
-                message: 'languageUpdate'
-              });
-              l('hitting LibreTranslate');
-              fileInfo.translationStarted = true;
-              // hit libretranslate
-              await createTranslatedFiles({
-                directoryAndFileName: fileInfo.originalDirectoryAndNewFileName,
-                language: fileInfo.language,
-                websocketConnection,
-                strippedText: fileInfo.strippedText,
-                timestampsArray: fileInfo.timestampsArray,
-              })
-              fileInfo.translationFinished = true;
+              await handleTranslation(fileInfo, websocketConnection);
             }
 
             // just post-processing, you can return the response
@@ -257,33 +240,17 @@ async function transcribe ({
 
             const processingRatio = (uploadDurationInSeconds/processingSeconds).toFixed(2);
             fileInfo.processingRatio = processingRatio;
-
-            // tell frontend upload is done
-            sendToWebsocket(websocketConnection, {
-              status: 'Completed',
-              urlSrt: srtPath,
-              urlVtt: vttPath,
-              urlTxt: txtPath,
-              ...fileInfo
-            });
+            fileInfo.finishedAt = new Date().toUTCString();
+            fileInfo.status = 'Completed';
 
             const translationStartedAndCompleted = fileInfo.translationStarted && fileInfo.translationFinished;
 
-            let translatedLanguages = [];
             if (translationStartedAndCompleted) {
-              // TODO: this is named wrong, should be languagesToTranslateTo
-              // remove the original language from languagesToTranslateTo
-              translatedLanguages = languagesToTranscribe.filter(e => e !== fileInfo.language);
-              fileInfo.languagesToTranslateTo = translatedLanguages;
+              // remove the original language from targetLanguages
+              fileInfo.targetLanguages = languagesToTranscribe.filter(lang => lang !== fileInfo.language);
             }
 
-            fileInfo.wordsPerMinute = wordsPerMinute;
-            // BUG: undefined on the frontend
-            fileInfo.finishedAt = new Date().toUTCString();
-            l('finishedAt', fileInfo.finishedAt);
-            fileInfo.status = 'Completed';
             l({fileInfo});
-
             // save processing_data.json
             await fs.appendFile(`${originalContainingDir}/processing_data.json`, JSON.stringify(fileInfo), 'utf8');
 
@@ -293,6 +260,15 @@ async function transcribe ({
 
             // remove from global.transcriptions
             global.transcriptions = removeFromArrayByWsNumber(global.transcriptions, websocketNumber);
+
+            // tell frontend upload is done
+            sendToWebsocket(websocketConnection, {
+              status: 'Completed',
+              urlSrt: srtPath,
+              urlVtt: vttPath,
+              urlTxt: txtPath,
+              ...fileInfo
+            });
 
           } else {
             l('FAILED!');
