@@ -152,11 +152,6 @@ async function saveOriginalProcessingDataJson(jobObject){
   await createOrUpdateProcessingData(processingPath, jobObject)
 }
 
-async function runRemoteTranscriptionJob(jobObject){
-  await saveOriginalProcessingDataJson(jobObject)
-  await transcribeViaRemoteApi(jobObject);
-}
-
 /***
  * Allows a frontend to transcribe to via the API of a remote server
  * @param filePath
@@ -167,8 +162,7 @@ async function runRemoteTranscriptionJob(jobObject){
  * @returns {Promise<void>}
  */
 async function transcribeViaRemoteApi({ filePath, language, model, numberToUse, remoteServerApiUrl }){
-  // TODO: save initial processing.json
-
+  // hit backend to start transcription and get data endpoint
   const dataEndpoint = await transcribeRemoteServer({
     pathToAudioFile: filePath, // path to file to send (in future should always be audio)
     numberToUse, // websocket number or auto-generated
@@ -182,47 +176,47 @@ async function transcribeViaRemoteApi({ filePath, language, model, numberToUse, 
   return await checkLatestData(dataEndpoint, remoteServerApiUrl)
 }
 
-function sendLatestData(formattedStdErr, numberToUse){
-  for (let websocket of global.webSocketData ) {
-    const websocketConnection = websocket.websocket;
-    const clientWebsocketNumber = websocket.websocketNumber;
-
-    const websocketFromProcess = numberToUse
-
-    let ownershipPerson = 'others'
-    if (clientWebsocketNumber === websocketFromProcess) {
-      ownershipPerson = 'you'
-    }
-
-    const formattedProgress = formattedStdErr
-
-    // we don't have the progress string, maybe pass it?
-    const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
-
-    let processingString = '';
-    if (timeRemaining) {
-      processingString = `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s`
-    }
-    l(processingString)
-
-    // TODO: pull into function
-    // pass latest data to all the open sockets
-    if (websocketConnection.readyState === WebSocket.OPEN) {
-      /** websocketData message **/
-      // TODO: only relevant to websocket that are in queue and involved people
-      websocketConnection.send(JSON.stringify({
-        message: 'websocketData',
-        processingData: processingString,
-        // processingData: data.toString(),
-        ownershipPerson,
-        formattedProgress,
-        percentDone: percentDoneAsNumber,
-        timeRemaining,
-        speed,
-      }));
-    }
-  }
-}
+// function sendLatestData(formattedStdErr, numberToUse){
+//   for (let websocket of global.webSocketData ) {
+//     const websocketConnection = websocket.websocket;
+//     const clientWebsocketNumber = websocket.websocketNumber;
+//
+//     const websocketFromProcess = numberToUse
+//
+//     let ownershipPerson = 'others'
+//     if (clientWebsocketNumber === websocketFromProcess) {
+//       ownershipPerson = 'you'
+//     }
+//
+//     const formattedProgress = formattedStdErr
+//
+//     // we don't have the progress string, maybe pass it?
+//     const { percentDoneAsNumber, percentDone, speed, timeRemaining  } = formattedProgress;
+//
+//     let processingString = '';
+//     if (timeRemaining) {
+//       processingString = `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s`
+//     }
+//     l(processingString)
+//
+//     // TODO: pull into function
+//     // pass latest data to all the open sockets
+//     if (websocketConnection.readyState === WebSocket.OPEN) {
+//       /** websocketData message **/
+//       // TODO: only relevant to websocket that are in queue and involved people
+//       websocketConnection.send(JSON.stringify({
+//         message: 'websocketData',
+//         processingData: processingString,
+//         // processingData: data.toString(),
+//         ownershipPerson,
+//         formattedProgress,
+//         percentDone: percentDoneAsNumber,
+//         timeRemaining,
+//         speed,
+//       }));
+//     }
+//   }
+// }
 
 
 
@@ -304,20 +298,14 @@ function parseData(dataResponse, latestProgress) {
 }
 
 async function createOriginalTxt({ txtPath, txtData }){
-  const options = {
-    overwrite: true,
-    encoding: 'utf8'
-  }
   fs.writeFileSync(txtPath, txtData, options);
 }
 
 async function createOriginalVtt({ vttPath, vttData }){
-  const options = {
-    overwrite: true,
-    encoding: 'utf8'
-  }
   fs.writeFileSync(vttPath, vttData, options);
 }
+
+const delayInMillisecondsBetweenChecks = 5000;
 
 // check repeatedly and return when completed or failed
 async function checkLatestData(dataEndpoint, latestProgress){
@@ -326,8 +314,6 @@ async function checkLatestData(dataEndpoint, latestProgress){
   // get target progress here
   // parse and analyze data
   let organizedData = parseData(dataResponse);
-
-
 
   l('response data');
   l(organizedData);
@@ -354,12 +340,15 @@ async function checkLatestData(dataEndpoint, latestProgress){
   } else if(organizedData.status === 'completed'){
     l('detected that completed')
 
-    const originalFileNameWithoutExtension = organizedData.processingData.directorySafeFileNameWithoutExtension;
-    const originalFileName = organizedData.processingData.directorySafeFileNameWithExtension
+    let localProcessingData = await fs.readFile(processingJsonFile);
+    localProcessingData = JSON.parse(localProcessingData);
+
+    const originalFileNameWithoutExtension = localProcessingData.directorySafeFileNameWithoutExtension;
+    const originalFileName = localProcessingData.directorySafeFileNameWithExtension
 
     const { srtData, vttData, txtData } = organizedData;
 
-    const numberToUse = organizedData.processingData.numberToUse
+    const numberToUse = localProcessingData.numberToUse
 
     const directoryBasedOnNumber = `${transcriptionDir}/${numberToUse}`;
 
@@ -374,7 +363,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
     await createOriginalVtt({ vttPath, vttData })
     await createOriginalTxt({ txtPath, txtData })
 
-    const originalFileExtension = path.parse(organizedData.processingData.directorySafeFileNameWithExtension).ext;
+    const originalFileExtension = path.parse(localProcessingData.directorySafeFileNameWithExtension).ext;
 
     // TODO: add all the names here, and do the nice path
     await createOrUpdateProcessingData(processingJsonFile, {
@@ -385,6 +374,23 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
     })
 
+    // TODO: .websocket should be renamed to .websocketConnection
+    function getWebsocketConnectionByNumberToUse(numberToUse){
+      return (global.webSocketData.find(connection => connection.websocketNumber === numberToUse)).websocket
+    }
+
+    const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
+
+    // tell frontend upload is done
+    websocketConnection.send(JSON.stringify({
+      status: 'Completed',
+      urlSrt: srtPath,
+      urlVtt: vttPath,
+      urlTxt: txtPath,
+      filename: localProcessingData.fileSafeNameWithDateTimestamp,
+      // detailsString: outputText // implement later
+    }), function () {});
+
     // for(const translatedLanguage of translatedLanguages){
     //   await createTranslatedVtts({ path, language, value })
     // }
@@ -392,7 +398,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
     // to-do: rename to the nice name with timestamp
     // await changeFolderName()
 
-    const directorySafeFileNameWithExtension = organizedData.processingData.directorySafeFileNameWithExtension;
+    const directorySafeFileNameWithExtension = localProcessingData.directorySafeFileNameWithExtension;
 
     const mediaFile = `${directoryBasedOnNumber}/${numberToUse}`
 
@@ -400,7 +406,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
     await fs.move(mediaFile, newMediaFile, options)
 
-    const newDirectoryName = organizedData.processingData.fileSafeNameWithDateTimestamp
+    const newDirectoryName = localProcessingData.fileSafeNameWithDateTimestamp
 
     const renamedDirectory = `${transcriptionDir}/${newDirectoryName}`
 
@@ -428,16 +434,24 @@ async function checkLatestData(dataEndpoint, latestProgress){
     // TODO: SEND OUT ALERT TO FRONTEND VIA WEBSOCKET
     // DETECT WHETHER IT'S A CHANGE FROM LAST
 
-
-    if(percentDone > latestProgress){
-      sendLatestData(data, numberToUse);
-    }
+    // not done yet
+    // if(percentDone > latestProgress){
+    //   sendLatestData(data, numberToUse);
+    // }
 
 
     l('detected that processing')
-    await delayPromise(5000);
+    await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
   }
+}
+
+async function runRemoteTranscriptionJob(jobObject){
+  // save original processing, maybe not the best place to do it
+  await saveOriginalProcessingDataJson(jobObject)
+
+  // hit remote endpoint to start, and then continually get to check
+  await transcribeViaRemoteApi(jobObject);
 }
 
 const delayPromise = (delayTime) => {
@@ -447,6 +461,7 @@ const delayPromise = (delayTime) => {
     }, delayTime);
   });
 };
+
 
 module.exports = runRemoteTranscriptionJob;
 

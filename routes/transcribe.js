@@ -213,6 +213,14 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     // pass ip to queue
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
 
+    const numberToUse = websocketNumber;
+
+    const newUploadLocation = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`
+
+    await fs.move(uploadedFilePath, newUploadLocation);
+
+    uploadedFilePath = newUploadLocation;
+
     // allow admin to see items in the queue
     addItemToQueue({
       model,

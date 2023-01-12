@@ -47,6 +47,10 @@ function sendToWebsocket (websocketConnection, data) {
   websocketConnection.send(JSON.stringify(data), function () {});
 }
 
+function webSocketIsStillAlive(webSocketNumber) {
+  return global.webSocketData.some(item => item.websocketNumber === webSocketNumber);
+}
+
 async function transcribe ({
   uploadedFilePath,
   language,
@@ -58,7 +62,7 @@ async function transcribe ({
   originalFileNameWithExtension,
   fileSafeNameWithDateTimestamp,
   fileSafeNameWithDateTimestampAndExtension,
-  uploadGeneratedFilename,
+  uploadGeneratedFilename, // TODO: change to number to use
   shouldTranslate,
   uploadDurationInSeconds,
   fileSizeInMB,
@@ -69,26 +73,26 @@ async function transcribe ({
 }) {
   return new Promise(async (resolve, reject) => {
 
-    function webSocketIsStillAlive(webSocketNumber) {
-      return global.webSocketData.some(item => item.websocketNumber === webSocketNumber);
-    }
-
-    // if the upload was removed from the queue, don't run it
-    if (webSocketIsStillAlive(websocketNumber) === false) {
-      l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
-      // if they're not in the queue, cut them off
-      // TODO: change to reject?
-      updateQueueItemStatus(websocketNumber, 'abandoned');
-      return reject('WEBSOCKET DISCONNECTED');
-    }
-
     try {
 
+      // if the upload was removed from the queue, don't run it
+      if (webSocketIsStillAlive(websocketNumber) === false) {
+        l('DIDNT HAVE THE QUEUE DATA MATCH, ABORTING');
+        // if they're not in the queue, cut them off
+        // TODO: change to reject?
+        updateQueueItemStatus(websocketNumber, 'abandoned');
+        return reject('WEBSOCKET DISCONNECTED');
+      }
+
+      // TODO: copy to API
       // inform frontend their processing has started
       sendToWebsocket(websocketConnection, {
         message: 'starting',
         text: 'Whisper initializing, updates to come...'
       })
+
+      // TODO: copy for API
+      // update for local queue item that now processing
       updateQueueItemStatus(websocketNumber, 'processing');
 
       // fixes bug with windows
@@ -98,10 +102,13 @@ async function transcribe ({
       // the ugly generated file id made the during the upload (for moving the upload over)
       let uploadFolderFileName = uploadedFilePath.split(osSpecificPathSeparator).pop();
 
+      // original upload
       const originalUpload = `./uploads/${uploadFolderFileName}`;
 
+      //
       const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
 
+      //
       const fileDetailsJSON = {
         filename: directorySafeFileNameWithExtension,
         language,
@@ -110,6 +117,7 @@ async function transcribe ({
         uploadDurationInSecondsHumanReadable,
       }
 
+      // TODO: copy detect language
       let displayLanguage;
       if (language === 'auto-detect') {
         displayLanguage = 'Auto-Detect';
@@ -125,6 +133,8 @@ async function transcribe ({
             Upload Duration: ${uploadDurationInSecondsHumanReadable}
       `.replace(/^ +/gm, ''); // remove indentation
 
+
+      // TODO: move to API
       // update filedetails
       websocketConnection.send(JSON.stringify({
         message: 'fileDetails',
@@ -135,6 +145,7 @@ async function transcribe ({
       // queue up arguments, path is the first one
       let arguments = [uploadedFilePath];
 
+      // dont add language if using auto-detect
       const languageIsAutoDetect = language === 'auto-detect';
 
       // don't pass a language to use auto-detect
@@ -145,16 +156,6 @@ async function transcribe ({
       // set the language for whisper (if undefined with auto-detect and translate off that)
       if (model) {
         arguments.push('--model', model);
-      }
-
-      // alternate
-      // todo: do an 'express' queue and a 'large files' queue
-      if (isProd && multipleGpusEnabled) {
-        if (topLevelValue === 1) {
-          arguments.push('--device', 'cuda:0');
-        } else if (topLevelValue === 2) {
-          arguments.push('--device', 'cuda:1');
-        }
       }
 
       // dont show the text output but show the progress thing

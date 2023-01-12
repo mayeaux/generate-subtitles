@@ -12,18 +12,18 @@ const transcribeRemoteServer = require('../scripts/postAudioFile');
 const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
 
 
-const remoteServerData = [{
-  endpoint: 'http://localhost:3002/api',
-  maxConcurrentJobs: 2,
-}]
-
 // const remoteServerData = [{
-//   endpoint: 'http://31.12.82.146:11460/api',
-//   maxConcurrentJobs: 3,
-// },{
 //   endpoint: 'http://localhost:3002/api',
 //   maxConcurrentJobs: 2,
 // }]
+
+const remoteServerData = [{
+  endpoint: 'http://31.12.82.146:11460/api',
+  maxConcurrentJobs: 3,
+},{
+  endpoint: 'http://localhost:3002/api',
+  maxConcurrentJobs: 2,
+}]
 
 // const remoteServerData = [{
 //   endpoint: 'http://localhost:3002/api',
@@ -114,19 +114,49 @@ global.webSocketData = [];
 
 const serverType = process.env.SERVER_TYPE || 'both';
 
+l(serverType)
+
 function determineTranscribeFunctionToUse(jobObject){
   const { websocketNumber, apiToken } = jobObject;
 
-  if(serverType === 'frontend'){
-    l('using transcribeRemoteServer');
+  // don't process locally
+  const serverIsFrontend = serverType === 'frontend';
+
+  // process locally and have an API
+  const serverIsBoth = 'both';
+
+  // only have an API (dumb backend)
+  const serverIsTranscribe = 'transcribe';
+
+  if(serverIsFrontend){
+    // server should act as frontend, and not generate subtitles with this instance
+    // transcribe with remote server
     return transcribeRemoteServer;
-  } else if (serverType === 'both'){
+
+    // when people hit this route, it just checks status via get and saves it
+    // and then when it's done, it sets up the files and acts as the frontend
+
+  // server should act as both frontend (/file) and API (/api)
+  } else if(serverIsBoth){
+
+    // if apiToken is present, then use that API
     if(apiToken){
-      l('using transcribeApiWrapped');
       return transcribeApiWrapped;
+    } else {
+      // local transcription tied with websocket
+      return transcribeWrapped
     }
-    l('using transcribeWrapped');
-    return transcribeWrapped;
+
+  // server should act as transcribe
+  } else if(serverIsTranscribe){
+
+    // only offer the API
+    return transcribeApiWrapped;
+
+  } else {
+    l('WRONG SERVER TYPE, DEFAULT TO ');
+    // default to transcribe api
+    return transcribeApiWrapped;
   }
 }
 

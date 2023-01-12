@@ -1,10 +1,7 @@
 const which = require('which');
 const spawn = require('child_process').spawn;
 const { handleStdErr, handleStdOut, handleProcessClose } = require('../lib/transcribing')
-
-const {
-  buildArguments,
-} = require('./transcribing');
+const { buildArguments } = require('../lib/other-transcribing');
 
 l = console.log;
 
