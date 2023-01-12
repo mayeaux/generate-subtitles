@@ -13,7 +13,7 @@ const fs = require('fs-extra');
 const { downloadFile, getFilename } = require('../downloading/yt-dlp-download');
 const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 const { targetLanguages } = require('../constants/constants');
-const {forHumansNoSeconds, getamountOfRunningJobs} = require('../helpers/helpers');
+const {forHumansNoSeconds, getamountOfRunningJobs, sendToWebsocket, generateRandomNumber} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
 const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
 const {addToJobProcessOrQueue} = require('../queue/newQueue');
@@ -46,46 +46,27 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const pathname = urlObject.pathname;
     const isYtdlp = pathname === '/ytdlp';
 
-    l('isYtdlp');
-    l(isYtdlp);
+    l({isYtdlp});
 
     let language = req.body.language;
-    let model = req.body.model;
-    const websocketNumber = req.body.websocketNumber;
     const shouldTranslate = req.body.shouldTranslate === 'true';
-    const downloadLink = req.body.downloadLink;
-    const { user, skipToFront, uploadTimeStarted } = req.body
+    const {model, websocketNumber, downloadLink, user, skipToFront, uploadTimeStarted} = req.body;
 
     const passedFile = req.file;
     let downloadedFile = false;
+    let filename;
 
     const uploadTimeFinished = new Date();
 
-    // this shouldn't happen but there's some sort of frontend bug
-    if (!language || language === 'undefined' || language === 'Auto-Detect') {
-      language = 'auto-detect';
-    }
-
-    // make the model medium by default
-    if (!model) {
-      model = 'medium';
-    }
-
-    if (model === 'tiny.en' || model === 'base.en' || model === 'small.en' || model === 'medium.en') {
+    if (/\.en$/.test(model)) {
       language = 'English'
     }
 
-    let filename;
-
-    l(downloadLink);
-
-    function matchByWebsocketNumber (item) {
-      return item.websocketNumber === websocketNumber;
-    }
+    l({downloadLink});
 
     // websocket number is pushed when it connects on page load
     // l(global.webSocketData);
-    const websocket = global.webSocketData.find(matchByWebsocketNumber)
+    const websocket = global.webSocketData.find(item => item.websocketNumber === websocketNumber);
     if (websocket) {
       websocketConnection = websocket.websocket;
     } else {
@@ -93,32 +74,25 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     }
 
     let originalFileNameWithExtension, uploadedFilePath, uploadGeneratedFilename;
+    
     if (passedFile) {
-      originalFileNameWithExtension = req.file.originalname;
-      uploadedFilePath = req.file.path;
-      uploadGeneratedFilename = req.file.filename;
-      l('uploadedFilePath');
-      l(uploadedFilePath);
+      originalFileNameWithExtension = passedFile.originalname;
+      uploadedFilePath = passedFile.path;
+      uploadGeneratedFilename = passedFile.filename;
+      l({uploadedFilePath});
     } else if (downloadLink) {
-
-      websocketConnection.send(JSON.stringify({
+      sendToWebsocket(websocketConnection, {
         message: 'downloadInfo',
         fileName: downloadLink,
         percentDownloaded: 0,
-      }), function () {});
-
-      // TODO: not the world's greatest implemention
-      function generateRandomNumber () {
-        return Math.floor(Math.random() * 10000000000).toString();
-      }
+      });
 
       const randomNumber = generateRandomNumber();
 
       filename =  await getFilename(downloadLink);
       // remove linebreaks, this was causing bugs
       filename = filename.replace(/\r?\n|\r/g, '');
-      l('filename');
-      l(filename);
+      l({filename});
       uploadGeneratedFilename = filename;
       originalFileNameWithExtension = filename;
       const baseName = path.parse(filename).name;
@@ -145,8 +119,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       // ERROR
     }
 
-    l('uploadedFilePath');
-    l(uploadedFilePath);
+    l({uploadedFilePath});
 
     // get upload duration
     const ffprobeResponse = await ffprobe(uploadedFilePath, { path: ffprobePath });

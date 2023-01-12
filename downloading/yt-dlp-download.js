@@ -3,6 +3,7 @@ const spawn = require('child_process').spawn;
 const fs = require('fs-extra');
 const projectConstants = require('../constants/constants');
 const {formatStdErr} = require('../helpers/formatStdErr');
+const { generateRandomNumber } = require('../helpers/helpers');
 
 // yt-dlp --no-mtime -f '\''bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'\''
 
@@ -246,10 +247,6 @@ async function getFilename (videoUrl) {
 }
 
 const testUrl = 'https://www.youtube.com/watch?v=wnhvanMdx4s';
-
-function generateRandomNumber () {
-  return Math.floor(Math.random() * 10000000000).toString();
-}
 
 const randomNumber = generateRandomNumber();
 

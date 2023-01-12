@@ -52,8 +52,6 @@ function forHumansHoursAndMinutes ( seconds ) {
   return returntext.trim();
 }
 
-
-
 const decrementBySecond = timeRemainingValues => {
   let {secondsRemaining, minutesRemaining, hoursRemaining} = timeRemainingValues;
 
@@ -95,6 +93,9 @@ const sendToWebsocket = (websocketConnection, data) => {
   websocketConnection.send(JSON.stringify(data), function () {});
 }
 
+// TODO: not the world's greatest implemention
+const generateRandomNumber = () => Math.floor(Math.random() * 10_000_000_000).toString();
+
 module.exports = {
   forHumans,
   forHumansNoSeconds,
@@ -102,4 +103,5 @@ module.exports = {
   forHumansHoursAndMinutes,
   getamountOfRunningJobs,
   sendToWebsocket,
+  generateRandomNumber,
 }

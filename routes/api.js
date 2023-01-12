@@ -13,13 +13,9 @@ const { downloadFileApi, getFilename} = require('../downloading/yt-dlp-download'
 const { targetLanguages, newLanguagesMap, translationLanguages } = constants;
 const { modelsArray, whisperLanguagesHumanReadableArray } = constants;
 const { writeToProcessingDataFile, createFileNames, makeFileNameSafe } = require('../lib/transcribing');
+const { generateRandomNumber } = require('../helpers/helpers');
 
 const l = console.log;
-
-// generate random 10 digit number
-function generateRandomNumber () {
-  return Math.floor(Math.random() * 10000000000).toString();
-}
 
 const storage = multer.diskStorage({ // notice  you are calling the multer.diskStorage() method here, not multer()
   destination: function (req, file, cb) {
@@ -31,6 +27,7 @@ let upload = multer({ storage });
 
 router.post('/api', upload.single('file'), async function (req, res, next) {
   try {
+    l('post request to /api')
     // fix body data
     const postBodyData = Object.assign({},req.body)
 
