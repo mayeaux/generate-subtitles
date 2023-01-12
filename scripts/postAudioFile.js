@@ -451,6 +451,12 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
     const { directorySafeFileNameWithoutExtension, directorySafeFileNameWithExtension } = localProcessingData
 
+    // clone the vtt to _$language anyways
+    await createOriginalVtt({
+      vttPath: `${directoryBasedOnNumber}/${directorySafeFileNameWithoutExtension}_${language}.vtt`,
+      vttData,
+    })
+
     if(organizedData.processingData.translatedFiles?.length){
       await createTranslatedVtts({
         prependPath: `${directoryBasedOnNumber}/${directorySafeFileNameWithoutExtension}`,

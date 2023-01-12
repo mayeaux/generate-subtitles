@@ -49,8 +49,8 @@ router.get('/player/:timestampedFileName' , async function (req, res, next) {
     // l('processing data');
     // l(processingData);
     //
-    // l('languages to loop');
-    // l(languagesToLoop);
+    l('languages to loop');
+    l(languagesToLoop);
 
     let allLanguages = languagesToLoop.slice();
 
@@ -62,6 +62,8 @@ router.get('/player/:timestampedFileName' , async function (req, res, next) {
     // l('all languages');
     // l(allLanguages);
 
+
+
     res.render('player/player', {
       filePath: filePathWithoutExtension,
       languages: languagesToTranscribe,
@@ -69,13 +71,14 @@ router.get('/player/:timestampedFileName' , async function (req, res, next) {
       filePathWithoutExtension,
       processingData,
       title: timestampedFileName,
-      languagesToLoop,
+      languagesToLoop: allLanguages,
       allLanguages,
       renderedFilename: timestampedFileName,
       userAuthed,
       password,
       mediaFile,
-      vttFilePath
+      vttFilePath,
+      translatedLanguages
       // vttPath,
       // fileSource
     })

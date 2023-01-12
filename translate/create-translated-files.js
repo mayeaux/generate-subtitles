@@ -57,6 +57,7 @@ async function createTranslatedFiles ({
 
   const translatedFiles = [];
 
+  // TODO: this is misnamed: it's not the languages to transcribe, it's the languages to translate to
   for (const languageToConvertTo of languagesToTranscribe) {
     l('languageToConvertTo');
     l(languageToConvertTo);
@@ -65,6 +66,13 @@ async function createTranslatedFiles ({
     l(language);
 
     try {
+      if(languageToConvertTo === language){
+        l('skipping language');
+        continue;
+      }
+
+
+
       // no need to translate just copy the file
       if (languageToConvertTo !== language) {
 
