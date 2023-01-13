@@ -72,7 +72,9 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l(req.file);
 
     // get language and model
-    const { model, language, downloadLink, apiToken, websocketNumber } = postBodyData;
+    const { model, language, downloadLink, apiToken, websocketNumber, jobObject } = postBodyData;
+
+    const parsedJobObject = JSON.parse(jobObject);
 
     const passedNumberToUse = postBodyData.numberToUse;
 
@@ -156,7 +158,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       language,
       downloadLink,
       filename: originalFileName,
-      apiToken
+      apiToken,
+      ...parsedJobObject
     })
 
     // build endpoint to hit

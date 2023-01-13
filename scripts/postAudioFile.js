@@ -113,7 +113,8 @@ async function transcribeRemoteServer({
   language,
   model,
   numberToUse,
-  fullApiEndpoint
+  fullApiEndpoint,
+  jobObject
 }){
 
   // log input
@@ -137,6 +138,7 @@ async function transcribeRemoteServer({
   form.append('language', language);
   form.append('model', model);
   form.append('numberToUse', numberToUse);
+  form.append('jobObject', JSON.stringify(jobObject))
 
   // model endpoint
   // todo: pass key
@@ -178,7 +180,9 @@ async function saveOriginalProcessingDataJson(jobObject){
  * @param fullApiEndpoint
  * @returns {Promise<void>}
  */
-async function transcribeViaRemoteApi({ filePath, language, model, numberToUse, remoteServerApiUrl }){
+async function transcribeViaRemoteApi(jobObject){
+  const { filePath, language, model, numberToUse, remoteServerApiUrl } = jobObject;
+
   const whereWeWantAudio = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`;
 
   await extraAudioFromVideoIfNeeded({
@@ -194,6 +198,7 @@ async function transcribeViaRemoteApi({ filePath, language, model, numberToUse, 
 
     language, // TODO: support auto-detect
     model, //
+    jobObject
   });
 
   // repeatedly check endpoint until failure/completion
@@ -303,7 +308,28 @@ function parseData(dataResponse, latestProgress) {
 
   // transaction is processing
   if(transcriptionIsProcessing){
-    const percentDone = dataResponse?.processingData?.progress;
+    const { percentDone, timeRemaining, timeElapsed, speed, percentDoneAsNumber } = dataResponse?.processingData?.formattedProgress || {};
+
+    const { string, hoursRemaining, secondsRemaining, } = timeRemaining || {};
+
+    let processingString = '';
+    if (timeRemaining) {
+      processingString = `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s`
+    }
+
+    // formattedProgress: {
+    //   progressBar: '█▍        ',
+    //     percentDone: '14%',
+    //     timeElapsed: '07:38',
+    //     speed: '126.96',
+    //     percentDoneAsNumber: 14,
+    //     timeRemaining: {
+    //     string: '46:28',
+    //       hoursRemaining: 0,
+    //       minutesRemaining: 46,
+    //       secondsRemaining: 28
+    //   }
+    // }
 
     // only do on change, otherwise you push out a new one every 5s
     // sendLatestData(percentDone, numberToUse);
@@ -350,6 +376,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
   let dataResponse = await getNewData(dataEndpoint);
   // get target progress here
   // parse and analyze data
+  // TODO: remove this, just annoying
   let organizedData = parseData(dataResponse);
 
   l('response data');
@@ -511,6 +538,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
     // WHEN TRANSCRIPTION COMPLETED
   }else {
+    // TODO: this shouldn't happen
     l('UNDETECTED STATUS TYPE')
     l(dataResponse)
 

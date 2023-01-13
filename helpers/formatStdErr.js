@@ -36,10 +36,10 @@ function formatStdErr (stdErrData) {
     const secondsRemaining = Number(splitTimeRemaining.pop());
 
     // looks like: '25'
-    const minutesRemaining = Number(splitTimeRemaining.pop());
+    const minutesRemaining = Number(splitTimeRemaining.pop()) || 0;
 
     // looks like: 'NaN'
-    const hoursRemaining = Number(splitTimeRemaining.pop());
+    const hoursRemaining = Number(splitTimeRemaining.pop()) || 0;
 
     // format for lib
     return {

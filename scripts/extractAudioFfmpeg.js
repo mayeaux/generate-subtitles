@@ -47,10 +47,11 @@ function extractAudio (inputVideoPath, outputAudioPath) {
     /** whisper responds with 0 or 1 process code **/
     ffmpegProcess.on('close', (code) => {
       l(`child process exited with code ${code}`);
-      l('extract failed')
       if(code === 0){
+        l('extract audio worked')
         resolve();
       } else {
+        l('extract failed')
         reject()
       }
     });
