@@ -376,8 +376,17 @@ script.
   document.documentElement.ondrop = evt => {
     evt.preventDefault();
     // only add the first file
-    const list = getFirstFile(evt);
-    evt?.dataTransfer?.files
-    ? $('#file').prop('files', list.files)
-    : l('no files found');
+    const firstFile = getFirstFile(evt);
+
+    // get the passed files
+    const passedFiles = evt?.dataTransfer?.files
+
+    // if they exist, add them (they're already trimmed)
+    if(passedFiles?.length > 0){
+      $('#file').prop('files', firstFile.files) // add the files to #file
+      .trigger('change'); // prompt frontend changes (otherwise doesn't happen)
+    } else {
+      l('no files found');
+    }
+
   }

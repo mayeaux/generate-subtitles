@@ -409,6 +409,8 @@ async function checkLatestData(dataEndpoint, latestProgress){
     // get the websocket connection for relevant upload
     const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
 
+    const getProcessingVideo = '';
+
     // TODO: send some better stuff to frontend
     // send progress to relevant frontend (working)
     if(websocketConnection){

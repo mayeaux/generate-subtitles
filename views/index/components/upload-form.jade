@@ -144,6 +144,8 @@ form.form#form
     });
 
     $('#file').change(function () {
+
+      l('noticed change')
       // there was a file present
       if ($('#file')[0]?.files?.length > 0) {
         $('#downloadLink').addClass('file-turned-off');
