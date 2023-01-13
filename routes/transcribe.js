@@ -7,7 +7,7 @@ const multer = require('multer');
 const express = require('express');
 const router = express.Router();
 const which = require('which');
-const ffprobePath = which.sync('ffprobe')
+const ffprobePath = which.sync('ffprobe');
 const fs = require('fs-extra');
 
 const { downloadFile, getFilename } = require('../downloading/yt-dlp-download');
@@ -17,6 +17,7 @@ const {forHumansNoSeconds, getamountOfRunningJobs, sendToWebsocket, generateRand
 const {makeFileNameSafe} = require('../lib/files');
 const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
 const {addToJobProcessOrQueue} = require('../queue/newQueue');
+const {getDurationByMpv} = require('../lib/transcribing');
 
 
 const nodeEnv = process.env.NODE_ENV || 'development';
@@ -125,8 +126,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const ffprobeResponse = await ffprobe(uploadedFilePath, { path: ffprobePath });
 
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
-    const uploadDurationInSeconds = Math.round(audioStream.duration);
-
+    const uploadDurationInSeconds = Math.round(audioStream.duration || await getDurationByMpv(uploadedFilePath));
+    
     const stats = await fs.promises.stat(uploadedFilePath);
     const fileSizeInBytes = stats.size;
     const fileSizeInMB = Number(fileSizeInBytes / 1048576).toFixed(1);
