@@ -13,11 +13,11 @@ const fs = require('fs-extra');
 const { downloadFile, getFilename } = require('../downloading/yt-dlp-download');
 const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 const { targetLanguages } = require('../constants/constants');
-const {forHumansNoSeconds, getamountOfRunningJobs, sendToWebsocket, generateRandomNumber} = require('../helpers/helpers');
+const {getamountOfRunningJobs, sendToWebsocket, generateRandomNumber} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
 const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
 const {addToJobProcessOrQueue} = require('../queue/newQueue');
-const {getDurationByMpv} = require('../lib/transcribing');
+const {getDurationByMpv, throwOffLimitsErrors} = require('../lib/transcribing');
 
 
 const nodeEnv = process.env.NODE_ENV || 'development';
@@ -127,59 +127,44 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
     const uploadDurationInSeconds = Math.round(audioStream.duration || await getDurationByMpv(uploadedFilePath));
-    
+
     const stats = await fs.promises.stat(uploadedFilePath);
     const fileSizeInBytes = stats.size;
     const fileSizeInMB = Number(fileSizeInBytes / 1048576).toFixed(1);
 
     // TODO: pull out into a function
     // error if on FS and over file size limit or duration limit
-    const domainName = req.hostname;
 
-    const isFreeSubtitles = domainName === 'freesubtitles.ai';
+    const isFreeSubtitles = req.hostname === 'freesubtitles.ai';
     if (isFreeSubtitles && !isYtdlp) {
-
-      const amountOfSecondsInHour = 60 * 60;
-      if (uploadDurationInSeconds > amountOfSecondsInHour) {
-        const uploadLengthErrorMessage = `Your upload length is ${forHumansNoSeconds(uploadDurationInSeconds)}, but currently the maximum length allowed is only 1 hour`;
-        return res.status(400).send(uploadLengthErrorMessage);
-      }
-      if (fileSizeInMB > uploadLimitInMB) {
-        const uploadSizeErrorMessage = `Your upload size is ${fileSizeInMB} MB, but the maximum size currently allowed is ${uploadLimitInMB} MB.`;
-        return res.status(400).send(uploadSizeErrorMessage);
-      }
+      throwOffLimitsErrors(res, uploadDurationInSeconds, fileSizeInMB);
     }
 
     // TODO: pull into its own function
     /** WEBSOCKET FUNCTIONALITY **/
     // load websocket by passed number
 
-
     const currentlyRunningJobs = getamountOfRunningJobs();
     const amountInQueue = global.newQueue.length
     const totalOutstanding = currentlyRunningJobs + amountInQueue - maxConcurrentJobs + 1;
 
-    l('totaloutstanding');
-    l(totalOutstanding);
+    l({totalOutstanding});
 
     /** WEBSOCKET FUNCTIONALITY END **/
 
-    const originalFileExtension = path.parse(originalFileNameWithExtension).ext;
-    const originalFileNameWithoutExtension = path.parse(originalFileNameWithExtension).name;
+    const {ext: fileExtension, name: fileNameNoExtension} = path.parse(originalFileNameWithExtension);
 
     // directory name
-    const directorySafeFileNameWithoutExtension = makeFileNameSafe(originalFileNameWithoutExtension)
+    const directorySafeFileNameWithoutExtension = makeFileNameSafe(fileNameNoExtension);
 
     // used for the final media resting place
-    const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${originalFileExtension}`
+    const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${fileExtension}`;
 
     const timestampString = moment(new Date()).format('DD-MMMM-YYYY_HH_mm_ss');
 
-    const separator = '--'
+    const fileSafeNameWithDateTimestamp = `${directorySafeFileNameWithoutExtension}--${timestampString}`;
 
-    const fileSafeNameWithDateTimestamp = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}`;
-
-    const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}${separator}${timestampString}${originalFileExtension}`;
+    const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}--${timestampString}${fileExtension}`;
 
     // pass ip to queue
     const ip = req.headers['x-forwarded-for'] ||
@@ -208,6 +193,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       uploadedFilePath,
       language,
       model,
+      fileExtension,
       directorySafeFileNameWithoutExtension,
       directorySafeFileNameWithExtension,
       originalFileNameWithExtension,

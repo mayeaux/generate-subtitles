@@ -28,6 +28,8 @@ async function transcribe ({
   model,
   websocketConnection,
   websocketNumber,
+  fileNameNoExtension,
+  fileExtension,
   directorySafeFileNameWithoutExtension,
   directorySafeFileNameWithExtension,
   originalFileNameWithExtension,
@@ -76,7 +78,8 @@ async function transcribe ({
 
       const fileInfo = {
         filename: directorySafeFileNameWithExtension,
-        fileExtension: path.parse(directorySafeFileNameWithExtension).ext,
+        fileNameNoExtension,
+        fileExtension,
         fileSafeNameWithExt: directorySafeFileNameWithExtension,
         fileSafeNameWithDateTimestamp,
         fileSizeInMB,
