@@ -16,7 +16,7 @@ router.get('/files', async function (req, res, next) {
       const dir = './transcriptions';
 
       //
-      let files = await getAllDirectories('./transcriptions');
+      let files = await getAllDirectories(`${process.cwd()}/transcriptions`);
 
       // log files length
       l('files length');
@@ -26,11 +26,25 @@ router.get('/files', async function (req, res, next) {
       // TODO: what other things to match against?
       files = await getMatchingFiles({ dir, files, language, keepMedia });
 
-      files = _.orderBy(files, (file) => new Date(file.processingData.finishedAT), 'desc');
+      files = _.orderBy(files, (file) => new Date(file.processingData.finishedAt), 'desc');
 
       // // log files length
-      // l('files length');
-      // l(files.length);
+      l('files length');
+      l(files.length);
+
+      "Maybe just say there is 1 person in front of you"
+
+      // 4 open processes
+      // 4 jobs running
+      // 5 in queue
+
+      // 1.25 people ahead of you
+      // decrement it when it changes as a multiple?
+
+      // Have to try: 7 people in front of you, 6 jobs running at once
+
+      // Imagine it's like 'there's 1000 people in front of you and 500 jobs running at once'
+
       //
       // files = await sortByModifiedAtTime('./transcriptions');
 

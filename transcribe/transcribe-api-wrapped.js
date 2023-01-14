@@ -2,10 +2,38 @@ const which = require('which');
 const spawn = require('child_process').spawn;
 const { handleStdErr, handleStdOut, handleProcessClose } = require('../lib/transcribing')
 const { buildArguments } = require('../lib/other-transcribing');
+const {forHumans} = require("../helpers/helpers");
+const fs = require("fs-extra");
 
 l = console.log;
 
 const whisperPath = which.sync('whisper')
+
+async function createOrUpdateProcessingData(processingPath, objectToMerge){
+  l('processinGPath');
+  l(processingPath)
+
+  const dataExists = fs.existsSync(processingPath)
+
+  let originalObject;
+  if(dataExists){
+    // read the original JSON file
+    const originalData = fs.readFileSync(processingPath, 'utf8');
+    // parse the JSON string into an object
+    originalObject = JSON.parse(originalData);
+  } else {
+    originalObject = {};
+  }
+
+  // merge the updateObject into originalObject
+  let mergedObject = Object.assign(originalObject, objectToMerge);
+
+//stringify the updated object
+  let updatedData = JSON.stringify(mergedObject);
+
+  fs.writeFileSync(processingPath, updatedData);
+}
+
 
 async function transcribe ({
   language,
@@ -27,9 +55,12 @@ async function transcribe ({
       //
       const processingDataPath = `${processDir}/transcriptions/${numberToUse}/processing_data.json`
 
+      // TODO: pull into function
       // save date when starting to see how long it's taking
-      const startingDate = new Date();
-      l(startingDate);
+      const startedAt = new Date().toUTCString();
+      await createOrUpdateProcessingData(processingDataPath, {
+        startedAt
+      })
 
       const whisperArguments = buildArguments({
         uploadedFilePath: uploadFilePath, // file to use
@@ -40,6 +71,20 @@ async function transcribe ({
 
       l('whisperArguments');
       l(whisperArguments);
+
+      // const thing = {
+      //   processingSeconds,
+      //   processingSecondsHumanReadable: forHumans(processingSeconds),
+      //   upload: uploadFolderFileName, // used?
+      //   uploadDurationInSecondsHumanReadable,
+      //   processingRatio,
+      //   startedAt: startingDate.toUTCString(),
+      //   finishedAT: new Date().toUTCString(),
+      //   status: 'completed',
+      //   wordCount,
+      //   wordsPerMinute,
+      //   characterCount: strippedText.length,
+      // }
 
       // start whisper process
       const whisperProcess = spawn(whisperPath, whisperArguments);

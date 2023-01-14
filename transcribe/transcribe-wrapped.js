@@ -413,6 +413,31 @@ async function transcribe ({
             const wordCount = strippedText.split(' ').length;
             const wordsPerMinute = Math.round(wordCount / (uploadDurationInSeconds / 60));
 
+            function additionalInfo(){
+              const thing = {
+                processingSeconds,
+                processingSecondsHumanReadable: forHumans(processingSeconds),
+                upload: uploadFolderFileName, // used?
+                uploadDurationInSecondsHumanReadable,
+                processingRatio,
+                startedAt: startingDate.toUTCString(),
+                finishedAT: new Date().toUTCString(),
+                status: 'completed',
+                // strippedText,
+                // timestampsArray,
+                wordCount,
+                wordsPerMinute,
+                fileSizeInMB,
+                characterCount: strippedText.length,
+              }
+            }
+
+            // filenames = {};
+            // subtitles = {
+            //   originalLanguage,
+            //   translated,
+            // }
+
             // data to save to processing_data.json
             const fileDetailsObject = {
               filename: originalFileNameWithExtension,
