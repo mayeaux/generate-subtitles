@@ -396,7 +396,6 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
   const transcriptionIsProcessing = status === 'processing'
   const transcriptionIsCompleted = status === 'completed'
-  const transcriptionFailed = status === 'failed'
 
 
   const processingData = dataResponse.processingData;
@@ -424,6 +423,12 @@ async function checkLatestData(dataEndpoint, latestProgress){
   'Whisper has loaded and your transcription has started'
 
   const loadingModel = dataResponse?.status === 'starting-transcription';
+
+  const transcriptionFailed = dataResponse?.status === 'error';
+
+  if(transcriptionFailed){
+    return
+  }
 
   if(loadingModel){
     const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);

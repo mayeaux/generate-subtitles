@@ -16,8 +16,9 @@ const {
   writeToProcessingDataFile,
   createFileNames,
   makeFileNameSafe,
-  getOriginalFilesObject
+  getOriginalFilesObject,
 } = require('../lib/transcribing');
+const cancelProcessByNumberToUse = require('../lib/cancelProcessByNumberToUse');
 const {addToJobProcessOrQueue, amountOfRunningJobs} = require("../queue/newQueue");
 const ffprobe = require("ffprobe");
 const which = require("which");
@@ -47,7 +48,19 @@ const storage = multer.diskStorage({ // notice  you are calling the multer.diskS
   },
 });
 
+
 let upload = multer({ storage });
+
+router.post('/api/:numberToUse/cancel', async (req, res, next) => {
+  try {
+    const { numberToUse } = req.params;
+    await cancelProcessByNumberToUse(numberToUse);
+    res.send('cancelled')
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send({error: `Something went wrong: ${err}`});
+  }
+});
 
 router.post('/api', upload.single('file'), async function (req, res, next) {
   try {
