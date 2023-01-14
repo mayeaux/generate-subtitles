@@ -96,6 +96,7 @@ async function transcribe ({
         user,
         downloadLink,
         processNumber,
+        shouldTranslate,
         translationStarted: false,
         translationFinished: false,
       }

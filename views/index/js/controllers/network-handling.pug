@@ -306,13 +306,14 @@ script.
     // $('#latestData').css("font-size", "20px");
   }
 
-  const renderFileDetails = ({filename, language, model, uploadDuration, isAutoDetected = false}) => {
+  const renderFileDetails = ({filename, language, model, shouldTranslate, uploadDuration, isAutoDetected = false}) => {
     l('file details data');
     const niceDate = new Date().toString().replace(/GMT.*/g, '');
     $('#finishedData').html(`
       <p>Filename: ${filename}</p>
       <p>Language: ${toTitleCase(language)}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
       <p>Model: ${toTitleCase(model)}</p>
+      <p>Translating: ${shouldTranslate ? 'Yes' : 'No'}</p>
       <p>Upload Duration: ${uploadDuration}</p>
       <p>Started At: ${niceDate}</p>
     `);
@@ -334,7 +335,7 @@ script.
 
   const renderCompletionFeedback = ({data}) => {
     const {
-      filename, processingTime, language, model, upload, uploadDuration, processingRatio, startedAt, finishedAt, isAutoDetected = false,
+      filename, processingTime, language, model, shouldTranslate, upload, uploadDuration, processingRatio, startedAt, finishedAt, isAutoDetected = false,
       safeFileNameWithDateTimestamp,
     } = data;
     l({data});
@@ -346,6 +347,7 @@ script.
       <p>Processing Time: ${processingTime}</p>
       <p>Language: ${toTitleCase(language)}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
       <p>Model: ${toTitleCase(model)}</p>
+      <p>Translating: ${shouldTranslate ? 'Yes' : 'No'}</p>
       <p>Upload Name: ${upload}</p>
       <p>Upload Duration: ${uploadDuration}</p>
       <p>Processing Ratio: ${processingRatio}</p>
