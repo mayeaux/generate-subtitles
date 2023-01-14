@@ -312,7 +312,7 @@ script.
     $('#finishedData').html(`
       <p>Filename: ${filename}</p>
       <p>Language: ${toTitleCase(language)}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
-      <p>Model: ${model}</p>
+      <p>Model: ${toTitleCase(model)}</p>
       <p>Upload Duration: ${uploadDuration}</p>
       <p>Started At: ${niceDate}</p>
     `);
@@ -345,7 +345,7 @@ script.
       <p>Filename: ${filename}</p>
       <p>Processing Time: ${processingTime}</p>
       <p>Language: ${toTitleCase(language)}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
-      <p>Model: ${model}</p>
+      <p>Model: ${toTitleCase(model)}</p>
       <p>Upload Name: ${upload}</p>
       <p>Upload Duration: ${uploadDuration}</p>
       <p>Processing Ratio: ${processingRatio}</p>
