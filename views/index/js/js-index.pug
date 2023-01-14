@@ -16,7 +16,7 @@ script.
   l(ytdlp)
 
   // global variables
-  let circleProgress, hitTheBackend, videoDurationInSeconds, filename, uploadStarted;
+  let hitTheBackend, videoDurationInSeconds, filename, uploadStarted;
   let processStarted, processFailed, uploadFinished, processingData, timeRemaining;
   let downloadStarted, downloadFinished;
   let transcriptionFailed = false;
@@ -66,7 +66,7 @@ script.
   $(document).ready(() => {
     // start progress at 100 and rewind it when starting
     // I did this by accident the first time but I like it so I kept it
-    circleProgress = new CircleProgress('.progress', {
+    window.circleProgress = new CircleProgress('.progress', {
       max: 100,
       value: 100,
       textFormat: 'vertical',
@@ -243,7 +243,7 @@ script.
     const submitDate = new Date();
 
     /** upload progress / countdown functionality **/
-    if(!downloadLink) ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, circleProgress, fileName));
+    if(!downloadLink) ajax.upload.addEventListener('progress', evt => progressUpload(evt, submitDate, fileName));
 
     ajax.addEventListener('error', err => ce(err), false);
 
@@ -272,7 +272,7 @@ script.
       if (response === 'download') {
 
       } else {
-        loadAjax({response, circleProgress});
+        loadAjax({response});
 
       }
     }
@@ -329,16 +329,16 @@ script.
 
     const downloadingIsFinished = message === 'downloadingFinished';
 
-    isDownloadingInfo && renderDownloadInfo({data , circleProgress });
+    isDownloadingInfo && renderDownloadInfo({data});
 
-    downloadingIsFinished && loadAjax({circleProgress})
+    downloadingIsFinished && loadAjax()
 
     // WEBSOCKET DATA COMING FROM THE BACKEND
     isProcessingInfo && renderProcessingFeedback({data, hitTheBackend});
 
     sendingQueueInformation && renderQueue({place: data.placeInQueue, log: 'initial queue data'});
 
-    transcriptionIsStarting && renderStartingFeedback({ data, circleProgress });
+    transcriptionIsStarting && renderStartingFeedback({data});
 
     isFileDetailsMessage && renderFileDetails(data);
 

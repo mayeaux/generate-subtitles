@@ -1,5 +1,13 @@
 script.
-  const renderDownloadInfo = ({ data, circleProgress }) => {
+
+  const changeCircleProgress = num => {
+    window.circleProgress.attr({
+      max: 100,
+      value: +num,
+    });
+  }
+
+  const renderDownloadInfo = ({data}) => {
     // let's use my algo for calculating the ETA because it's more accurate
     // therefore all we need is percentage
     // we'll calculate, seconds elapsed, seconds remaining
@@ -33,16 +41,10 @@ script.
     $('#progress').html(`${percentDownloaded}% downloaded`);
     document.title = `${percentDownloaded}% Downloaded - ${fileName}`;
 
-    circleProgress.attr({
-      max: 100,
-      value: Number(percentDownloaded),
-    });
+    changeCircleProgress(percentDownloaded);
 
     if (percentDownloaded === 100) {
-      circleProgress.attr({
-        max: 100,
-        value: 0,
-      });
+      changeCircleProgress(0);
       $('.progress').hide();
     } else {
       $('.progress').show();
@@ -74,7 +76,7 @@ script.
   // global vars used for using in the decrementing function
   let globalEstimatedSecondsRemaining, globalTimeElapsedInSeconds, globalUploadedAmountInMB;
 
-  const progressUpload = (evt, startDate, circleProgress, fileName) => {
+  const progressUpload = (evt, startDate, fileName) => {
     l(evt);
     $('#form').hide();
     $('#startNewUpload').show();
@@ -96,16 +98,10 @@ script.
     $('#progress').html(`${percentUpload}% uploaded`);
     document.title = `${percentUpload}% Uploaded - ${fileName}`;
 
-    circleProgress.attr({
-      max: 100,
-      value: Number(percentUpload),
-    });
+    changeCircleProgress(percentUpload);
 
     if (percentUpload === 100) {
-      circleProgress.attr({
-        max: 100,
-        value: 0,
-      });
+      changeCircleProgress(0);
       $('.progress').hide();
     } else {
       $('.progress').show();
@@ -133,19 +129,15 @@ script.
     }
   }
 
-  const loadAjax = ({ response, circleProgress }) => {
+  const loadAjax = () => {
     if(downloadStarted) downloadFinished = true;
     if(transcriptionFailed) return
-    l({response});
     $('#processingData').show();
     $('#latestData').show();
     $('#progress').hide();
     $('#timeEstimator').hide();
     $('#header').html('Processing..');
-    circleProgress.attr({
-      max: 100,
-      value: 0,
-    });
+    changeCircleProgress(0);
     $('.progress').show();
   }
 
@@ -241,10 +233,7 @@ script.
       $('#processingData').show();
       // actual process data coming back
       if (percentDone > 0) {
-        circleProgress.attr({
-          max: 100,
-          value: percentDone,
-        });
+        changeCircleProgress(percentDone);
 
         if (percentDone === 100) {
           $('.progress').hide();
@@ -285,7 +274,7 @@ script.
     }
   }
 
-  const renderStartingFeedback = ({ data, circleProgress }) => {
+  const renderStartingFeedback = ({data}) => {
     inTheQueue = false;
     document.title = `Starting processing..`;
     l('starting data');
@@ -294,15 +283,9 @@ script.
     $('#processingData').hide();
     $('#secondProcessingData').hide();
     myProcessingStarted = true;
-    circleProgress.attr({
-      max: 100,
-      value: 100,
-    });
+    changeCircleProgress(100);
     $('.progress').show();
-    circleProgress.attr({
-      max: 100,
-      value: 0,
-    });
+    changeCircleProgress(0);
     // $('#latestData').css("font-size", "20px");
   }
 
