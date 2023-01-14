@@ -361,7 +361,7 @@ async function createOriginalVtt({ vttPath, vttData }){
 const delayInMillisecondsBetweenChecks = 5000;
 
 function getWebsocketConnectionByNumberToUse(numberToUse){
-  const foundWebsocketConnection = (global.webSocketData.find(connection => connection.websocketNumber === numberToUse)).websocket
+  const foundWebsocketConnection = (global.webSocketData.find(connection => connection.websocketNumber === numberToUse))?.websocket
   if(foundWebsocketConnection.readyState === WebSocket.OPEN){
     return foundWebsocketConnection
   }
@@ -611,16 +611,18 @@ async function checkLatestData(dataEndpoint, latestProgress){
       originalFileExtension // who do I have to do this
     })
 
-    // get the websocket connection for relevant upload
-    const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
+    if(websocketNumber){
+      // get the websocket connection for relevant upload
+      const websocketConnection = getWebsocketConnectionByNumberToUse(websocketNumber);
 
-    //
-    if(websocketConnection && websocketConnection.readyState === WebSocket.OPEN){
-      // tell frontend upload is done
-      websocketConnection.send(JSON.stringify({
-        status: 'Completed',
-        filename: localProcessingData.fileSafeNameWithDateTimestamp
-      }), function () {});
+      //
+      if(websocketConnection && websocketConnection.readyState === WebSocket.OPEN){
+        // tell frontend upload is done
+        websocketConnection.send(JSON.stringify({
+          status: 'Completed',
+          filename: localProcessingData.fileSafeNameWithDateTimestamp
+        }), function () {});
+      }
     }
 
     const newDirectoryName = localProcessingData.fileSafeNameWithDateTimestamp

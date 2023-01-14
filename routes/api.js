@@ -153,6 +153,11 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       originalFileName =  await getFilename(downloadLink);
     }
 
+    let shouldTranslate = false;
+    if(postBodyData.shouldTranslate === 'true'){
+      shouldTranslate = true;
+    }
+
     const {
       originalFileNameWithExtension,
       originalFileExtension,
@@ -271,11 +276,11 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
         fileSafeNameWithDateTimestampAndExtension,
         uploadGeneratedFilename: numberToUse, // TODO: refactor to use number by default
 
-        shouldTranslate: false, // not supported by API yet
+        shouldTranslate,
         uploadDurationInSeconds,
         fileSizeInMB,
         ...(downloadLink && { downloadLink }),
-        skipToFront: true,
+        skipToFront: true, // auto skip to front
         totalOutstanding,
         ip,
 
