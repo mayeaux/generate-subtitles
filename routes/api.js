@@ -4,12 +4,13 @@ const axios = require('axios');
 const fs = require('fs-extra');
 const FormData = require('form-data');
 const multer = require('multer');
+const {exec} = require('child_process');
 const router = express.Router();
 const transcribe = require('../transcribe/transcribe-api-wrapped')
 const constants = require('../constants/constants');
 const filenamify = require('filenamify');
 const createTranslatedFiles = require('../translate/translate-files-api');
-const { downloadFileApi, getFilename} = require("../downloading/yt-dlp-download");
+const { downloadFileApi, getFilename} = require('../downloading/yt-dlp-download');
 const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
 const { modelsArray, whisperLanguagesHumanReadableArray } = constants;
 const {
@@ -18,9 +19,9 @@ const {
   makeFileNameSafe,
   getOriginalFilesObject
 } = require('../lib/transcribing');
-const {addToJobProcessOrQueue, amountOfRunningJobs} = require("../queue/newQueue");
-const ffprobe = require("ffprobe");
-const which = require("which");
+const {addToJobProcessOrQueue, amountOfRunningJobs} = require('../queue/newQueue');
+const ffprobe = require('ffprobe');
+const which = require('which');
 const ffprobePath = which.sync('ffprobe')
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
@@ -30,11 +31,21 @@ const serverType = process.env.SERVER_TYPE || 'both';
 l('serverType');
 l(serverType)
 
-const transcribeHost = process.env.TRANSCRIBE_HOST || 'http://localhost:3002';
+const transcribeHost = process.env.TRANSCRIBE_HOST || 'http://localhost:3000';
 
 l('transcribeHost');
 l(transcribeHost)
 
+
+const runCommand = async command => new Promise((resolve, reject) => {
+  exec(command, (error, stdout, stderr) => {
+    if (error) {
+      reject(error);
+      return;
+    }
+    resolve(stdout.trim());
+  });
+});
 
 // generate random 10 digit number
 function generateRandomNumber () {
@@ -49,6 +60,30 @@ const storage = multer.diskStorage({ // notice  you are calling the multer.diskS
 
 let upload = multer({ storage });
 
+const removeFromArray = (array, cb) => {
+  return array.filter(cb);
+}
+
+const cancelProcess = async (req, res, next) => {
+  try {
+    const {numberToUse} = req.params;
+    l('process to be cancelled', {numberToUse});
+    // find process
+    const process = global.jobProcesses.find(process => process.numberToUse === numberToUse);
+    const pid = await runCommand(`ps -e | grep "python\|${numberToUse}" | awk "{print $1}"`);
+    // // | grep "python\|${numberToUse}" | awk '{print $1}'
+    l(`PID of the process:\n${pid}`);
+    // kill process
+    await runCommand(`kill ${pid}`);
+    l(`Process ${pid} killed`);
+    // remove from global.jobProcesses
+    global.jobProcesses = removeFromArray(global.jobProcesses, process => process.numberToUse !== numberToUse)
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send({error: `Something went wrong: ${err}`});
+  }
+}
+
 router.post('/api', upload.single('file'), async function (req, res, next) {
   try {
     // fix body data
@@ -57,7 +92,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // get file names
     const file = req.file;
     let originalFileName, uploadFileName, uploadFilePath;
-    if(file){
+    if (file) {
       originalFileName = file.originalname;
       uploadFileName = file.filename;
       uploadFilePath = file.path;
@@ -79,8 +114,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const passedNumberToUse = postBodyData.numberToUse;
 
     let numberToUse;
-    if(!passedNumberToUse){
-      if(downloadLink){
+    if (!passedNumberToUse) {
+      if (downloadLink) {
         numberToUse = generateRandomNumber();
       } else {
         numberToUse = websocketNumber;
@@ -89,7 +124,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       numberToUse = passedNumberToUse
     }
 
-    if(!numberToUse) numberToUse = generateRandomNumber()
+    if (!numberToUse) numberToUse = generateRandomNumber()
 
 
     l('postBodyData');
@@ -102,26 +137,26 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const authTokenStringsAsArray = authTokenString.split(',');
     const authedByToken = authTokenStringsAsArray.includes(apiToken);
 
-    if(process.env.NODE_ENV === 'production' && !authedByToken){
+    if (process.env.NODE_ENV === 'production' && !authedByToken) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // nothing to transcribe
-    if(!downloadLink && !file){
-      return res.status(400).json({error: `Please pass either a 'file' or 'downloadLink'`});
+    if (!downloadLink && !file) {
+      return res.status(400).json({error: 'Please pass either a \'file\' or \'downloadLink\''});
     }
 
     // bad model name
-    if(!validModelValues.includes(model)) {
+    if (!validModelValues.includes(model)) {
       return res.status(400).send({error: `Your model of '${model}' is not valid. Please choose one of the following: ${validModelValues.join(', ')}`});
     }
 
     // bad language name
-    if(!whisperLanguagesHumanReadableArray.includes(language)) {
+    if (!whisperLanguagesHumanReadableArray.includes(language)) {
       return res.status(400).send({error: `Your language of '${language}' is not valid. Please choose one of the following: ${whisperLanguagesHumanReadableArray.join(', ')}`});
     }
 
-    if(downloadLink){
+    if (downloadLink) {
       // hit yt-dlp and get file title name
       originalFileName =  await getFilename(downloadLink);
     }
@@ -166,7 +201,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const transcribeDataEndpoint = `${transcribeHost}/api/${numberToUse}`;
 
     let matchingFile;
-    if(downloadLink){
+    if (downloadLink) {
 
       res.send({
         message: 'starting-download',
@@ -232,7 +267,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
 
     const shouldUseAQueue = serverType === 'both' || serverType === 'frontend';
-    if(shouldUseAQueue){
+    if (shouldUseAQueue) {
       const transcriptionJobItem = {
         uploadedFilePath: newPath, // TODO: rename newPath
         language,
@@ -283,6 +318,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     return res.status(500).send({error: `Something went wrong: ${err}`});
   }
 });
+
+router.post('/api/cancel/:numberToUse', cancelProcess);
 
 // get info about the transcription via api
 router.get('/api/:numberToUse', async function (req, res, next) {
