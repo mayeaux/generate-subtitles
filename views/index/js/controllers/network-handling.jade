@@ -181,11 +181,56 @@ script.
 
   const handleProgressData = ({data, circleProgress}) => {
 
-    const { percentDone } = data;
+    // TODO: have to pass the function here
+    const { processingDataString, percentDoneAsNumber } = data;
+
+    // const progressData = {
+    //   timeRemaining,
+    //   timeElapsed,
+    //   totalTimeEstimated,
+    //   speed,
+    //   title,
+    //   duration,
+    //   fileType,
+    //   language,
+    //   model
+    // }
+
+    function generateProcessingDataString({
+      timeRemaining,
+      timeElapsed,
+      totalTimeEstimated,
+      speed,
+      title,
+      duration,
+      fileType,
+      language,
+      model
+    }) {
+      let processingData = [
+        "Time Remaining: " + timeRemaining,
+        "Time Elapsed: " + timeElapsed,
+        "Total Time Estimated: " + totalTimeEstimated,
+        "Speed: " + speed + " (f/s)",
+        "",
+        title,
+        "Duration: " + duration,
+        "File Type: " + fileType,
+        "Language: " + language,
+        "Model: " + model
+      ];
+      return processingData.join(" \n\n ");
+    }
+
+    // const generateString = data.generateString;
+    //
+    // generateString('hello');
+
+    $('#processingData').text(processingDataString);
 
     circleProgress.attr({
       max: 100,
-      value: percentDone,
+      value: percentDoneAsNumber,
     });
   }
 

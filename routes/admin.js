@@ -26,13 +26,13 @@ router.get('/files', async function (req, res, next) {
       // TODO: what other things to match against?
       files = await getMatchingFiles({ dir, files, language, keepMedia });
 
-      files = _.orderBy(files, (file) => new Date(file.processingData.finishedAt), 'desc');
+      files = _.orderBy(files, (file) => new Date(file.processingData.startedAt), 'desc');
 
       // // log files length
       l('files length');
       l(files.length);
 
-      "Maybe just say there is 1 person in front of you"
+      // "Maybe just say there is 1 person in front of you"
 
       // 4 open processes
       // 4 jobs running
