@@ -36,6 +36,14 @@ const transcribeHost = process.env.TRANSCRIBE_HOST || 'http://localhost:3002';
 l('transcribeHost');
 l(transcribeHost)
 
+let storageFolder = `${process.cwd()}/transcriptions`;
+
+if(serverType === 'transcribe'){
+  storageFolder = `${process.cwd()}/api-transcriptions`;
+  (async function(){
+    await fs.ensureDir(storageFolder);
+  })()
+}
 
 // generate random 10 digit number
 function generateRandomNumber () {
@@ -87,8 +95,14 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // get language and model
     const { model, language, downloadLink, apiToken, websocketNumber, jobObject } = postBodyData;
 
-    const parsedJobObject = JSON.parse(jobObject);
+    // TODO: this comes from a gs frontend
+    let parsedJobObject = {};
+    if(jobObject){
+      parsedJobObject = JSON.parse(jobObject);
+    }
+    // const parsedJobObject = JSON.parse(jobObject);
 
+    // TODO: pretty ugly
     const passedNumberToUse = postBodyData.numberToUse;
 
     let numberToUse;
@@ -158,12 +172,12 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l(originalFileName);
 
     // create directory for transcriptions
-    await fs.mkdirp(`${process.cwd()}/transcriptions/${numberToUse}`);
+    await fs.mkdirp(`${storageFolder}/${numberToUse}`);
 
-    const newPath = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`;
+    const newPath = `${storageFolder}/${numberToUse}/${numberToUse}`;
 
     // setup path for processing data
-    const processingDataPath = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
+    const processingDataPath = `${storageFolder}/${numberToUse}/processing_data.json`;
 
     // save initial data
     await writeToProcessingDataFile(processingDataPath, {

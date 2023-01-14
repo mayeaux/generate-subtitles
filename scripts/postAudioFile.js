@@ -90,9 +90,6 @@ async function hitRemoteApiEndpoint(form, fullApiEndpoint){
 // get latest data and log it
 async function getNewData(dataUrl){
   let dataResponse = await axios.get(dataUrl);
-
-  l('dataResponse');
-  l(dataResponse.data);
   return dataResponse.data
 }
 
@@ -376,6 +373,9 @@ async function checkLatestData(dataEndpoint, latestProgress){
   let dataResponse = await getNewData(dataEndpoint);
   delete dataResponse.websocketConnection
 
+  l('dataResponse');
+  l(dataResponse);
+
   // status: 'starting-transcription',
 
   // get target progress here
@@ -407,7 +407,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
   l('PROCESSING DATA');
 
-  const { language, model, formattedProgress } = processingData || {};
+  const { language, model, formattedProgress, websocketNumber } = processingData || {};
 
   l(language, model, formattedProgress);
 
@@ -427,19 +427,28 @@ async function checkLatestData(dataEndpoint, latestProgress){
   const transcriptionFailed = dataResponse?.status === 'error';
 
   if(transcriptionFailed){
-    return
+    await createOrUpdateProcessingData(processingJsonFile, {
+      status: 'failed'
+    })
+    throw new Error('Transcription failed from remote call')
   }
 
   if(loadingModel){
-    const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
 
-    if(websocketConnection){
-      // tell frontend upload is done
-      websocketConnection.send(JSON.stringify({
-        status: 'progress',
-        processingDataString: 'Whisper is loading.. (loading model in GPU)', // TODO: say GB amount
-      }), function () {});
+    // send websocket progress
+    if(websocketNumber){
+      const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
+
+      if(websocketConnection){
+        // tell frontend upload is done
+        websocketConnection.send(JSON.stringify({
+          status: 'progress',
+          processingDataString: 'Whisper is loading.. (loading model in GPU)', // TODO: say GB amount
+        }), function () {});
+      }
     }
+
+    // TODO: save to processing data
 
     await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
@@ -455,71 +464,72 @@ async function checkLatestData(dataEndpoint, latestProgress){
       status: 'processing',
     })
 
-    // get the websocket connection for relevant upload
-    const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
+    if(websocketNumber){
+      // get the websocket connection for relevant upload
+      const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
 
-    const getProcessingVideo = '';
+      const getProcessingVideo = '';
 
-    const progressInformation = {
-      language,
-      model,
-      timeRemainingString,
-      timeElapsedString,
-      percentDoneAsNumber,
-      speed,
-    }
-
-    function generateProcessingDataString({
-      timeRemaining,
-      timeElapsed,
-      totalTimeEstimated,
-      speed,
-      title,
-      duration,
-      fileType,
-      language,
-      model
-    }){
-      let processingData = [
-        "Time Remaining: " + timeRemaining,
-        "Time Elapsed: " + timeElapsed,
-        // "Total Time Estimated: " + totalTimeEstimated,
-        "Speed: " + speed + " (f/s)",
-        "",
-        title,
-        "Duration: " + duration,
-        "File Type: " + fileType,
-        "Language: " + language,
-        "Model: " + model
-      ];
-      return processingData.join(" \n\n ");
-    }
-
-    const { originalFileNameWithExtension, uploadDurationInSeconds } = localProcessingData
-
-    const processingDataString = generateProcessingDataString({
-      timeRemaining: timeRemainingString,
-      timeElapsed: timeElapsedString,
-      // totalTimeEstimated: 'TODO',
-      speed,
-      title: originalFileNameWithExtension,
-      duration: uploadDurationInSeconds, // TODO: have to save it earlier on backend to access it
-      fileType: 'Video',
-      language,
-      model
-    });
-
-
-    // TODO: send some better stuff to frontend
-    // send progress to relevant frontend (working)
-    if(websocketConnection){
-      // tell frontend upload is done
-      websocketConnection.send(JSON.stringify({
-        status: 'progress',
-        processingDataString,
+      const progressInformation = {
+        language,
+        model,
+        timeRemainingString,
+        timeElapsedString,
         percentDoneAsNumber,
-        generateString: function(thing){console.log(thing + ' generated')}
-      }), function () {});
+        speed,
+      }
+
+      function generateProcessingDataString({
+                                              timeRemaining,
+                                              timeElapsed,
+                                              totalTimeEstimated,
+                                              speed,
+                                              title,
+                                              duration,
+                                              fileType,
+                                              language,
+                                              model
+                                            }){
+        let processingData = [
+          "Time Remaining: " + timeRemaining,
+          "Time Elapsed: " + timeElapsed,
+          // "Total Time Estimated: " + totalTimeEstimated,
+          "Speed: " + speed + " (f/s)",
+          "",
+          title,
+          "Duration: " + duration,
+          "File Type: " + fileType,
+          "Language: " + language,
+          "Model: " + model
+        ];
+        return processingData.join(" \n\n ");
+      }
+
+      const { originalFileNameWithExtension, uploadDurationInSeconds } = localProcessingData
+
+      const processingDataString = generateProcessingDataString({
+        timeRemaining: timeRemainingString,
+        timeElapsed: timeElapsedString,
+        // totalTimeEstimated: 'TODO',
+        speed,
+        title: originalFileNameWithExtension,
+        duration: uploadDurationInSeconds, // TODO: have to save it earlier on backend to access it
+        fileType: 'Video',
+        language,
+        model
+      });
+
+
+      // TODO: send some better stuff to frontend
+      // send progress to relevant frontend (working)
+      if(websocketConnection){
+        // tell frontend upload is done
+        websocketConnection.send(JSON.stringify({
+          status: 'progress',
+          processingDataString,
+          percentDoneAsNumber,
+        }), function () {});
+      }
     }
 
     // PASS LATEST PROGRESS OUT

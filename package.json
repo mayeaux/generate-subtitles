@@ -11,7 +11,8 @@
   "nodemonConfig": {
     "ignore": [
       "transcriptions/*",
-      "uploads/*"
+      "uploads/*",
+      "api-transcriptions/*"
     ]
   },
   "dependencies": {
