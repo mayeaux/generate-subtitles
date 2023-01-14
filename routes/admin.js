@@ -116,10 +116,10 @@ router.get('/admin', async function (req, res, next) {
         }
 
         let newItem = Object.assign({}, value);
-        delete newItem.directorySafeFileNameWithoutExtension;
-        delete newItem.directorySafeFileNameWithExtension;
-        delete newItem.fileSafeNameWithDateTimestamp
-        delete newItem.fileSafeNameWithDateTimestampAndExtension
+        delete newItem.safeDirNameNoExtension;
+        delete newItem.safeFileNameWithExtension;
+        delete newItem.safeFileNameWithDateTimestamp
+        delete newItem.safeFileNameWithDateTimestampAndExtension
         cleanedUpJobProcessObject[jobProcessNumber] = newItem;
       }
 
@@ -138,10 +138,10 @@ router.get('/admin', async function (req, res, next) {
 
         let newItem = Object.assign({}, queueItem);
 
-        delete newItem.directorySafeFileNameWithoutExtension;
-        delete newItem.directorySafeFileNameWithExtension;
-        delete newItem.fileSafeNameWithDateTimestamp
-        delete newItem.fileSafeNameWithDateTimestampAndExtension
+        delete newItem.safeDirNameNoExtension;
+        delete newItem.safeFileNameWithExtension;
+        delete newItem.safeFileNameWithDateTimestamp
+        delete newItem.safeFileNameWithDateTimestampAndExtension
         cleanedUpNewQueue.push(newItem);
       }
 

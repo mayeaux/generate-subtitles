@@ -33,9 +33,9 @@ const whisperPath = which.sync('whisper')
 async function transcribe ({
   language,
   model,
-  originalFileExtension,
+  fileExtension,
   uploadFileName,
-  originalFileName,
+  fileNameWithExtension,
   randomNumber // standin for claimId or something like that
 }) {
   return new Promise(async (resolve, reject) => {
@@ -63,7 +63,7 @@ async function transcribe ({
       whisperProcess.stdout.on('data',  (data) => l(`STDOUT: ${data}`));
 
       /** console output from stderr **/ // (progress comes through stderr for some reason)
-      whisperProcess.stderr.on('data', handleStdErr({ model, language, originalFileName, processingDataPath }));
+      whisperProcess.stderr.on('data', handleStdErr({ model, language, fileNameWithExtension, processingDataPath }));
 
       /** whisper responds with 0 or 1 process code **/
       whisperProcess.on('close', handleProcessClose({ processingDataPath, originalUpload, randomNumber }))

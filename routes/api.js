@@ -33,9 +33,9 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
     // get file names
     const file = req.file;
-    let originalFileName, uploadFileName;
+    let fileNameWithExtension, uploadFileName;
     if (file) {
-      originalFileName = file.originalname;
+      fileNameWithExtension = file.originalname;
       uploadFileName = file.filename;
     }
 
@@ -73,14 +73,14 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     }
 
     // TODO: implement this
-    let originalFileNameWithExtension, originalFileExtension, originalFileNameWithoutExtension, directorySafeFileNameWithoutExtension;
+    let fileExtension, originalFileNameWithoutExtension, safeDirNameNoExtension;
     if (file) {
       ({
-        originalFileNameWithExtension,
-        originalFileExtension,
+        fileNameWithExtension,
+        fileExtension,
         originalFileNameWithoutExtension,
-        directorySafeFileNameWithoutExtension
-      } = createFileNames(originalFileName));
+        safeDirNameNoExtension
+      } = createFileNames(fileNameWithExtension));
     }
 
     // random ten digit number
@@ -148,9 +148,9 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     await transcribe({
       language,
       model,
-      originalFileExtension,
+      fileExtension,
       uploadFileName: matchingFile,
-      originalFileName,
+      fileNameWithExtension,
       randomNumber
     })
 

@@ -28,16 +28,17 @@ async function transcribe ({
   model,
   websocketConnection,
   websocketNumber,
+  fileNameWithExtension,
   fileNameNoExtension,
   fileExtension,
-  directorySafeFileNameWithoutExtension,
-  directorySafeFileNameWithExtension,
-  originalFileNameWithExtension,
-  fileSafeNameWithDateTimestamp,
-  fileSafeNameWithDateTimestampAndExtension,
+  safeDirNameNoExtension,
+  safeFileNameWithExtension,
+  safeFileNameWithDateTimestamp,
+  safeFileNameWithDateTimestampAndExtension,
   uploadGeneratedFilename,
   shouldTranslate,
   uploadDurationInSeconds,
+  uploadDuration,
   fileSizeInMB,
   user,
   downloadLink,
@@ -74,25 +75,23 @@ async function transcribe ({
       const uploadFolderFileName = uploadedFilePath.split(osSpecificPathSeparator).pop();
       const originalUpload = `./uploads/${uploadFolderFileName}`;
       
-      const uploadDurationInSecondsHumanReadable = forHumans(uploadDurationInSeconds);
-
       const fileInfo = {
-        filename: directorySafeFileNameWithExtension,
+        filename: fileNameWithExtension,
         fileNameNoExtension,
         fileExtension,
-        fileSafeNameWithExt: directorySafeFileNameWithExtension,
-        fileSafeNameWithDateTimestamp,
+        safeFileNameWithExtension,
+        safeFileNameWithDateTimestamp,
         fileSizeInMB,
-        directoryFileName: directorySafeFileNameWithoutExtension,
-        language: language === 'auto-detect' ? 'Auto-Detect' : language,
+        safeDirNameNoExtension,
+        language,
         languageCode: getLanguageCodeForAllLanguages(language),
         model,
         upload: uploadFolderFileName,
         uploadGeneratedFilename,
         originalContainingDir: `./transcriptions/${uploadGeneratedFilename}`,
-        originalDirectoryAndNewFileName: `./transcriptions/${uploadGeneratedFilename}/${directorySafeFileNameWithoutExtension}`,
+        originalDirectoryAndNewFileName: `./transcriptions/${uploadGeneratedFilename}/${safeDirNameNoExtension}`,
         uploadDurationInSeconds,
-        uploadDuration: uploadDurationInSecondsHumanReadable,
+        uploadDuration,
         originalUpload,
         user,
         downloadLink,
@@ -221,7 +220,7 @@ async function transcribe ({
             await fs.appendFile(`${fileInfo.originalContainingDir}/processing_data.json`, JSON.stringify(fileInfo), 'utf8');
 
             // TODO: if no link passed, because if link was passed no need to rename directory
-            const renamedDirectory = `./transcriptions/${fileSafeNameWithDateTimestamp}`;
+            const renamedDirectory = `./transcriptions/${safeFileNameWithDateTimestamp}`;
             await fs.rename(fileInfo.originalContainingDir, renamedDirectory)
 
             // remove from global.transcriptions

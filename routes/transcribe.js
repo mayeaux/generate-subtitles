@@ -13,11 +13,11 @@ const fs = require('fs-extra');
 const { downloadFile, getFilename } = require('../downloading/yt-dlp-download');
 const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 const { targetLanguages } = require('../constants/constants');
-const {getamountOfRunningJobs, sendToWebsocket, generateRandomNumber} = require('../helpers/helpers');
+const {getamountOfRunningJobs, sendToWebsocket, generateRandomNumber, forHumans} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
 const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
 const {addToJobProcessOrQueue} = require('../queue/newQueue');
-const {getDurationByMpv, throwOffLimitsErrors} = require('../lib/transcribing');
+const {getDurationByMpv, throwOffLimitsErrors, createFileNames} = require('../lib/transcribing');
 
 
 const nodeEnv = process.env.NODE_ENV || 'development';
@@ -74,10 +74,10 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       throw new Error('no websocket!');
     }
 
-    let originalFileNameWithExtension, uploadedFilePath, uploadGeneratedFilename;
+    let fileNameWithExtension, uploadedFilePath, uploadGeneratedFilename;
     
     if (passedFile) {
-      originalFileNameWithExtension = passedFile.originalname;
+      fileNameWithExtension = passedFile.originalname;
       uploadedFilePath = passedFile.path;
       uploadGeneratedFilename = passedFile.filename;
       l({uploadedFilePath});
@@ -95,9 +95,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       filename = filename.replace(/\r?\n|\r/g, '');
       l({filename});
       uploadGeneratedFilename = filename;
-      originalFileNameWithExtension = filename;
-      const baseName = path.parse(filename).name;
-      const extension = path.parse(filename).ext;
+      fileNameWithExtension = filename;
+      const {name: baseName, ext: extension} = path.parse(filename);
       uploadedFilePath = `uploads/${randomNumber}${extension}`;
 
       res.send('download');
@@ -120,6 +119,15 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       // ERROR
     }
 
+    const {
+      fileNameNoExtension,
+      fileExtension,
+      safeDirNameNoExtension,
+      safeFileNameWithExtension,
+      safeFileNameWithDateTimestamp,
+      safeFileNameWithDateTimestampAndExtension,
+    } = createFileNames(fileNameWithExtension);
+
     l({uploadedFilePath});
 
     // get upload duration
@@ -128,13 +136,12 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const audioStream = ffprobeResponse.streams.filter(stream => stream.codec_type === 'audio')[0];
     const uploadDurationInSeconds = Math.round(audioStream.duration || await getDurationByMpv(uploadedFilePath));
 
+
     const stats = await fs.promises.stat(uploadedFilePath);
     const fileSizeInBytes = stats.size;
     const fileSizeInMB = Number(fileSizeInBytes / 1048576).toFixed(1);
 
-    // TODO: pull out into a function
     // error if on FS and over file size limit or duration limit
-
     const isFreeSubtitles = req.hostname === 'freesubtitles.ai';
     if (isFreeSubtitles && !isYtdlp) {
       throwOffLimitsErrors(res, uploadDurationInSeconds, fileSizeInMB);
@@ -152,20 +159,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     /** WEBSOCKET FUNCTIONALITY END **/
 
-    const {ext: fileExtension, name: fileNameNoExtension} = path.parse(originalFileNameWithExtension);
-
-    // directory name
-    const directorySafeFileNameWithoutExtension = makeFileNameSafe(fileNameNoExtension);
-
-    // used for the final media resting place
-    const directorySafeFileNameWithExtension = `${directorySafeFileNameWithoutExtension}${fileExtension}`;
-
-    const timestampString = moment(new Date()).format('DD-MMMM-YYYY_HH_mm_ss');
-
-    const fileSafeNameWithDateTimestamp = `${directorySafeFileNameWithoutExtension}--${timestampString}`;
-
-    const fileSafeNameWithDateTimestampAndExtension = `${directorySafeFileNameWithoutExtension}--${timestampString}${fileExtension}`;
-
     // pass ip to queue
     const ip = req.headers['x-forwarded-for'] ||
       req.socket.remoteAddress ||
@@ -175,7 +168,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     addItemToQueue({
       model,
       language,
-      filename: originalFileNameWithExtension,
+      filename: fileNameWithExtension,
       ip,
       uploadDurationInSeconds,
       shouldTranslate,
@@ -193,15 +186,17 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       uploadedFilePath,
       language,
       model,
+      fileNameWithExtension,
+      fileNameNoExtension,
       fileExtension,
-      directorySafeFileNameWithoutExtension,
-      directorySafeFileNameWithExtension,
-      originalFileNameWithExtension,
-      fileSafeNameWithDateTimestamp,
-      fileSafeNameWithDateTimestampAndExtension,
+      safeDirNameNoExtension,
+      safeFileNameWithExtension,
+      safeFileNameWithDateTimestamp,
+      safeFileNameWithDateTimestampAndExtension,
       uploadGeneratedFilename,
       shouldTranslate,
       uploadDurationInSeconds,
+      uploadDuration: forHumans(uploadDurationInSeconds),
       fileSizeInMB,
       ...(user && { user }),
       ...(downloadLink && { downloadLink }),

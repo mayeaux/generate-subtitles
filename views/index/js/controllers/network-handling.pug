@@ -179,6 +179,9 @@ script.
 
   let latestProgress, globalTimeRemaining, myUploadStarted = false;
 
+  const toTitleCase = str => !str || !str.trim()
+    ? str : str.toLowerCase().replace(/\b[a-z]/g, ltr => ltr.toUpperCase());
+
   const renderProcessingFeedback = ({data, hitTheBackend}) => {
     l('websocket data');
     let loopStarted;
@@ -308,7 +311,7 @@ script.
     const niceDate = new Date().toString().replace(/GMT.*/g, '');
     $('#finishedData').html(`
       <p>Filename: ${filename}</p>
-      <p>Language: ${language}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
+      <p>Language: ${toTitleCase(language)}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
       <p>Model: ${model}</p>
       <p>Upload Duration: ${uploadDuration}</p>
       <p>Started At: ${niceDate}</p>
@@ -332,7 +335,7 @@ script.
   const renderCompletionFeedback = ({data}) => {
     const {
       filename, processingTime, language, model, upload, uploadDuration, processingRatio, startedAt, finishedAt, isAutoDetected = false,
-      fileSafeNameWithDateTimestamp,
+      safeFileNameWithDateTimestamp,
     } = data;
     l({data});
     l('completed data');
@@ -341,7 +344,7 @@ script.
     $('#finishedData').html(`
       <p>Filename: ${filename}</p>
       <p>Processing Time: ${processingTime}</p>
-      <p>Language: ${language}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
+      <p>Language: ${toTitleCase(language)}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
       <p>Model: ${model}</p>
       <p>Upload Name: ${upload}</p>
       <p>Upload Duration: ${uploadDuration}</p>
@@ -356,7 +359,7 @@ script.
     $('#startNewUpload').hide();
     // redirect to the player page
     // 2 seconds to let the user see the completion message
-    setTimeout(() => window.location.href = `/player/${fileSafeNameWithDateTimestamp}`, 2000);
+    setTimeout(() => window.location.href = `/player/${safeFileNameWithDateTimestamp}`, 2000);
   }
 
   const renderError = data => {

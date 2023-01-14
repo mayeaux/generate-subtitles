@@ -25,7 +25,7 @@ router.get('/player/:filename' , async function (req, res, next) {
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
 
-    const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${processingData.directoryFileName}`;
+    const filePathWithoutExtension = `/transcriptions/${fileNameWithoutExtension}/${processingData.safeDirNameNoExtension}`;
 
     // l('filePathWithoutExtension')
     // l(filePathWithoutExtension);
@@ -92,7 +92,7 @@ router.get('/player/:filename/add' , async function (req, res, next) {
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
-    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.directoryFileName}.vtt`, 'utf8');
+    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.safeDirNameNoExtension}.vtt`, 'utf8');
 
     res.render('addTranslation/addTranslation', {
       title: 'Add Translation',
@@ -126,9 +126,9 @@ router.post('/player/:filename/add' , async function (req, res, next) {
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
-    const originalVttPath = `${containingFolder}/${processingData.directoryFileName}.vtt`;
+    const originalVttPath = `${containingFolder}/${processingData.safeDirNameNoExtension}.vtt`;
 
-    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.directoryFileName}.vtt`, 'utf8');
+    const originalVtt = await fs.readFile(`${containingFolder}/${processingData.safeDirNameNoExtension}.vtt`, 'utf8');
 
     const inputStream = new Readable(newVtt);
 
@@ -153,9 +153,9 @@ router.post('/player/:filename/add' , async function (req, res, next) {
     l(reformatted);
     l('refomatted');
 
-    const newVttPath = `${containingFolder}/${processingData.directoryFileName}_${language}.vtt`;
+    const newVttPath = `${containingFolder}/${processingData.safeDirNameNoExtension}_${language}.vtt`;
 
-    const originalFileVtt = `${containingFolder}/${processingData.directoryFileName}_${processingData.language}.vtt`;
+    const originalFileVtt = `${containingFolder}/${processingData.safeDirNameNoExtension}_${processingData.language}.vtt`;
 
     await fs.writeFile(newVttPath, reformatted, 'utf-8');
 

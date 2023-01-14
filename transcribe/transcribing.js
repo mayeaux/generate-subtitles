@@ -55,14 +55,14 @@ async function moveAndRenameFilesAndFolder ({
   originalUpload,
   uploadFileName,
   sdHash,
-  originalFileExtension,
+  fileExtension,
 }) {
   const originalUploadPath = originalUpload;
 
   // the directory with the output from whisper
   let currentContainingDir = `./transcriptions/${sdHash}`;
 
-  const newUploadPath = `${currentContainingDir}/${sdHash}${originalFileExtension}`
+  const newUploadPath = `${currentContainingDir}/${sdHash}${fileExtension}`
 
   // rename original upload to use the original file upload name
   await fs.move(originalUploadPath, newUploadPath)
