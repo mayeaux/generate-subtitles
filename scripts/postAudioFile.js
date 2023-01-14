@@ -374,13 +374,17 @@ function getWebsocketConnectionByNumberToUse(numberToUse){
 async function checkLatestData(dataEndpoint, latestProgress){
   // get first data
   let dataResponse = await getNewData(dataEndpoint);
+  delete dataResponse.websocketConnection
+
+  // status: 'starting-transcription',
+
   // get target progress here
   // parse and analyze data
   // TODO: remove this, just annoying
   let organizedData = parseData(dataResponse);
 
-  l('response data');
-  l(organizedData);
+  // l('response data');
+  // l(organizedData);
 
   const { status, percentDone, numberToUse } = organizedData;
 
@@ -395,9 +399,49 @@ async function checkLatestData(dataEndpoint, latestProgress){
   const transcriptionFailed = status === 'failed'
 
 
+  const processingData = dataResponse.processingData;
+
+
+  let localProcessingData = await fs.readFile(processingJsonFile);
+  localProcessingData = JSON.parse(localProcessingData);
+
+
+  l('PROCESSING DATA');
+
+  const { language, model, formattedProgress } = processingData || {};
+
+  l(language, model, formattedProgress);
+
+  const { percentDoneAsNumber, timeElapsed, timeRemaining, speed } = formattedProgress || {};
+
+  const { hoursRemaining, minutesRemaining, secondsRemaining, string: timeRemainingString } = timeRemaining || {};
+
+  const timeElapsedString = timeElapsed;
+
+  // percentDoneAsNumber: 0,
+
+
+  'Whisper has loaded and your transcription has started'
+
+  const loadingModel = dataResponse?.status === 'starting-transcription';
+
+  if(loadingModel){
+    const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
+
+    if(websocketConnection){
+      // tell frontend upload is done
+      websocketConnection.send(JSON.stringify({
+        status: 'progress',
+        processingDataString: 'Whisper is loading.. (loading model in GPU)', // TODO: say GB amount
+      }), function () {});
+    }
+
+    await delayPromise(delayInMillisecondsBetweenChecks);
+    return await checkLatestData(dataEndpoint, latestProgress);
+  }
 
   // TRANSCRIPTION IS PROCESSING
-  if(transcriptionIsProcessing) {
+  else if(transcriptionIsProcessing) {
 
     // TODO: copy existing processingData
     // TODO: pass progress as a parameter to the function
@@ -411,13 +455,65 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
     const getProcessingVideo = '';
 
+    const progressInformation = {
+      language,
+      model,
+      timeRemainingString,
+      timeElapsedString,
+      percentDoneAsNumber,
+      speed,
+    }
+
+    function generateProcessingDataString({
+      timeRemaining,
+      timeElapsed,
+      totalTimeEstimated,
+      speed,
+      title,
+      duration,
+      fileType,
+      language,
+      model
+    }){
+      let processingData = [
+        "Time Remaining: " + timeRemaining,
+        "Time Elapsed: " + timeElapsed,
+        // "Total Time Estimated: " + totalTimeEstimated,
+        "Speed: " + speed + " (f/s)",
+        "",
+        title,
+        "Duration: " + duration,
+        "File Type: " + fileType,
+        "Language: " + language,
+        "Model: " + model
+      ];
+      return processingData.join(" \n\n ");
+    }
+
+    const { originalFileNameWithExtension, uploadDurationInSeconds } = localProcessingData
+
+    const processingDataString = generateProcessingDataString({
+      timeRemaining: timeRemainingString,
+      timeElapsed: timeElapsedString,
+      // totalTimeEstimated: 'TODO',
+      speed,
+      title: originalFileNameWithExtension,
+      duration: uploadDurationInSeconds, // TODO: have to save it earlier on backend to access it
+      fileType: 'Video',
+      language,
+      model
+    });
+
+
     // TODO: send some better stuff to frontend
     // send progress to relevant frontend (working)
     if(websocketConnection){
       // tell frontend upload is done
       websocketConnection.send(JSON.stringify({
         status: 'progress',
-        percentDone
+        processingDataString,
+        percentDoneAsNumber,
+        generateString: function(thing){console.log(thing + ' generated')}
       }), function () {});
     }
 
@@ -439,9 +535,6 @@ async function checkLatestData(dataEndpoint, latestProgress){
   /** TRANSCRIPTION COMPLETED SUCCESSFULLY **/
   } else if(transcriptionIsCompleted){
     l('detected that completed')
-
-    let localProcessingData = await fs.readFile(processingJsonFile);
-    localProcessingData = JSON.parse(localProcessingData);
 
     const originalFileNameWithoutExtension = localProcessingData.directorySafeFileNameWithoutExtension;
     const originalFileName = localProcessingData.directorySafeFileNameWithExtension
@@ -511,11 +604,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
       // tell frontend upload is done
       websocketConnection.send(JSON.stringify({
         status: 'Completed',
-        urlSrt: srtPath,
-        urlVtt: vttPath,
-        urlTxt: txtPath,
-        filename: localProcessingData.fileSafeNameWithDateTimestamp,
-        // detailsString: outputText // implement later
+        filename: localProcessingData.fileSafeNameWithDateTimestamp
       }), function () {});
     }
 
