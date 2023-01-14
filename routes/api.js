@@ -36,6 +36,11 @@ const transcribeHost = process.env.TRANSCRIBE_HOST || 'http://localhost:3002';
 l('transcribeHost');
 l(transcribeHost)
 
+let host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
+if(serverType === 'trascribe'){
+  host = transcribeHost;
+}
+
 let storageFolder = `${process.cwd()}/transcriptions`;
 
 if(serverType === 'transcribe'){
@@ -184,6 +189,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // setup path for processing data
     const processingDataPath = `${storageFolder}/${numberToUse}/processing_data.json`;
 
+    l('writing data file')
+
     // save initial data
     await writeToProcessingDataFile(processingDataPath, {
       model,
@@ -191,11 +198,12 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       downloadLink,
       filename: originalFileName,
       apiToken,
-      ...parsedJobObject
+      ...parsedJobObject,
+      status: 'starting',
     })
 
     // build endpoint to hit
-    const transcribeDataEndpoint = `${transcribeHost}/api/${numberToUse}`;
+    const transcribeDataEndpoint = `${host}/api/${numberToUse}`;
 
     let matchingFile;
     if(downloadLink){
@@ -331,8 +339,20 @@ router.get('/api/:numberToUse', async function (req, res, next) {
     // if serverType === 'frontend'
     // check the queue
 
-    // get processing data path
-    const processingData = JSON.parse(await fs.readFile(`./transcriptions/${numberToUse}/processing_data.json`, 'utf8'));
+    let processingData = JSON.parse(await fs.readFile(`${storageFolder}/${numberToUse}/processing_data.json`, 'utf8'));
+
+    // TODO: also status not failed/errored
+    const isFailed = processingData.status === 'failed';
+    const isErrored = processingData.status === 'errored';
+    const isCompleted = processingData.status === 'completed';
+
+    const dontCheckRemoteProcess = isFailed || isErrored || isCompleted;
+
+    // get the latest progress from the remote server
+    if(serverType === 'frontend' && !dontCheckRemoteProcess){
+      const serverToHit = processingData.remoteServerApiUrl;
+      processingData = (await axios.get(`${serverToHit}/${numberToUse}`)).data;
+    }
 
     // get data from processing data
     const {
@@ -347,10 +367,15 @@ router.get('/api/:numberToUse', async function (req, res, next) {
       apiToken,
     } = processingData;
 
+    l('processingData');
+    l(processingData);
+
     // TODO: if smart (local) endpoint, check the queue position
 
+    const transcriptionStarting = transcriptionStatus === 'starting';
+
     // transcription processing or translating
-    if (transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {
+    if (transcriptionStarting || transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {
       // send current processing data
       return res.send({
         status: transcriptionStatus,
@@ -368,15 +393,15 @@ router.get('/api/:numberToUse', async function (req, res, next) {
         status: 'completed',
         sdHash: numberToUse,
         numberToUse,
+        // TODO: format this, dont just send the whole object
         processingData,
       }
 
       return res.send(responseObject)
+    } else {
+      l('nothing hit doing third one')
+      return res.send(processingData);
     }
-
-
-
-    return res.send(processingData);
 
     // res.send('ok');
   } catch (err) {

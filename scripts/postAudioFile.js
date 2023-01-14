@@ -258,8 +258,8 @@ function parseData(dataResponse, latestProgress) {
 
   const numberToUse = dataResponse?.numberToUse;
 
-  l('dataResponse');
-  l(dataResponse)
+  // l('dataResponse');
+  // l(dataResponse)
 
   // TODO: just return if it's undefined?
 
@@ -373,8 +373,8 @@ async function checkLatestData(dataEndpoint, latestProgress){
   let dataResponse = await getNewData(dataEndpoint);
   delete dataResponse.websocketConnection
 
-  l('dataResponse');
-  l(dataResponse);
+  // l('dataResponse');
+  // l(dataResponse);
 
   // status: 'starting-transcription',
 
@@ -426,6 +426,12 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
   const transcriptionFailed = dataResponse?.status === 'error';
 
+  const transcriptionIsTranslating = dataResponse?.status === 'translating';
+
+  const transcriptionIsStarting = dataResponse?.status === 'starting';
+
+
+
   if(transcriptionFailed){
     await createOrUpdateProcessingData(processingJsonFile, {
       status: 'failed'
@@ -433,7 +439,16 @@ async function checkLatestData(dataEndpoint, latestProgress){
     throw new Error('Transcription failed from remote call')
   }
 
-  if(loadingModel){
+  // transcription received by backend and starting
+  if(transcriptionIsStarting){
+    await createOrUpdateProcessingData(processingJsonFile, {
+      status: 'starting'
+    })
+
+    await delayPromise(delayInMillisecondsBetweenChecks);
+    return await checkLatestData(dataEndpoint, latestProgress);
+
+  } else if(loadingModel){
 
     // send websocket progress
     if(websocketNumber){
@@ -629,7 +644,13 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
     const renamedDirectory = `${transcriptionDir}/${newDirectoryName}`
 
-    await fs.rename(directoryBasedOnNumber, renamedDirectory)
+    // TODO: only rename if not api
+
+    const isApiCall = !websocketNumber;
+
+    if(!isApiCall){
+      await fs.rename(directoryBasedOnNumber, renamedDirectory)
+    }
 
     return {
       status: 'completed'
@@ -645,10 +666,10 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
 
     // WHEN TRANSCRIPTION COMPLETED
-  }else {
+  } else {
     // TODO: this shouldn't happen
     l('UNDETECTED STATUS TYPE')
-    l(dataResponse)
+    l(dataResponse.status)
 
     await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
@@ -657,6 +678,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
 }
 
 async function runRemoteTranscriptionJob(jobObject){
+  delete jobObject.websocketConnection
   // save original processing, maybe not the best place to do it
   await saveOriginalProcessingDataJson(jobObject)
 
