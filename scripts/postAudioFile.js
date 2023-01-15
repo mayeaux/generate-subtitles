@@ -290,7 +290,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
   const { numberToUse } = dataResponse;
 
 
-  const remoteProcessingData = dataResponse.processingData;
+  // const remoteProcessingData = dataResponse.processingData;
 
   const containingFolder = `${process.cwd()}/transcriptions/${numberToUse}`;
 
@@ -309,10 +309,10 @@ async function checkLatestData(dataEndpoint, latestProgress){
   l('localProcessingData');
   l(localProcessingData);
 
-  l('remoteProcessingData');
-  l(remoteProcessingData);
+  // l('remoteProcessingData');
+  // l(remoteProcessingData);
 
-  const { language, model, formattedProgress } = remoteProcessingData || {};
+  const { language, model, formattedProgress } = dataResponse || {};
 
   const { websocketNumber } = localProcessingData;
 
@@ -498,11 +498,11 @@ async function checkLatestData(dataEndpoint, latestProgress){
     const originalFileNameWithoutExtension = localProcessingData.directorySafeFileNameWithoutExtension;
     const originalFileName = localProcessingData.directorySafeFileNameWithExtension
 
-    const { language } = localProcessingData;
+    const { language } = dataResponse;
 
     // language undefined
 
-    let { srtData, vttData, txtData } = remoteProcessingData;
+    let { srtData, vttData, txtData } = dataResponse;
 
     l('language');
     l(language)
@@ -538,10 +538,10 @@ async function checkLatestData(dataEndpoint, latestProgress){
       vttData,
     })
 
-    if(remoteProcessingData.translatedFiles?.length){
+    if(dataResponse.translatedFiles?.length){
       await createTranslatedVtts({
         prependPath: `${directoryBasedOnNumber}/${directorySafeFileNameWithoutExtension}`,
-        translatedFiles: remoteProcessingData.translatedFiles
+        translatedFiles: dataResponse.translatedFiles
       })
     }
 
@@ -551,7 +551,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
     // TODO: bug here, could overwrite better data
     await createOrUpdateProcessingData(processingJsonFile, {
       status: 'completed',
-      ... remoteProcessingData,
+      ...dataResponse,
       originalFileExtension // who do I have to do this
     })
 

@@ -4,6 +4,7 @@ const { handleStdErr, handleStdOut, handleProcessClose } = require('../lib/trans
 const { buildArguments } = require('../lib/other-transcribing');
 const {forHumans} = require("../helpers/helpers");
 const fs = require("fs-extra");
+const { getLanguageCodeForAllLanguages } = require("../constants/constants");
 
 l = console.log;
 
@@ -63,11 +64,18 @@ async function transcribe ({
       const processingDataPath = `${storageFolder}/${numberToUse}/processing_data.json`
 
       // TODO: pull into function
-      // save date when starting to see how long it's taking
-      const startedAt = new Date().toUTCString();
-      await createOrUpdateProcessingData(processingDataPath, {
-        startedAt
-      })
+      const initialWriteData = {
+        startedAt: new Date().toUTCString(), // save date when starting to see how long it's taking
+        model,
+        numberToUse,
+        language
+      }
+
+      if(language !== 'auto-detect'){
+        initialWriteData.languageCode = getLanguageCodeForAllLanguages(language);
+      }
+
+      await createOrUpdateProcessingData(processingDataPath, initialWriteData)
 
       const whisperArguments = buildArguments({
         uploadedFilePath: uploadFilePath, // file to use
@@ -96,12 +104,10 @@ async function transcribe ({
       // start whisper process
       const whisperProcess = spawn(whisperPath, whisperArguments);
 
-      // TODO: implement foundLanguagae here
-      // let foundLanguage;
       whisperProcess.stdout.on('data',  handleStdOut({ processingDataPath }));
 
       /** console output from stderr **/ // (progress comes through stderr for some reason)
-      whisperProcess.stderr.on('data', handleStdErr({ model, language, originalFileName, processingDataPath }));
+      whisperProcess.stderr.on('data', handleStdErr({ originalFileName, processingDataPath }));
 
       /** whisper responds with 0 or 1 process code **/
       whisperProcess.on('close', handleProcessClose({ processingDataPath, originalUpload, numberToUse }))
