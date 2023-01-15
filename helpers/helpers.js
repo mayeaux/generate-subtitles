@@ -96,6 +96,9 @@ const sendToWebsocket = (websocketConnection, data) => {
 // TODO: not the world's greatest implemention
 const generateRandomNumber = () => Math.floor(Math.random() * 10_000_000_000).toString();
 
+const toTitleCase = str => !str || !str.trim() ? str
+  : str.toLowerCase().replace(/\b[a-z]/g, ltr => ltr.toUpperCase());
+
 module.exports = {
   forHumans,
   forHumansNoSeconds,
@@ -104,4 +107,5 @@ module.exports = {
   getamountOfRunningJobs,
   sendToWebsocket,
   generateRandomNumber,
+  toTitleCase,
 }

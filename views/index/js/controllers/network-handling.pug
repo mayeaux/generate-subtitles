@@ -1,5 +1,7 @@
 script.
 
+  const toTitleCase = !{toTitleCase};
+
   const changeCircleProgress = num => {
     window.circleProgress.attr({
       max: 100,
@@ -171,9 +173,6 @@ script.
 
   let latestProgress, globalTimeRemaining, myUploadStarted = false;
 
-  const toTitleCase = str => !str || !str.trim()
-    ? str : str.toLowerCase().replace(/\b[a-z]/g, ltr => ltr.toUpperCase());
-
   const renderProcessingFeedback = ({data, hitTheBackend}) => {
     l('websocket data');
     let loopStarted;
@@ -255,7 +254,6 @@ script.
             $('#processingData').html(`${processFeedback}${processingData}`);
           }, 1000);
         }
-
       } else {
         $('#processingData').html(`${processFeedback}Transcription starting soon..`);
       }
