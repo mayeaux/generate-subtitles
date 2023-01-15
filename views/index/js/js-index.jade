@@ -357,7 +357,7 @@ script.
     /** WHEN WEBSOCKET SAYS COMPLETED **/
     if (transcriptionHasCompleted) {
       uploadFinished = true;
-      renderCompletionFeedback({data});
+      renderCompletionFeedback({data, circleProgress});
       websocketConnection.close();
     }
 

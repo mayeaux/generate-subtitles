@@ -37,7 +37,7 @@ l('transcribeHost');
 l(transcribeHost)
 
 let host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
-if(serverType === 'trascribe'){
+if(serverType === 'transcribe'){
   host = transcribeHost;
 }
 
@@ -363,8 +363,6 @@ router.get('/api/:numberToUse', async function (req, res, next) {
       progress,
       model,
       filename,
-      downloadLink,
-      apiToken,
     } = processingData;
 
     l('processingData');
@@ -374,8 +372,10 @@ router.get('/api/:numberToUse', async function (req, res, next) {
 
     const transcriptionStarting = transcriptionStatus === 'starting';
 
+    const modelLoading = transcriptionStatus === 'starting-transcription';
+
     // transcription processing or translating
-    if (transcriptionStarting || transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {
+    if (modelLoading || transcriptionStarting || transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {
       // send current processing data
       return res.send({
         status: transcriptionStatus,

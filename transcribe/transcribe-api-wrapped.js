@@ -9,6 +9,13 @@ l = console.log;
 
 const whisperPath = which.sync('whisper')
 
+const serverType = process.env.SERVER_TYPE || 'both';
+let storageFolder = `${process.cwd()}/transcriptions`;
+
+if(serverType === 'transcribe'){
+  storageFolder = `${process.cwd()}/api-transcriptions`;
+}
+
 async function createOrUpdateProcessingData(processingPath, objectToMerge){
   l('processinGPath');
   l(processingPath)
@@ -53,7 +60,7 @@ async function transcribe ({
       const originalUpload = `${processDir}/uploads/${uploadFileName}`;
 
       //
-      const processingDataPath = `${processDir}/transcriptions/${numberToUse}/processing_data.json`
+      const processingDataPath = `${storageFolder}/${numberToUse}/processing_data.json`
 
       // TODO: pull into function
       // save date when starting to see how long it's taking

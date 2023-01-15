@@ -17,18 +17,18 @@ const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
 //   maxConcurrentJobs: 2,
 // }]
 
-const remoteServerData = [{
-  endpoint: 'http://31.12.82.146:11460/api',
-  maxConcurrentJobs: 3,
-},{
-  endpoint: 'http://localhost:3002/api',
-  maxConcurrentJobs: 2,
-}]
-//
 // const remoteServerData = [{
+//   endpoint: 'http://31.12.82.146:11460/api',
+//   maxConcurrentJobs: 3,
+// },{
 //   endpoint: 'http://localhost:3002/api',
 //   maxConcurrentJobs: 2,
 // }]
+//
+const remoteServerData = [{
+  endpoint: 'http://localhost:3002/api',
+  maxConcurrentJobs: 1,
+}]
 
 // get position in queue based on websocketNumber
 function getQueueInformationByWebsocketNumber(websocketNumber){
@@ -206,7 +206,7 @@ async function runJob(jobObject){
     l(err);
   }
 
-  // run the next item from the queue
+  /** run the next item from the queue **/
   if(global.newQueue.length){
     // get next item from queue (lacks server/process info)
     const nextJobObject = global.newQueue.shift();
@@ -221,10 +221,13 @@ async function runJob(jobObject){
 
     // TODO: add got out of queue time here
     runJob(nextJobObject);
+    // TODO: run queue update here
   } else {
     // indicate that the job process is free
     global.jobProcesses[index].job = undefined;
   }
+
+  sendOutQueuePositionUpdate()
 }
 
 
@@ -265,6 +268,8 @@ function addToJobProcessOrQueue(jobObject){
 
   // TODO: add got in queue time here
 
+  // didn't find an open process, put on the queue
+
   /** ADD TO QUEUE FUNCTIONALITY **/
   // push to newQueue if all processes are busy
   if(skipToFront){
@@ -278,7 +283,7 @@ function addToJobProcessOrQueue(jobObject){
       // insert after last item with skipToFront
       global.newQueue.splice(lastItemIndex + 1, 0, jobObject);
     } else {
-      // insert at beginning
+      // no other skipToFront, so insert at beginning
       global.newQueue.unshift(jobObject);
     }
 
