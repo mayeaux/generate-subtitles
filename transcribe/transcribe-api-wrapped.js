@@ -98,7 +98,7 @@ async function transcribe ({
 
       // TODO: implement foundLanguagae here
       // let foundLanguage;
-      whisperProcess.stdout.on('data',  (data) => l(`STDOUT: ${data}`));
+      whisperProcess.stdout.on('data',  handleStdOut({ processingDataPath }));
 
       /** console output from stderr **/ // (progress comes through stderr for some reason)
       whisperProcess.stderr.on('data', handleStdErr({ model, language, originalFileName, processingDataPath }));

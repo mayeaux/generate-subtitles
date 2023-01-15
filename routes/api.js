@@ -148,8 +148,12 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       return res.status(400).send({error: `Your model of '${model}' is not valid. Please choose one of the following: ${validModelValues.join(', ')}`});
     }
 
+    let languagesWithAutoDetect = whisperLanguagesHumanReadableArray;
+
+    languagesWithAutoDetect.push('auto-detect');
+
     // bad language name
-    if(!whisperLanguagesHumanReadableArray.includes(language)) {
+    if(!languagesWithAutoDetect.includes(language)) {
       return res.status(400).send({error: `Your language of '${language}' is not valid. Please choose one of the following: ${whisperLanguagesHumanReadableArray.join(', ')}`});
     }
 
@@ -342,6 +346,9 @@ router.get('/api/:numberToUse', async function (req, res, next) {
 
     let processingData = JSON.parse(await fs.readFile(`${storageFolder}/${numberToUse}/processing_data.json`, 'utf8'));
 
+    l('processingData');
+    l(processingData);
+
     // TODO: also status not failed/errored
     const isFailed = processingData.status === 'failed';
     const isErrored = processingData.status === 'errored';
@@ -353,6 +360,8 @@ router.get('/api/:numberToUse', async function (req, res, next) {
     // get the latest progress from the remote server
     if(serverType === 'frontend' && checkRemoteProcess){
       const serverToHit = processingData.remoteServerApiUrl;
+
+      l('getting remote processing data')
 
       // it's possible there's no server to hit because it doesn't have a queue position yet
       if(serverToHit){
@@ -413,6 +422,7 @@ router.get('/api/:numberToUse', async function (req, res, next) {
   } catch (err) {
     l('err');
     l(err);
+    res.send(err)
   }
 })
 
