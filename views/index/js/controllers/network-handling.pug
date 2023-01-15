@@ -315,26 +315,12 @@ script.
   }
 
   const renderCompletionFeedback = ({data}) => {
-    const {
-      filename, processingTime, language, model, shouldTranslate, upload, uploadDuration, processingRatio, startedAt, finishedAt, isAutoDetected = false,
-      safeFileNameWithDateTimestamp,
-    } = data;
+    const {safeFileNameWithDateTimestamp, completionDataHTML} = data;
     l({data});
     l('completed data');
     if (window.decrementInterval) clearInterval(window.decrementInterval);
     $('#latestData').html(`Congratulations, you're done!`);
-    $('#finishedData').html(`
-      <p>Filename: ${filename}</p>
-      <p>Processing Time: ${processingTime}</p>
-      <p>Language: ${toTitleCase(language)}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
-      <p>Model: ${toTitleCase(model)}</p>
-      <p>Translating: ${shouldTranslate ? 'Yes' : 'No'}</p>
-      <p>Upload Name: ${upload}</p>
-      <p>Upload Duration: ${uploadDuration}</p>
-      <p>Processing Ratio: ${processingRatio}</p>
-      <p>Started At: ${startedAt}</p>
-      <p>Finished At: ${finishedAt}</p>
-    `);
+    $('#finishedData').html(completionDataHTML);
     $('#header').html('Transcription Completed');
     $('#processingData').hide();
     // show refresh button
