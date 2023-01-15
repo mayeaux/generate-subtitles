@@ -209,15 +209,26 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // build endpoint to hit
     const transcribeDataEndpoint = `${host}/api/${numberToUse}`;
 
+    const responseObject = {
+      transcribeDataEndpoint, // endpoint to hit to get data
+      fileTitle: originalFileName, // file title
+      numberToUse, // number to use to get data
+      model,
+      language,
+      apiToken,
+      message: 'starting-transcription'
+    }
+
+    if(downloadLink){
+      responseObject.downloadLink = downloadLink;
+      responseObject.message = 'starting-download';
+      res.send(responseObject);
+    } else {
+      res.send(responseObject);
+    }
+
     let matchingFile;
     if(downloadLink){
-
-      res.send({
-        message: 'starting-download',
-        // where the data will be sent from
-        transcribeDataEndpoint,
-        fileTitle: originalFileName,
-      });
 
       await writeToProcessingDataFile(processingDataPath, {
         status: 'downloading',
@@ -237,14 +248,6 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       l(matchingFile);
 
       uploadFilePath = `${process.cwd()}/uploads/${matchingFile}`;
-    } else {
-      res.send({
-        message: 'starting-transcription',
-        // where the data will be sent from
-        transcribeDataEndpoint,
-        fileTitle: originalFileName,
-        numberToUse,
-      });
     }
 
     // move transcribed file to the correct location (TODO: do this before transcribing)
@@ -378,9 +381,26 @@ router.get('/api/:numberToUse', async function (req, res, next) {
       progress,
       model,
       filename,
+      vttData,
+      srtData,
+      txtData,
+      translatedFiles,
+      originalFileNameWithExtension,
+      startedAt,
+      finishedAt,
+      uploadDurationInSeconds,
+      fileSizeInMB,
+      processingSeconds,
+      processingRatio,
+      wordCount,
+      wordsPerMinute,
+      characterCount,
+      strippedText,
+      timestampsArray,
+
     } = processingData;
 
-    l('processingData');
+      l('processingData');
     l(processingData);
 
     // TODO: if smart (local) endpoint, check the queue position
@@ -388,6 +408,68 @@ router.get('/api/:numberToUse', async function (req, res, next) {
     const transcriptionStarting = transcriptionStatus === 'starting';
 
     const modelLoading = transcriptionStatus === 'starting-transcription';
+
+    const transcriptionCompleted = transcriptionStatus === 'completed';
+
+    let responseObject;
+    if(serverType === 'frontend'){
+      responseObject = {
+        status: transcriptionStatus,
+        language,
+        languageCode,
+        model,
+        filename: originalFileNameWithExtension,
+        uploadDurationInSeconds,
+        fileSizeInMB,
+      }
+
+      if(transcriptionCompleted){
+
+        const transcribedText = {
+          subtitles: {
+            originalLanguage: {
+              vtt: vttData,
+                srt: srtData,
+                txt: txtData,
+            },
+        }}
+
+        responseObject = Object.assign(responseObject, transcribedText);
+
+        let translatedText = {};
+        if(translatedFiles){
+          for(const file of translatedFiles){
+            translatedText[file.language] = {
+              vtt: file.translatedText,
+            }
+          }
+
+          responseObject.subtitles.translated = translatedText;
+        }
+
+        const finalText = {
+          startedAt,
+          finishedAt,
+          processingSeconds,
+          processingRatio,
+          strippedText,
+          timestampsArray,
+          wordCount,
+          wordsPerMinute,
+          characterCount,
+          jobId: numberToUse,
+        }
+
+        responseObject = Object.assign(responseObject, finalText);
+
+        return res.send(responseObject);
+
+      }
+
+      if(transcriptionStarting){
+        responseObject.queuePosition = processingData.queuePosition;
+      }
+    }
 
     // transcription processing or translating
     if (modelLoading || transcriptionStarting || transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {
@@ -405,7 +487,7 @@ router.get('/api/:numberToUse', async function (req, res, next) {
 
       // send response as json
       const responseObject = {
-        status: 'completed',
+        status: transcriptionStatus,
         sdHash: numberToUse,
         numberToUse,
         // TODO: format this, dont just send the whole object
