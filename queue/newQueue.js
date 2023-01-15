@@ -6,10 +6,11 @@ const l = console.log;
 
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
-// const remoteServerSetup =
+const remoteServerData = require('../constants/remoteServerConfig');
 
 const transcribeRemoteServer = require('../scripts/postAudioFile');
 const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
+const fs = require("fs-extra");
 
 
 // const remoteServerData = [{
@@ -25,10 +26,10 @@ const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
 //   maxConcurrentJobs: 2,
 // }]
 //
-const remoteServerData = [{
-  endpoint: 'http://localhost:3002/api',
-  maxConcurrentJobs: 1,
-}]
+// const remoteServerData = [{
+//   endpoint: 'http://localhost:3002/api',
+//   maxConcurrentJobs: 1,
+// }]
 
 // get position in queue based on websocketNumber
 function getQueueInformationByWebsocketNumber(websocketNumber){
@@ -73,8 +74,58 @@ function sendOutQueuePositionUpdate(){
       // websocketConnection.send(JSON.stringify('finishedProcessing'));
     }
   }
+
+
+
+  updateQueuePositionForApiJobs();
 }
 
+async function updateQueuePositionForApiJobs(){
+  for (const [index, queueItem] of global.newQueue.entries()) {
+    if (!queueItem.websocketNumber) {
+      const mergeData = {
+        status: 'queue',
+        queueData: {
+          queuePosition: index + 1, // 1
+          queueLength: global.newQueue.length, // 4
+          aheadOfYou: index,
+          behindYou: global.newQueue.length - index - 1,
+        }
+      }
+
+      const { numberToUse, apiToken } = queueItem;
+
+      const processingDataPath = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
+
+      await createOrUpdateProcessingData(processingDataPath, mergeData);
+    }
+  }
+}
+
+async function createOrUpdateProcessingData(processingPath, objectToMerge){
+  l('processinGPath');
+  l(processingPath)
+
+  const dataExists = fs.existsSync(processingPath)
+
+  let originalObject;
+  if(dataExists){
+    // read the original JSON file
+    const originalData = fs.readFileSync(processingPath, 'utf8');
+    // parse the JSON string into an object
+    originalObject = JSON.parse(originalData);
+  } else {
+    originalObject = {};
+  }
+
+  // merge the updateObject into originalObject
+  let mergedObject = Object.assign(originalObject, objectToMerge);
+
+  //stringify the updated object
+  let updatedData = JSON.stringify(mergedObject);
+
+  fs.writeFileSync(processingPath, updatedData);
+}
 
 
 let newJobProcessArray = [];

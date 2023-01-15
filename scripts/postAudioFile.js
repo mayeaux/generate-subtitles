@@ -287,16 +287,16 @@ async function checkLatestData(dataEndpoint, latestProgress){
   l('dataResponse')
   l(dataResponse)
 
-  const remoteProcessingData = dataResponse.processingData;
+  const { numberToUse } = dataResponse;
 
-  const { numberToUse } = remoteProcessingData;
+
+  const remoteProcessingData = dataResponse.processingData;
 
   const containingFolder = `${process.cwd()}/transcriptions/${numberToUse}`;
 
   const processingJsonFile = `${containingFolder}/processing_data.json`;
   let localProcessingData = await fs.readFile(processingJsonFile);
   localProcessingData = JSON.parse(localProcessingData);
-
 
   await fs.mkdirp(containingFolder);
 

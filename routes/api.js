@@ -246,6 +246,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // move transcribed file to the correct location (TODO: do this before transcribing)
     await fs.move(uploadFilePath, newPath, { overwrite: true });
 
+    // TODO: this is wrong here
     await writeToProcessingDataFile(processingDataPath, {
       status: 'starting-transcription',
       numberToUse,
