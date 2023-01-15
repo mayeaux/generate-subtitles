@@ -440,10 +440,10 @@ async function checkLatestData(dataEndpoint, latestProgress){
         model
       }){
         let processingData = [
-          "Time Remaining: " + timeRemaining,
-          "Time Elapsed: " + timeElapsed,
+          "Time Remaining: " + timeRemaining || '?',
+          "Time Elapsed: " + timeElapsed || '?',
           // "Total Time Estimated: " + totalTimeEstimated,
-          "Speed: " + speed + " (f/s)",
+          "Speed: " + (speed || '?') + " (f/s)",
           "",
           title,
           "Duration: " + duration,

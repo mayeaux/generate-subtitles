@@ -52,7 +52,7 @@ block content
               a(href=`${filePathWithoutExtension}_${language}.vtt`) View
               a(href=`${filePathWithoutExtension}_${language}.vtt` download) Download
           .links
-            a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`) Download File
+            a(download href=`${filePathWithoutExtension}${processingData.originalFileExtension}`) Download File
         .fileDetails
           each property, value in processingData
             p #{value}: #{property}

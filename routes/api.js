@@ -346,12 +346,17 @@ router.get('/api/:numberToUse', async function (req, res, next) {
     const isErrored = processingData.status === 'errored';
     const isCompleted = processingData.status === 'completed';
 
-    const dontCheckRemoteProcess = isFailed || isErrored || isCompleted;
+    const checkRemoteProcess = !isFailed || !isErrored || !isCompleted;
 
+    // TODO: possible there is no remoteProcess
     // get the latest progress from the remote server
-    if(serverType === 'frontend' && !dontCheckRemoteProcess){
+    if(serverType === 'frontend' && checkRemoteProcess){
       const serverToHit = processingData.remoteServerApiUrl;
-      processingData = (await axios.get(`${serverToHit}/${numberToUse}`)).data;
+
+      // it's possible there's no server to hit because it doesn't have a queue position yet
+      if(serverToHit){
+        processingData = (await axios.get(`${serverToHit}/${numberToUse}`)).data;
+      }
     }
 
     // get data from processing data
@@ -381,7 +386,7 @@ router.get('/api/:numberToUse', async function (req, res, next) {
         status: transcriptionStatus,
         sdHash: numberToUse,
         progress,
-        processingData,
+        ...processingData,
         numberToUse
       })
 
@@ -394,7 +399,7 @@ router.get('/api/:numberToUse', async function (req, res, next) {
         sdHash: numberToUse,
         numberToUse,
         // TODO: format this, dont just send the whole object
-        processingData,
+        ...processingData,
       }
 
       return res.send(responseObject)
