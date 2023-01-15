@@ -8,7 +8,7 @@ const path = require('path');
 const {languagesToTranscribe, getLanguageCodeForAllLanguages} = require('../constants/constants');
 const {forHumans, getamountOfRunningJobs, sendToWebsocket} = require('../helpers/helpers');
 const {formatStdErr} = require('../helpers/formatStdErr');
-const {buildWhisperArguments, convertLanguageText, removeFromArrayByWsNumber, updateDetectedLanguage, handleTranslation, moveSubtitleFiles, generateCompletionDataHTML} = require('../lib/transcribing');
+const {buildWhisperArguments, convertLanguageText, removeFromArrayByWsNumber, updateDetectedLanguage, handleTranslation, moveSubtitleFiles, generateCompletionDataHTML, generateFileDetailsHTML} = require('../lib/transcribing');
 const {stripOutTextAndTimestamps} = require('../translate/helpers');
 const {updateQueueItemStatus} = require('../queue/queue');
 
@@ -101,6 +101,7 @@ async function transcribe ({
         translationFinished: false,
       }
 
+      fileInfo.fileDetailsHTML = generateFileDetailsHTML(fileInfo);
       sendToWebsocket(websocketConnection, {message: 'fileDetails', ...fileInfo});
 
       /** INSTANTIATE WHISPER PROCESS **/

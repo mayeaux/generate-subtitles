@@ -4,7 +4,8 @@ const fs = require('fs-extra');
 const { languagesToTranscribe, allLanguages } = require('../constants/constants');;
 const { reformatVtt } = require('./helpers')
 const { simplified } = require('zh-convert');
-const translateText = require('./google-translate-browser')
+const translateText = require('./google-translate-browser');
+const {sendToWebsocket} = require('../helpers/helpers');
 
 const convert = require('cyrillic-to-latin');
 
@@ -67,11 +68,7 @@ async function createTranslatedFiles ({
     try {
       // no need to translate just copy the file
       if (languageToConvertTo !== language) {
-        websocketConnection.send(JSON.stringify({
-          languageUpdate: `Translating into ${languageToConvertTo}..`,
-          message: 'languageUpdate'
-        }), function () {});
-
+        sendToWebsocket(websocketConnection, {message: 'languageUpdate', languageUpdate: `Translating into ${languageToConvertTo}..`});
 
         const sourceLanguageCode = getCodeFromLanguageName(language);
         const targetLanguageCode = getCodeFromLanguageName(languageToConvertTo);

@@ -287,17 +287,10 @@ script.
     // $('#latestData').css("font-size", "20px");
   }
 
-  const renderFileDetails = ({filename, language, model, shouldTranslate, uploadDuration, isAutoDetected = false}) => {
+  const renderFileDetails = ({fileDetailsHTML}) => {
     l('file details data');
     const niceDate = new Date().toString().replace(/GMT.*/g, '');
-    $('#finishedData').html(`
-      <p>Filename: ${filename}</p>
-      <p>Language: ${toTitleCase(language)}${isAutoDetected ? ' (Auto-Detected)' : ''}</p>
-      <p>Model: ${toTitleCase(model)}</p>
-      <p>Translating: ${shouldTranslate ? 'Yes' : 'No'}</p>
-      <p>Upload Duration: ${uploadDuration}</p>
-      <p>Started At: ${niceDate}</p>
-    `);
+    $('#finishedData').html(fileDetailsHTML);
   }
 
   const renderTranslationUpdate = data => {
