@@ -77,6 +77,12 @@ router.post('/api/:numberToUse/cancel', async (req, res, next) => {
 
 router.post('/api', upload.single('file'), async function (req, res, next) {
   try {
+
+    if(serverType === 'frontend'){
+      // give 500 response
+      return res.status(500).send({error: `API access temporarily turned off`});
+    }
+
     // fix body data
     const postBodyData = Object.assign({},req.body)
 
@@ -335,6 +341,11 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 // get info about the transcription via api
 router.get('/api/:numberToUse', async function (req, res, next) {
   try {
+    if(serverType === 'frontend'){
+      // give 500 response
+      return res.status(500).send({error: `API access temporarily turned off`});
+    }
+
     const numberToUse = req.params.numberToUse;
 
     l('Getting info by numberToUse');
