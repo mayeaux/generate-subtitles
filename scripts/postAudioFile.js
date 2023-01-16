@@ -284,8 +284,8 @@ async function checkLatestData(dataEndpoint, latestProgress){
   let dataResponse = await getNewData(dataEndpoint);
   delete dataResponse.websocketConnection
 
-  l('dataResponse')
-  l(dataResponse)
+  // l('dataResponse')
+  // l(dataResponse)
 
   const { numberToUse } = dataResponse;
 
@@ -306,8 +306,8 @@ async function checkLatestData(dataEndpoint, latestProgress){
   const transcriptionIsCompleted = dataResponse.status === 'completed'
 
 
-  l('localProcessingData');
-  l(localProcessingData);
+  // l('localProcessingData');
+  // l(localProcessingData);
 
   // l('remoteProcessingData');
   // l(remoteProcessingData);
@@ -316,12 +316,13 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
   const { websocketNumber } = localProcessingData;
 
-  l(language, model, formattedProgress);
-
-  l('websocket number');
-  l(websocketNumber)
+  // l('websocket number');
+  // l(websocketNumber)
 
   const { percentDoneAsNumber, timeElapsed, timeRemaining, speed } = formattedProgress || {};
+
+  l(language, model, percentDoneAsNumber, timeRemaining);
+
 
   const { hoursRemaining, minutesRemaining, secondsRemaining, string: timeRemainingString } = timeRemaining || {};
 
@@ -357,7 +358,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
   }
 
   // transcription received by backend and starting
-  if(transcriptionIsStarting){
+  else if(transcriptionIsStarting){
     l('checked remote backend and failed')
     await createOrUpdateProcessingData(processingJsonFile, {
       status: 'starting'

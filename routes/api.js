@@ -335,13 +335,9 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 // get info about the transcription via api
 router.get('/api/:numberToUse', async function (req, res, next) {
   try {
-
-    l('Getting info by numberToUse');
-
-    // TODO: should rename this
     const numberToUse = req.params.numberToUse;
 
-    l('sd hash')
+    l('Getting info by numberToUse');
     l(numberToUse);
 
     // if serverType === 'frontend'
@@ -349,8 +345,8 @@ router.get('/api/:numberToUse', async function (req, res, next) {
 
     let processingData = JSON.parse(await fs.readFile(`${storageFolder}/${numberToUse}/processing_data.json`, 'utf8'));
 
-    l('processingData');
-    l(processingData);
+    // l('processingData');
+    // l(processingData);
 
     // TODO: also status not failed/errored
     const isFailed = processingData.status === 'failed';
@@ -400,8 +396,8 @@ router.get('/api/:numberToUse', async function (req, res, next) {
 
     } = processingData;
 
-      l('processingData');
-    l(processingData);
+    //   l('processingData');
+    // l(processingData);
 
     // TODO: if smart (local) endpoint, check the queue position
 
