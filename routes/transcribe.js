@@ -17,6 +17,7 @@ const {forHumansNoSeconds} = require('../helpers/helpers');
 const {makeFileNameSafe} = require('../lib/files');
 const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
 const { addToJobProcessOrQueue, amountOfRunningJobs } = require('../queue/newQueue');
+const { writeToProcessingDataFile } = require('../lib/transcribing');
 
 
 const nodeEnv = process.env.NODE_ENV || 'development';
@@ -98,8 +99,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       originalFileNameWithExtension = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
       uploadedFilePath = req.file.path;
       uploadGeneratedFilename = req.file.filename;
-      l('uploadedFilePath');
-      l(uploadedFilePath);
+      // l('uploadedFilePath');
+      // l(uploadedFilePath);
     } else if (downloadLink) {
 
       websocketConnection.send(JSON.stringify({
@@ -145,9 +146,9 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       throw new Error('No file or download link provided');
       // ERROR
     }
-
-    l('uploadedFilePath');
-    l(uploadedFilePath);
+    //
+    // l('uploadedFilePath');
+    // l(uploadedFilePath);
 
     // get upload duration
     // TODO: pull out into function
@@ -220,6 +221,14 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const finalResting = `${process.cwd()}/transcriptions/${numberToUse}/${directorySafeFileNameWithExtension}`
 
     await fs.move(uploadedFilePath, finalResting);
+
+    const processingDataLocation = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
+
+    await writeToProcessingDataFile(processingDataLocation, {
+      language,
+      model,
+      startedAt : new Date(),
+    })
 
     // await fs.copy(newUploadLocation, finalResting);
 

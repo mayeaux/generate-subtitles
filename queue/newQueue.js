@@ -240,7 +240,7 @@ async function runJob(jobObject){
   try {
 
     l('starting job from runJob');
-    l(jobObject);
+    l(jobObject.numberToUse);
 
     // await delay(10);
 

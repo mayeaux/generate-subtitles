@@ -25,8 +25,8 @@ async function createOriginalSrt({ srtPath, srtData }){
 }
 
 async function createOrUpdateProcessingData(processingPath, objectToMerge){
-  l('processinGPath');
-  l(processingPath)
+  // l('processinGPath');
+  // l(processingPath)
 
   const dataExists = fs.existsSync(processingPath)
 
@@ -321,10 +321,9 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
   const { percentDoneAsNumber, timeElapsed, timeRemaining, speed } = formattedProgress || {};
 
-  l(language, model, percentDoneAsNumber, timeRemaining);
-
-
   const { hoursRemaining, minutesRemaining, secondsRemaining, string: timeRemainingString } = timeRemaining || {};
+
+  l(language, model, percentDoneAsNumber, timeRemainingString);
 
   const timeElapsedString = timeElapsed;
 
@@ -483,13 +482,9 @@ async function checkLatestData(dataEndpoint, latestProgress){
     //   sendLatestData(data, numberToUse);
     // }
 
-
-    l('detected that processing')
     // DELAY 5 SECONDS AND
     await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
-
-
 
   /** TRANSCRIPTION COMPLETED SUCCESSFULLY **/
   } else if(transcriptionIsCompleted){
