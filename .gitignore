@@ -4,6 +4,7 @@ assets
 test
 uploads
 transcriptions
+api-transcriptions
 transcriptions1
 downloads
 
@@ -15,3 +16,5 @@ constants/apiTokens.txt
 
 scripts/output-audio.aac
 scripts/trimmed.mp4
+
+*.log

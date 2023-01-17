@@ -6,10 +6,11 @@ const l = console.log;
 
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
-// const remoteServerSetup =
+const remoteServerData = require('../constants/remoteServerConfig');
 
 const transcribeRemoteServer = require('../scripts/postAudioFile');
 const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
+const fs = require("fs-extra");
 
 
 // const remoteServerData = [{
@@ -17,17 +18,17 @@ const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
 //   maxConcurrentJobs: 2,
 // }]
 
-const remoteServerData = [{
-  endpoint: 'http://31.12.82.146:11460/api',
-  maxConcurrentJobs: 3,
-},{
-  endpoint: 'http://localhost:3002/api',
-  maxConcurrentJobs: 2,
-}]
+// const remoteServerData = [{
+//   endpoint: 'http://31.12.82.146:11460/api',
+//   maxConcurrentJobs: 3,
+// },{
+//   endpoint: 'http://localhost:3002/api',
+//   maxConcurrentJobs: 2,
+// }]
 //
 // const remoteServerData = [{
 //   endpoint: 'http://localhost:3002/api',
-//   maxConcurrentJobs: 2,
+//   maxConcurrentJobs: 1,
 // }]
 
 // get position in queue based on websocketNumber
@@ -73,8 +74,58 @@ function sendOutQueuePositionUpdate(){
       // websocketConnection.send(JSON.stringify('finishedProcessing'));
     }
   }
+
+
+
+  updateQueuePositionForApiJobs();
 }
 
+async function updateQueuePositionForApiJobs(){
+  for (const [index, queueItem] of global.newQueue.entries()) {
+    if (!queueItem.websocketNumber) {
+      const mergeData = {
+        status: 'queue',
+        queueData: {
+          queuePosition: index + 1, // 1
+          queueLength: global.newQueue.length, // 4
+          aheadOfYou: index,
+          behindYou: global.newQueue.length - index - 1,
+        }
+      }
+
+      const { numberToUse, apiToken } = queueItem;
+
+      const processingDataPath = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
+
+      await createOrUpdateProcessingData(processingDataPath, mergeData);
+    }
+  }
+}
+
+async function createOrUpdateProcessingData(processingPath, objectToMerge){
+  l('processinGPath');
+  l(processingPath)
+
+  const dataExists = fs.existsSync(processingPath)
+
+  let originalObject;
+  if(dataExists){
+    // read the original JSON file
+    const originalData = fs.readFileSync(processingPath, 'utf8');
+    // parse the JSON string into an object
+    originalObject = JSON.parse(originalData);
+  } else {
+    originalObject = {};
+  }
+
+  // merge the updateObject into originalObject
+  let mergedObject = Object.assign(originalObject, objectToMerge);
+
+  //stringify the updated object
+  let updatedData = JSON.stringify(mergedObject);
+
+  fs.writeFileSync(processingPath, updatedData);
+}
 
 
 let newJobProcessArray = [];
@@ -189,7 +240,7 @@ async function runJob(jobObject){
   try {
 
     l('starting job from runJob');
-    l(jobObject);
+    l(jobObject.numberToUse);
 
     // await delay(10);
 
@@ -206,7 +257,7 @@ async function runJob(jobObject){
     l(err);
   }
 
-  // run the next item from the queue
+  /** run the next item from the queue **/
   if(global.newQueue.length){
     // get next item from queue (lacks server/process info)
     const nextJobObject = global.newQueue.shift();
@@ -221,10 +272,13 @@ async function runJob(jobObject){
 
     // TODO: add got out of queue time here
     runJob(nextJobObject);
+    // TODO: run queue update here
   } else {
     // indicate that the job process is free
     global.jobProcesses[index].job = undefined;
   }
+
+  sendOutQueuePositionUpdate()
 }
 
 
@@ -265,6 +319,8 @@ function addToJobProcessOrQueue(jobObject){
 
   // TODO: add got in queue time here
 
+  // didn't find an open process, put on the queue
+
   /** ADD TO QUEUE FUNCTIONALITY **/
   // push to newQueue if all processes are busy
   if(skipToFront){
@@ -278,7 +334,7 @@ function addToJobProcessOrQueue(jobObject){
       // insert after last item with skipToFront
       global.newQueue.splice(lastItemIndex + 1, 0, jobObject);
     } else {
-      // insert at beginning
+      // no other skipToFront, so insert at beginning
       global.newQueue.unshift(jobObject);
     }
 

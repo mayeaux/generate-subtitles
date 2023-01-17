@@ -181,6 +181,8 @@ script.
 
   const handleProgressData = ({data, circleProgress}) => {
 
+    $('#latestData').hide();
+
     // TODO: have to pass the function here
     const { processingDataString, percentDoneAsNumber } = data;
 
@@ -370,8 +372,13 @@ script.
     $('#processingData').html(data.languageUpdate);
   }
 
-  const renderCompletionFeedback = ({data}) => {
+  const renderCompletionFeedback = ({data, circleProgress}) => {
     l('completed data');
+    circleProgress.attr({
+      max: 100,
+      value: 100,
+    });
+
     if (window.decrementInterval) clearInterval(window.decrementInterval);
     $('#latestData').html(`Congratulations, you're done!`);
     $('#finishedData').html(data.detailsString);

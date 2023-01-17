@@ -138,11 +138,14 @@ script.
   async function submitForm(evt) {
     evt.preventDefault();
 
-    const outstandingJobsResponse = await fetch(checkAmountOfOutstandingJobsUrl);
-    const outstandingJobsText = await outstandingJobsResponse.text();
+    // dont check outstanding processes on development
+    if (nodeEnvironment === 'production') {
+      const outstandingJobsResponse = await fetch(checkAmountOfOutstandingJobsUrl);
+      const outstandingJobsText = await outstandingJobsResponse.text();
 
-    if(outstandingJobsText === 'tooMany') {
-      return errorsMap['too-many-outstanding']()
+      if (outstandingJobsText === 'tooMany') {
+        return errorsMap['too-many-outstanding']()
+      }
     }
 
     /* DATA */
@@ -357,7 +360,7 @@ script.
     /** WHEN WEBSOCKET SAYS COMPLETED **/
     if (transcriptionHasCompleted) {
       uploadFinished = true;
-      renderCompletionFeedback({data});
+      renderCompletionFeedback({data, circleProgress});
       websocketConnection.close();
     }
 

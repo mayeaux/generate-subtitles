@@ -25,8 +25,8 @@ async function createOriginalSrt({ srtPath, srtData }){
 }
 
 async function createOrUpdateProcessingData(processingPath, objectToMerge){
-  l('processinGPath');
-  l(processingPath)
+  // l('processinGPath');
+  // l(processingPath)
 
   const dataExists = fs.existsSync(processingPath)
 
@@ -90,9 +90,6 @@ async function hitRemoteApiEndpoint(form, fullApiEndpoint){
 // get latest data and log it
 async function getNewData(dataUrl){
   let dataResponse = await axios.get(dataUrl);
-
-  l('dataResponse');
-  l(dataResponse.data);
   return dataResponse.data
 }
 
@@ -201,8 +198,16 @@ async function transcribeViaRemoteApi(jobObject){
     jobObject
   });
 
+  l('dataEndpoint');
+  l(dataEndpoint);
+
+  l('remove server api url');
+  l(remoteServerApiUrl);
+
+  // const endpoint = `${remoteServerApiUrl}/${dataEndpoint}`;
+
   // repeatedly check endpoint until failure/completion
-  return await checkLatestData(dataEndpoint, remoteServerApiUrl)
+  return await checkLatestData(dataEndpoint)
 }
 
 // function sendLatestData(formattedStdErr, numberToUse){
@@ -254,104 +259,6 @@ async function transcribeViaRemoteApi(jobObject){
 
 // main();
 
-// parse json object that's returned from API
-function parseData(dataResponse, latestProgress) {
-  // get the status
-  const transcriptionStatus = dataResponse?.status;
-
-  const numberToUse = dataResponse?.numberToUse;
-
-  l('dataResponse');
-  l(dataResponse)
-
-  // TODO: just return if it's undefined?
-
-  const transcriptionCompleted = transcriptionStatus === 'completed';
-  const transcriptionErrored = transcriptionStatus === 'errored';
-  const transcriptionIsTranslating = transcriptionStatus === 'translating';
-
-  // transcriptionStatus === 'starting-transcription'
-  // TODO: this isn't really a status, more of a stage
-
-  const transcriptionIsProcessing = transcriptionStatus === 'starting-transcription' ||
-    transcriptionStatus === 'transcribing' || transcriptionStatus === 'processing' || transcriptionIsTranslating;
-
-  // transcription is completed
-  if (transcriptionCompleted) {
-    const transcription = dataResponse?.transcription;
-    const sdHash = dataResponse?.sdHash;
-    const subtitles = dataResponse?.subtitles;
-    const processingData = dataResponse?.processingData;
-
-    const { srtData, vttData, txtData } = dataResponse.processingData;
-
-    const processingDataNumberToUse = processingData.numberToUse;
-
-    delete processingData.srtData;
-    delete processingData.vttData;
-    delete processingData.txtData;
-
-    // TODO: add translations here
-
-    return {
-      status: 'completed',
-      transcription,
-      sdHash,
-      subtitles,
-      processingData,
-      srtData,
-      vttData,
-      txtData,
-      numberToUse: processingDataNumberToUse,
-    }
-  }
-
-  // transaction is processing
-  if(transcriptionIsProcessing){
-    const { percentDone, timeRemaining, timeElapsed, speed, percentDoneAsNumber } = dataResponse?.processingData?.formattedProgress || {};
-
-    const { string, hoursRemaining, secondsRemaining, } = timeRemaining || {};
-
-    let processingString = '';
-    if (timeRemaining) {
-      processingString = `[${percentDone}] ${timeRemaining.string} Remaining, Speed ${speed}f/s`
-    }
-
-    // formattedProgress: {
-    //   progressBar: '█▍        ',
-    //     percentDone: '14%',
-    //     timeElapsed: '07:38',
-    //     speed: '126.96',
-    //     percentDoneAsNumber: 14,
-    //     timeRemaining: {
-    //     string: '46:28',
-    //       hoursRemaining: 0,
-    //       minutesRemaining: 46,
-    //       secondsRemaining: 28
-    //   }
-    // }
-
-    // only do on change, otherwise you push out a new one every 5s
-    // sendLatestData(percentDone, numberToUse);
-
-    // TODO: add better data here for frontend
-    return {
-      status: 'processing',
-      percentDone,
-      numberToUse
-    }
-  }
-
-  // transcription errored
-  if(transcriptionErrored){
-    return {
-      status: 'failed',
-      numberToUse
-    }
-  }
-
-  return false
-}
 
 async function createOriginalTxt({ txtPath, txtData }){
   fs.writeFileSync(txtPath, txtData, options);
@@ -364,7 +271,7 @@ async function createOriginalVtt({ vttPath, vttData }){
 const delayInMillisecondsBetweenChecks = 5000;
 
 function getWebsocketConnectionByNumberToUse(numberToUse){
-  const foundWebsocketConnection = (global.webSocketData.find(connection => connection.websocketNumber === numberToUse)).websocket
+  const foundWebsocketConnection = (global.webSocketData.find(connection => connection.websocketNumber === numberToUse))?.websocket
   if(foundWebsocketConnection.readyState === WebSocket.OPEN){
     return foundWebsocketConnection
   }
@@ -373,48 +280,50 @@ function getWebsocketConnectionByNumberToUse(numberToUse){
 // check repeatedly and return when completed or failed
 async function checkLatestData(dataEndpoint, latestProgress){
   // get first data
+  l(`getting data from: ${dataEndpoint}`)
   let dataResponse = await getNewData(dataEndpoint);
   delete dataResponse.websocketConnection
 
-  // status: 'starting-transcription',
+  // l('dataResponse')
+  // l(dataResponse)
 
-  // get target progress here
-  // parse and analyze data
-  // TODO: remove this, just annoying
-  let organizedData = parseData(dataResponse);
+  const { numberToUse } = dataResponse;
 
-  // l('response data');
-  // l(organizedData);
 
-  const { status, percentDone, numberToUse } = organizedData;
+  // const remoteProcessingData = dataResponse.processingData;
 
   const containingFolder = `${process.cwd()}/transcriptions/${numberToUse}`;
-  await fs.mkdirp(containingFolder);
 
-  const transcriptionDir = `${process.cwd()}/transcriptions`;
   const processingJsonFile = `${containingFolder}/processing_data.json`;
-
-  const transcriptionIsProcessing = status === 'processing'
-  const transcriptionIsCompleted = status === 'completed'
-  const transcriptionFailed = status === 'failed'
-
-
-  const processingData = dataResponse.processingData;
-
-
   let localProcessingData = await fs.readFile(processingJsonFile);
   localProcessingData = JSON.parse(localProcessingData);
 
+  await fs.mkdirp(containingFolder);
 
-  l('PROCESSING DATA');
+  const transcriptionDir = `${process.cwd()}/transcriptions`;
 
-  const { language, model, formattedProgress } = processingData || {};
+  const transcriptionIsProcessing = dataResponse.status === 'processing'
+  const transcriptionIsCompleted = dataResponse.status === 'completed'
 
-  l(language, model, formattedProgress);
+
+  // l('localProcessingData');
+  // l(localProcessingData);
+
+  // l('remoteProcessingData');
+  // l(remoteProcessingData);
+
+  const { language, model, formattedProgress } = dataResponse || {};
+
+  const { websocketNumber } = localProcessingData;
+
+  // l('websocket number');
+  // l(websocketNumber)
 
   const { percentDoneAsNumber, timeElapsed, timeRemaining, speed } = formattedProgress || {};
 
   const { hoursRemaining, minutesRemaining, secondsRemaining, string: timeRemainingString } = timeRemaining || {};
+
+  l(language, model, percentDoneAsNumber, timeRemainingString);
 
   const timeElapsedString = timeElapsed;
 
@@ -425,16 +334,69 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
   const loadingModel = dataResponse?.status === 'starting-transcription';
 
-  if(loadingModel){
-    const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
+  const transcriptionFailed = dataResponse?.status === 'error';
 
+  const transcriptionIsTranslating = dataResponse?.status === 'translating';
+
+  const transcriptionIsStarting = dataResponse?.status === 'starting';
+
+  let websocketConnection;
+  if(websocketNumber){
+    websocketConnection = getWebsocketConnectionByNumberToUse(websocketNumber);
+  } else {
+    l('NO WEBSOCKET');
+  }
+
+
+  if(transcriptionFailed){
+    l('checked remote backend and failed')
+    await createOrUpdateProcessingData(processingJsonFile, {
+      status: 'failed'
+    })
+    throw new Error('Transcription failed from remote call')
+  }
+
+  // transcription received by backend and starting
+  else if(transcriptionIsStarting){
+    l('checked remote backend and failed')
+    await createOrUpdateProcessingData(processingJsonFile, {
+      status: 'starting'
+    })
+
+    // send websocket progress
     if(websocketConnection){
-      // tell frontend upload is done
-      websocketConnection.send(JSON.stringify({
-        status: 'progress',
-        processingDataString: 'Whisper is loading.. (loading model in GPU)', // TODO: say GB amount
-      }), function () {});
+      l('websocket connection exists');
+
+      if(websocketConnection){
+        // tell frontend upload is done
+        websocketConnection.send(JSON.stringify({
+          status: 'progress',
+          processingDataString: 'Whisper is loading.. (loading model in GPU)', // TODO: say GB amount
+        }), function () {});
+      }
     }
+
+    await delayPromise(delayInMillisecondsBetweenChecks);
+    return await checkLatestData(dataEndpoint, latestProgress);
+
+  } else if(loadingModel){
+    l('checked remote backend and loading model')
+
+
+    // send websocket progress
+    if(websocketConnection){
+      l('websocket connection exists');
+
+      if(websocketConnection){
+        // tell frontend upload is done
+        websocketConnection.send(JSON.stringify({
+          status: 'progress',
+          processingDataString: 'Whisper is loading.. (loading model in GPU)', // TODO: say GB amount
+        }), function () {});
+      }
+    }
+
+    // TODO: save to processing data
 
     await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
@@ -442,6 +404,8 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
   // TRANSCRIPTION IS PROCESSING
   else if(transcriptionIsProcessing) {
+    l('checked remote backend and processing')
+
 
     // TODO: copy existing processingData
     // TODO: pass progress as a parameter to the function
@@ -450,70 +414,64 @@ async function checkLatestData(dataEndpoint, latestProgress){
       status: 'processing',
     })
 
-    // get the websocket connection for relevant upload
-    const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
-
-    const getProcessingVideo = '';
-
-    const progressInformation = {
-      language,
-      model,
-      timeRemainingString,
-      timeElapsedString,
-      percentDoneAsNumber,
-      speed,
-    }
-
-    function generateProcessingDataString({
-      timeRemaining,
-      timeElapsed,
-      totalTimeEstimated,
-      speed,
-      title,
-      duration,
-      fileType,
-      language,
-      model
-    }){
-      let processingData = [
-        "Time Remaining: " + timeRemaining,
-        "Time Elapsed: " + timeElapsed,
-        // "Total Time Estimated: " + totalTimeEstimated,
-        "Speed: " + speed + " (f/s)",
-        "",
-        title,
-        "Duration: " + duration,
-        "File Type: " + fileType,
-        "Language: " + language,
-        "Model: " + model
-      ];
-      return processingData.join(" \n\n ");
-    }
-
-    const { originalFileNameWithExtension, uploadDurationInSeconds } = localProcessingData
-
-    const processingDataString = generateProcessingDataString({
-      timeRemaining: timeRemainingString,
-      timeElapsed: timeElapsedString,
-      // totalTimeEstimated: 'TODO',
-      speed,
-      title: originalFileNameWithExtension,
-      duration: uploadDurationInSeconds, // TODO: have to save it earlier on backend to access it
-      fileType: 'Video',
-      language,
-      model
-    });
-
-
-    // TODO: send some better stuff to frontend
-    // send progress to relevant frontend (working)
     if(websocketConnection){
-      // tell frontend upload is done
+      l('websocket connection exists');
+      // get the websocket connection for relevant upload
+      const getProcessingVideo = '';
+
+      const progressInformation = {
+        language,
+        model,
+        timeRemainingString,
+        timeElapsedString,
+        percentDoneAsNumber,
+        speed,
+      }
+
+      function generateProcessingDataString({
+        timeRemaining,
+        timeElapsed,
+        totalTimeEstimated,
+        speed,
+        title,
+        duration,
+        fileType,
+        language,
+        model
+      }){
+        let processingData = [
+          "Time Remaining: " + timeRemaining || '?',
+          "Time Elapsed: " + timeElapsed || '?',
+          // "Total Time Estimated: " + totalTimeEstimated,
+          "Speed: " + (speed || '?') + " (f/s)",
+          "",
+          title,
+          "Duration: " + duration,
+          "File Type: " + fileType,
+          "Language: " + language,
+          "Model: " + model
+        ];
+        return processingData.join(" \n\n ");
+      }
+
+      const { originalFileNameWithExtension, uploadDurationInSeconds } = localProcessingData
+
+      const processingDataString = generateProcessingDataString({
+        timeRemaining: timeRemainingString,
+        timeElapsed: timeElapsedString,
+        // totalTimeEstimated: 'TODO',
+        speed,
+        title: originalFileNameWithExtension,
+        duration: uploadDurationInSeconds, // TODO: have to save it earlier on backend to access it
+        fileType: 'Video',
+        language,
+        model
+      });
+
       websocketConnection.send(JSON.stringify({
         status: 'progress',
         processingDataString,
         percentDoneAsNumber,
-        generateString: function(thing){console.log(thing + ' generated')}
       }), function () {});
     }
 
@@ -524,26 +482,23 @@ async function checkLatestData(dataEndpoint, latestProgress){
     //   sendLatestData(data, numberToUse);
     // }
 
-
-    l('detected that processing')
     // DELAY 5 SECONDS AND
     await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
 
-
-
   /** TRANSCRIPTION COMPLETED SUCCESSFULLY **/
   } else if(transcriptionIsCompleted){
-    l('detected that completed')
+    l('checked remote backend and completed')
+
 
     const originalFileNameWithoutExtension = localProcessingData.directorySafeFileNameWithoutExtension;
     const originalFileName = localProcessingData.directorySafeFileNameWithExtension
 
-    const { language } = localProcessingData;
+    const { language } = dataResponse;
 
     // language undefined
 
-    let { srtData, vttData, txtData } = organizedData;
+    let { srtData, vttData, txtData } = dataResponse;
 
     l('language');
     l(language)
@@ -579,10 +534,10 @@ async function checkLatestData(dataEndpoint, latestProgress){
       vttData,
     })
 
-    if(organizedData.processingData.translatedFiles?.length){
+    if(dataResponse.translatedFiles?.length){
       await createTranslatedVtts({
         prependPath: `${directoryBasedOnNumber}/${directorySafeFileNameWithoutExtension}`,
-        translatedFiles: organizedData.processingData.translatedFiles
+        translatedFiles: dataResponse.translatedFiles
       })
     }
 
@@ -592,27 +547,35 @@ async function checkLatestData(dataEndpoint, latestProgress){
     // TODO: bug here, could overwrite better data
     await createOrUpdateProcessingData(processingJsonFile, {
       status: 'completed',
-      ... organizedData.processingData,
+      ...dataResponse,
       originalFileExtension // who do I have to do this
     })
 
-    // get the websocket connection for relevant upload
-    const websocketConnection = getWebsocketConnectionByNumberToUse(numberToUse);
+    if(websocketNumber){
+      // get the websocket connection for relevant upload
+      const websocketConnection = getWebsocketConnectionByNumberToUse(websocketNumber);
 
-    //
-    if(websocketConnection && websocketConnection.readyState === WebSocket.OPEN){
-      // tell frontend upload is done
-      websocketConnection.send(JSON.stringify({
-        status: 'Completed',
-        filename: localProcessingData.fileSafeNameWithDateTimestamp
-      }), function () {});
+      //
+      if(websocketConnection && websocketConnection.readyState === WebSocket.OPEN){
+        // tell frontend upload is done
+        websocketConnection.send(JSON.stringify({
+          status: 'Completed',
+          filename: localProcessingData.fileSafeNameWithDateTimestamp
+        }), function () {});
+      }
     }
 
     const newDirectoryName = localProcessingData.fileSafeNameWithDateTimestamp
 
     const renamedDirectory = `${transcriptionDir}/${newDirectoryName}`
 
-    await fs.rename(directoryBasedOnNumber, renamedDirectory)
+    // TODO: only rename if not api
+
+    const isApiCall = !websocketNumber;
+
+    if(!isApiCall){
+      await fs.rename(directoryBasedOnNumber, renamedDirectory)
+    }
 
     return {
       status: 'completed'
@@ -628,10 +591,10 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
 
     // WHEN TRANSCRIPTION COMPLETED
-  }else {
+  } else {
     // TODO: this shouldn't happen
     l('UNDETECTED STATUS TYPE')
-    l(dataResponse)
+    l(dataResponse.status)
 
     await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
@@ -640,6 +603,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
 }
 
 async function runRemoteTranscriptionJob(jobObject){
+  delete jobObject.websocketConnection
   // save original processing, maybe not the best place to do it
   await saveOriginalProcessingDataJson(jobObject)
 

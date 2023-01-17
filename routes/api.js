@@ -17,11 +17,12 @@ const {
   writeToProcessingDataFile,
   createFileNames,
   makeFileNameSafe,
-  getOriginalFilesObject
+  getOriginalFilesObject,
 } = require('../lib/transcribing');
-const {addToJobProcessOrQueue, amountOfRunningJobs} = require('../queue/newQueue');
-const ffprobe = require('ffprobe');
-const which = require('which');
+const cancelProcessByNumberToUse = require('../lib/cancelProcessByNumberToUse');
+const {addToJobProcessOrQueue, amountOfRunningJobs} = require("../queue/newQueue");
+const ffprobe = require("ffprobe");
+const which = require("which");
 const ffprobePath = which.sync('ffprobe')
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
@@ -36,16 +37,19 @@ const transcribeHost = process.env.TRANSCRIBE_HOST || 'http://localhost:3000';
 l('transcribeHost');
 l(transcribeHost)
 
+let host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
+if(serverType === 'transcribe'){
+  host = transcribeHost;
+}
 
-const runCommand = async command => new Promise((resolve, reject) => {
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      reject(error);
-      return;
-    }
-    resolve(stdout.trim());
-  });
-});
+let storageFolder = `${process.cwd()}/transcriptions`;
+
+if(serverType === 'transcribe'){
+  storageFolder = `${process.cwd()}/api-transcriptions`;
+  (async function(){
+    await fs.ensureDir(storageFolder);
+  })()
+}
 
 // generate random 10 digit number
 function generateRandomNumber () {
@@ -58,34 +62,28 @@ const storage = multer.diskStorage({ // notice  you are calling the multer.diskS
   },
 });
 
+
 let upload = multer({ storage });
 
-const removeFromArray = (array, cb) => {
-  return array.filter(cb);
-}
-
-const cancelProcess = async (req, res, next) => {
+router.post('/api/:numberToUse/cancel', async (req, res, next) => {
   try {
-    const {numberToUse} = req.params;
-    l('process to be cancelled', {numberToUse});
-    // find process
-    const process = global.jobProcesses.find(process => process.numberToUse === numberToUse);
-    const pid = await runCommand(`ps -e | grep "python\|${numberToUse}" | awk "{print $1}"`);
-    // // | grep "python\|${numberToUse}" | awk '{print $1}'
-    l(`PID of the process:\n${pid}`);
-    // kill process
-    await runCommand(`kill ${pid}`);
-    l(`Process ${pid} killed`);
-    // remove from global.jobProcesses
-    global.jobProcesses = removeFromArray(global.jobProcesses, process => process.numberToUse !== numberToUse)
+    const { numberToUse } = req.params;
+    await cancelProcessByNumberToUse(numberToUse);
+    res.send('cancelled')
   } catch (err) {
     console.error(err);
     return res.status(500).send({error: `Something went wrong: ${err}`});
   }
-}
+});
 
 router.post('/api', upload.single('file'), async function (req, res, next) {
   try {
+
+    if(serverType === 'frontend'){
+      // give 500 response
+      return res.status(500).send({error: `API access temporarily turned off`});
+    }
+
     // fix body data
     const postBodyData = Object.assign({},req.body)
 
@@ -109,8 +107,14 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // get language and model
     const { model, language, downloadLink, apiToken, websocketNumber, jobObject } = postBodyData;
 
-    const parsedJobObject = JSON.parse(jobObject);
+    // TODO: this comes from a gs frontend
+    let parsedJobObject = {};
+    if(jobObject){
+      parsedJobObject = JSON.parse(jobObject);
+    }
+    // const parsedJobObject = JSON.parse(jobObject);
 
+    // TODO: pretty ugly
     const passedNumberToUse = postBodyData.numberToUse;
 
     let numberToUse;
@@ -151,14 +155,23 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       return res.status(400).send({error: `Your model of '${model}' is not valid. Please choose one of the following: ${validModelValues.join(', ')}`});
     }
 
+    let languagesWithAutoDetect = whisperLanguagesHumanReadableArray;
+
+    languagesWithAutoDetect.push('auto-detect');
+
     // bad language name
-    if (!whisperLanguagesHumanReadableArray.includes(language)) {
+    if(!languagesWithAutoDetect.includes(language)) {
       return res.status(400).send({error: `Your language of '${language}' is not valid. Please choose one of the following: ${whisperLanguagesHumanReadableArray.join(', ')}`});
     }
 
     if (downloadLink) {
       // hit yt-dlp and get file title name
       originalFileName =  await getFilename(downloadLink);
+    }
+
+    let shouldTranslate = false;
+    if(postBodyData.shouldTranslate === 'true'){
+      shouldTranslate = true;
     }
 
     const {
@@ -180,12 +193,14 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l(originalFileName);
 
     // create directory for transcriptions
-    await fs.mkdirp(`${process.cwd()}/transcriptions/${numberToUse}`);
+    await fs.mkdirp(`${storageFolder}/${numberToUse}`);
 
-    const newPath = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`;
+    const newPath = `${storageFolder}/${numberToUse}/${numberToUse}`;
 
     // setup path for processing data
-    const processingDataPath = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
+    const processingDataPath = `${storageFolder}/${numberToUse}/processing_data.json`;
+
+    l('writing data file')
 
     // save initial data
     await writeToProcessingDataFile(processingDataPath, {
@@ -194,21 +209,33 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       downloadLink,
       filename: originalFileName,
       apiToken,
-      ...parsedJobObject
+      ...parsedJobObject,
+      status: 'starting',
     })
 
     // build endpoint to hit
-    const transcribeDataEndpoint = `${transcribeHost}/api/${numberToUse}`;
+    const transcribeDataEndpoint = `${host}/api/${numberToUse}`;
+
+    const responseObject = {
+      transcribeDataEndpoint, // endpoint to hit to get data
+      fileTitle: originalFileName, // file title
+      numberToUse, // number to use to get data
+      model,
+      language,
+      apiToken,
+      message: 'starting-transcription'
+    }
+
+    if(downloadLink){
+      responseObject.downloadLink = downloadLink;
+      responseObject.message = 'starting-download';
+      res.send(responseObject);
+    } else {
+      res.send(responseObject);
+    }
 
     let matchingFile;
-    if (downloadLink) {
-
-      res.send({
-        message: 'starting-download',
-        // where the data will be sent from
-        transcribeDataEndpoint,
-        fileTitle: originalFileName,
-      });
+    if(downloadLink){
 
       await writeToProcessingDataFile(processingDataPath, {
         status: 'downloading',
@@ -228,19 +255,12 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       l(matchingFile);
 
       uploadFilePath = `${process.cwd()}/uploads/${matchingFile}`;
-    } else {
-      res.send({
-        message: 'starting-transcription',
-        // where the data will be sent from
-        transcribeDataEndpoint,
-        fileTitle: originalFileName,
-        numberToUse,
-      });
     }
 
     // move transcribed file to the correct location (TODO: do this before transcribing)
     await fs.move(uploadFilePath, newPath, { overwrite: true });
 
+    // TODO: this is wrong here
     await writeToProcessingDataFile(processingDataPath, {
       status: 'starting-transcription',
       numberToUse,
@@ -279,11 +299,11 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
         fileSafeNameWithDateTimestampAndExtension,
         uploadGeneratedFilename: numberToUse, // TODO: refactor to use number by default
 
-        shouldTranslate: false, // not supported by API yet
+        shouldTranslate,
         uploadDurationInSeconds,
         fileSizeInMB,
         ...(downloadLink && { downloadLink }),
-        skipToFront: true,
+        skipToFront: true, // auto skip to front
         totalOutstanding,
         ip,
 
@@ -324,20 +344,43 @@ router.post('/api/cancel/:numberToUse', cancelProcess);
 // get info about the transcription via api
 router.get('/api/:numberToUse', async function (req, res, next) {
   try {
+    if(serverType === 'frontend'){
+      // give 500 response
+      return res.status(500).send({error: `API access temporarily turned off`});
+    }
 
-    l('Getting info by numberToUse');
-
-    // TODO: should rename this
     const numberToUse = req.params.numberToUse;
 
-    l('sd hash')
+    l('Getting info by numberToUse');
     l(numberToUse);
 
     // if serverType === 'frontend'
     // check the queue
 
-    // get processing data path
-    const processingData = JSON.parse(await fs.readFile(`./transcriptions/${numberToUse}/processing_data.json`, 'utf8'));
+    let processingData = JSON.parse(await fs.readFile(`${storageFolder}/${numberToUse}/processing_data.json`, 'utf8'));
+
+    // l('processingData');
+    // l(processingData);
+
+    // TODO: also status not failed/errored
+    const isFailed = processingData.status === 'failed';
+    const isErrored = processingData.status === 'errored';
+    const isCompleted = processingData.status === 'completed';
+
+    const checkRemoteProcess = !isFailed || !isErrored || !isCompleted;
+
+    // TODO: possible there is no remoteProcess
+    // get the latest progress from the remote server
+    if(serverType === 'frontend' && checkRemoteProcess){
+      const serverToHit = processingData.remoteServerApiUrl;
+
+      l('getting remote processing data')
+
+      // it's possible there's no server to hit because it doesn't have a queue position yet
+      if(serverToHit){
+        processingData = (await axios.get(`${serverToHit}/${numberToUse}`)).data;
+      }
+    }
 
     // get data from processing data
     const {
@@ -348,20 +391,104 @@ router.get('/api/:numberToUse', async function (req, res, next) {
       progress,
       model,
       filename,
-      downloadLink,
-      apiToken,
+      vttData,
+      srtData,
+      txtData,
+      translatedFiles,
+      originalFileNameWithExtension,
+      startedAt,
+      finishedAt,
+      uploadDurationInSeconds,
+      fileSizeInMB,
+      processingSeconds,
+      processingRatio,
+      wordCount,
+      wordsPerMinute,
+      characterCount,
+      strippedText,
+      timestampsArray,
+
     } = processingData;
+
+    //   l('processingData');
+    // l(processingData);
 
     // TODO: if smart (local) endpoint, check the queue position
 
+    const transcriptionStarting = transcriptionStatus === 'starting';
+
+    const modelLoading = transcriptionStatus === 'starting-transcription';
+
+    const transcriptionCompleted = transcriptionStatus === 'completed';
+
+    let responseObject;
+    if(serverType === 'frontend'){
+      responseObject = {
+        status: transcriptionStatus,
+        language,
+        languageCode,
+        model,
+        filename: originalFileNameWithExtension,
+        uploadDurationInSeconds,
+        fileSizeInMB,
+      }
+
+      if(transcriptionCompleted){
+
+        const transcribedText = {
+          subtitles: {
+            originalLanguage: {
+              vtt: vttData,
+                srt: srtData,
+                txt: txtData,
+            },
+        }}
+
+        responseObject = Object.assign(responseObject, transcribedText);
+
+        let translatedText = {};
+        if(translatedFiles){
+          for(const file of translatedFiles){
+            translatedText[file.language] = {
+              vtt: file.translatedText,
+            }
+          }
+
+          responseObject.subtitles.translated = translatedText;
+        }
+
+        const finalText = {
+          startedAt,
+          finishedAt,
+          processingSeconds,
+          processingRatio,
+          strippedText,
+          timestampsArray,
+          wordCount,
+          wordsPerMinute,
+          characterCount,
+          jobId: numberToUse,
+        }
+
+        responseObject = Object.assign(responseObject, finalText);
+
+        return res.send(responseObject);
+
+      }
+
+      if(transcriptionStarting){
+        responseObject.queuePosition = processingData.queuePosition;
+      }
+    }
+
     // transcription processing or translating
-    if (transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {
+    if (modelLoading || transcriptionStarting || transcriptionStatus === 'processing' || transcriptionStatus === 'translating') {
       // send current processing data
       return res.send({
         status: transcriptionStatus,
         sdHash: numberToUse,
         progress,
-        processingData,
+        ...processingData,
         numberToUse
       })
 
@@ -370,23 +497,24 @@ router.get('/api/:numberToUse', async function (req, res, next) {
 
       // send response as json
       const responseObject = {
-        status: 'completed',
+        status: transcriptionStatus,
         sdHash: numberToUse,
         numberToUse,
-        processingData,
+        // TODO: format this, dont just send the whole object
+        ...processingData,
       }
 
       return res.send(responseObject)
+    } else {
+      l('nothing hit doing third one')
+      return res.send(processingData);
     }
-
-
-
-    return res.send(processingData);
 
     // res.send('ok');
   } catch (err) {
     l('err');
     l(err);
+    res.send(err)
   }
 })
 
