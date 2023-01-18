@@ -8,13 +8,23 @@
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 
+// let remoteServerData = [{
+//   endpoint: 'http://localhost:3002/api',
+//   maxConcurrentJobs: 1,
+// }]
+
 let remoteServerData = [{
-  endpoint: 'http://localhost:3002/api',
+  endpoint: 'http://96.3.27.33:40104/api',
   maxConcurrentJobs: 1,
 }]
 
 if(nodeEnv === 'production'){
-  remoteServerData = [{
+  remoteServerData = [
+    {
+      endpoint: 'http://96.3.27.33:40104/api',
+      maxConcurrentJobs: 2,
+    },
+    {
     endpoint: 'http://31.12.82.146:11460/api',
     maxConcurrentJobs: 2,
   },{
