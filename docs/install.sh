@@ -1,4 +1,8 @@
 wget -qO - http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/3bf863cc.pub | sudo apt-key add -
+
+alias pip=pip3
+alias python=python3.9
+
 sudo apt-get update
 sudo apt-get upgrade -y
 sudo add-apt-repository ppa:deadsnakes/ppa -y
@@ -8,8 +12,6 @@ pip3 install setuptools-rust
 pip3 install --upgrade setuptools
 curl https://sh.rustup.rs -sSf | sh -s -- -y
 # setting alias this way doesn't work
-alias pip=pip3
-alias python=python3.9
 python -m pip install --upgrade pip
 pip3 install --upgrade setuptools
 pip install git+https://github.com/openai/whisper.git
@@ -31,9 +33,7 @@ sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o
 sudo chmod a+rx /usr/local/bin/yt-dlp  # Make executable
 git clone https://github.com/mayeaux/generate-subtitles
 
-export LIBRETRANSLATE='http://127.0.0.1:5000'
-export CONCURRENT_AMOUNT='2'
-export NODE_ENV='production'
+cd generate-subtitles
 
 pm2 start npm -- start
 

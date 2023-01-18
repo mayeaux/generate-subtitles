@@ -82,6 +82,14 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use(favicon(path.join(__dirname,'public','images','favicon.ico')));
+
+// log IP before logger
+app.use(function (req, res, next) {
+  const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  l(`IP Address: ${ipAddress}`);
+  next();
+})
+
 app.use(logger('dev'));
 app.use(bodyParser.json({ limit: '1mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '1mb' }));
@@ -102,13 +110,6 @@ app.use(sessions({
   saveUninitialized: false,
   resave: false
 }));
-
-app.use(function (req, res, next) {
-  const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  l('IP Address')
-  l(ipAddress);
-  next();
-})
 
 app.use('/', routes);
 app.use('/', api);
