@@ -39,8 +39,6 @@ const libreTranslateHostPath = process.env.LIBRETRANSLATE;
 
 const isProd = nodeEnvironment === 'production';
 
-const whisperPath = which.sync('whisper')
-
 global.transcriptions = [];
 
 function sendToWebsocket (websocketConnection, data) {
@@ -166,6 +164,8 @@ async function transcribe ({
 
       l('transcribe arguments');
       l(arguments);
+
+      const whisperPath = which.sync('whisper')
 
       const whisperProcess = spawn(whisperPath, arguments);
 

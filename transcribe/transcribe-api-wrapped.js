@@ -8,8 +8,6 @@ const { getLanguageCodeForAllLanguages } = require("../constants/constants");
 
 l = console.log;
 
-const whisperPath = which.sync('whisper')
-
 const serverType = process.env.SERVER_TYPE || 'both';
 let storageFolder = `${process.cwd()}/transcriptions`;
 
@@ -100,6 +98,8 @@ async function transcribe ({
       //   wordsPerMinute,
       //   characterCount: strippedText.length,
       // }
+
+      const whisperPath = which.sync('whisper')
 
       // start whisper process
       const whisperProcess = spawn(whisperPath, whisperArguments);
