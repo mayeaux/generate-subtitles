@@ -14,14 +14,14 @@ const nodeEnv = process.env.NODE_ENV || 'development';
 // }]
 
 let remoteServerData = [{
-  endpoint: 'http://96.3.27.33:40104/api',
+  endpoint: 'http://31.12.82.146:14260/api',
   maxConcurrentJobs: 1,
 }]
 
 if(nodeEnv === 'production'){
   remoteServerData = [
     {
-      endpoint: 'http://107.222.215.224:10903/api',
+      endpoint: 'http://31.12.82.146:14260/api',
       maxConcurrentJobs: 2,
     },
     {
