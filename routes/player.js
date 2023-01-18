@@ -5,6 +5,7 @@ const {newLanguagesMap, languagesToTranscribe} = require('../constants/constants
 const express = require('express');
 let router = express.Router();
 
+const nodeEnv = process.env.NODE_ENV || 'development';
 
 /** PLYR PLAYER **/
 router.get('/player/:timestampedFileName' , async function (req, res, next) {
@@ -78,7 +79,8 @@ router.get('/player/:timestampedFileName' , async function (req, res, next) {
       password,
       mediaFile,
       vttFilePath,
-      translatedLanguages
+      translatedLanguages,
+      nodeEnv
       // vttPath,
       // fileSource
     })

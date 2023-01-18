@@ -54,8 +54,17 @@ block content
           .links
             a(download href=`${filePathWithoutExtension}${processingData.originalFileExtension}`) Download File
         .fileDetails
-          each property, value in processingData
-            p #{value}: #{property}
+          if nodeEnv === 'development'
+            each property, value in processingData
+              p #{value}: #{property}
+          else
+            p File Name: #{processingData.originalFileNameWithExtension}
+            p Model: #{processingData.model}
+            p Language: #{processingData.language}
+            p Word Count: #{processingData.wordCount}
+            p WPM: #{processingData.wordsPerMinute}
+            p Translated: #{processingData.shouldTranslate}
+
         #addTranslation
           a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
             p(style="color:rgb(22, 29, 29);") Add Here

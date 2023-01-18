@@ -16,14 +16,22 @@ block content
         br
         each process in processes
             p Process Number: #{process.processNumber}
+            p Endpoint Name: #{process.endpoint}
             br
-            each val2, key2 in process
-                p #{key2}: #{val2}
-            br
+            // each val2, key2 in process
+            //     p #{key2}: #{val2}
             p Job:
             if process.job
-                each val3, key3 in process.job
-                  p #{key3}: #{val3}
+                p Number To Use: #{process.job.numberToUse}
+                p IP : #{process.job.ip}
+                p File Path: #{process.job.uploadedFilePath}
+                p Language: #{process.job.language}
+                p Model: #{process.job.model}
+                p File Size (MB): #{process.job.fileSizeInMB}
+                p Translating: #{process.job.shouldTranslate}
+                p Upload Duration (s): #{process.job.uploadDurationInSeconds}
+                // each val3, key3 in process.job
+                //   p #{key3}: #{val3}
 
             br
 
