@@ -438,7 +438,7 @@ async function checkLatestData (dataEndpoint, latestProgress) {
       };
 
       dataResponse.processingDataHTML = generateProcessingDataHTML(dataResponse);
-      l('dataResponse.processingDataHTML', dataResponse.processingDataHTML);
+      l({dataResponse});
 
       function generateProcessingDataString ({
         timeRemaining,
@@ -487,6 +487,7 @@ async function checkLatestData (dataEndpoint, latestProgress) {
         processingDataHTML: dataResponse.processingDataHTML,
         percentDoneAsNumber,
         formattedProgress: dataResponse.formattedProgress,
+        filename: dataResponse.originalFileNameWithExtension,
       }), function () {});
     }
 
