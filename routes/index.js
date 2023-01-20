@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {forHumans, decrementBySecond} = require('../helpers/helpers')
+const {forHumans, decrementBySecond, incrementBySecond} = require('../helpers/helpers')
 const { modelsArray, languagesArray } = require('../constants/constants');
 const fs = require('fs-extra')
 
@@ -33,7 +33,8 @@ router.get('/', function (req, res, next) {
     uploadLimitInMB,
     modelsArray,
     languagesArray,
-    decrementBySecond
+    decrementBySecond,
+    incrementBySecond,
   });
 });
 
@@ -70,6 +71,7 @@ router.get('/ytdlp', async function (req, res, next) {
     modelsArray,
     languagesArray,
     decrementBySecond,
+    incrementBySecond,
     ytdlp: true,
     user,
     skipToFront: skip

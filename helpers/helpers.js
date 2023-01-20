@@ -54,41 +54,74 @@ function forHumansHoursAndMinutes ( seconds ) {
 
 
 
-const decrementBySecond = timeRemainingValues => {
-  let {secondsRemaining, minutesRemaining, hoursRemaining} = timeRemainingValues;
+const decrementBySecond = timeValues => {
+  let {secondsRemaining: seconds, minutesRemaining: minutes, hoursRemaining: hours} = timeValues;
+  if (/[^\d:]/.test(timeValues.string)) return timeValues;
 
-  if (secondsRemaining == 0) {
-    if (minutesRemaining > 0) {
-      secondsRemaining = 59;
-      minutesRemaining--;
+  if (seconds == 0) {
+    if (minutes > 0) {
+      seconds = 59;
+      minutes--;
     }
   } else {
-    secondsRemaining--;
+    seconds--;
   }
 
-  if (minutesRemaining == 0) {
-    if (hoursRemaining > 0) {
-      minutesRemaining = 59;
-      hoursRemaining--;
+  if (minutes == 0) {
+    if (hours > 0) {
+      minutes = 59;
+      hours--;
     }
   }
 
-  minutesRemaining = `${minutesRemaining}`.padStart(2, '0');
-  secondsRemaining = `${secondsRemaining}`.padStart(2, '0');
+  minutes = `${minutes}`.padStart(2, '0');
+  seconds = `${seconds}`.padStart(2, '0');
 
-  const wholeTime = `${hoursRemaining ? hoursRemaining + ':' : ''}${minutesRemaining}:${secondsRemaining}`;
+  const wholeTime = `${hours ? hours + ':' : ''}${minutes}:${seconds}`;
 
   return {
-    secondsRemaining,
-    minutesRemaining,
-    hoursRemaining,
+    secondsRemaining: seconds,
+    minutesRemaining: minutes,
+    hoursRemaining: hours,
     string: wholeTime
   }
 }
+
+const incrementBySecond = timeStr => {
+  let [_, hours, minutes, seconds] = timeStr.match(/(?:(\d+):)?(\d+):(\d+)/);
+  if (/[^\d:]/.test(timeStr)) return timeStr;
+  hours = +hours || 0;
+  minutes = +minutes || 0;
+  seconds = +seconds || 0;
+  
+  seconds++;
+  
+  if (seconds == 60) {
+    seconds = 0;
+    minutes++;
+  }
+  
+  if (minutes == 60) {
+    minutes = 0;
+    hours++;
+  }
+  
+  minutes = `${minutes}`.padStart(2, '0');
+  seconds = `${seconds}`.padStart(2, '0');
+  
+  const wholeTime = `${hours ? hours + ':' : ''}${minutes}:${seconds}`;
+  
+  return wholeTime;
+}
+
+const toTitleCase = str => !str || !str.trim() ? str
+  : str.toLowerCase().replace(/\b[a-z]/g, ltr => ltr.toUpperCase());
 
 module.exports = {
   forHumans,
   forHumansNoSeconds,
   decrementBySecond,
-  forHumansHoursAndMinutes
+  incrementBySecond,
+  forHumansHoursAndMinutes,
+  toTitleCase
 }

@@ -177,14 +177,15 @@ script.
     $('#latestData').html(queueMessage)
   }
 
-  let latestProgress, globalTimeRemaining, myUploadStarted = false;
+  let latestProgress, globalTimeRemaining, myUploadStarted, globalPercent = false;
+  let globalTimeElapsed = '00:00:00';
 
   const handleProgressData = ({data, circleProgress}) => {
 
     $('#latestData').hide();
 
     // TODO: have to pass the function here
-    const { processingDataString, percentDoneAsNumber } = data;
+    const {processingDataString, percentDoneAsNumber, processingDataHTML, formattedProgress} = data;
 
     // const progressData = {
     //   timeRemaining,
@@ -227,8 +228,25 @@ script.
     // const generateString = data.generateString;
     //
     // generateString('hello');
+    
+    // to prevent decrement reset
+    if (globalPercent === percentDoneAsNumber) return;
+    globalPercent = percentDoneAsNumber;
+    globalTimeRemaining = formattedProgress?.timeRemaining;
+    globalTimeElapsed = formattedProgress?.timeElapsed;
 
-    $('#processingData').text(processingDataString);
+    $('#processingData').html(processingDataHTML);
+    if (!window.decrementInterval) {
+      // BUG: timer reaches 0 early because it's out of sync with the actual progress, maybe calculate it on the backend? -osb910
+      window.decrementInterval = setInterval(() => {
+        if (!globalTimeRemaining) return;
+        globalTimeRemaining = decrementBySecond(globalTimeRemaining);
+        globalTimeElapsed = incrementBySecond(globalTimeElapsed);
+        l({globalTimeElapsed});
+        $('#time-remaining').html(`Time Remaining: ${globalTimeRemaining?.string === '?' ? 'Unknown' : globalTimeRemaining?.string}`);
+        $('#time-elapsed').html(`Time Elapsed: ${globalTimeElapsed}`);
+      }, 1000);
+    }
 
     circleProgress.attr({
       max: 100,

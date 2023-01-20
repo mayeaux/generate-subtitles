@@ -8,6 +8,7 @@ const path = require('path');
 const WebSocket = require('ws');
 const convert = require('cyrillic-to-latin');
 const extraAudioFromVideoIfNeeded = require('../scripts/extractAudioFfmpeg');
+const { toTitleCase } = require('../helpers/helpers');
 
 const l = console.log;
 
@@ -284,11 +285,7 @@ async function checkLatestData (dataEndpoint, latestProgress) {
   let dataResponse = await getNewData(dataEndpoint);
   delete dataResponse.websocketConnection
 
-  // l('dataResponse')
-  // l(dataResponse)
-
   const { numberToUse } = dataResponse;
-
 
   // const remoteProcessingData = dataResponse.processingData;
 
@@ -306,13 +303,10 @@ async function checkLatestData (dataEndpoint, latestProgress) {
   const transcriptionIsCompleted = dataResponse.status === 'completed'
 
 
-  // l('localProcessingData');
-  // l(localProcessingData);
-
   // l('remoteProcessingData');
   // l(remoteProcessingData);
 
-  const { language, model, formattedProgress } = dataResponse || {};
+  const {language, model, formattedProgress} = dataResponse || {};
 
   const { websocketNumber } = localProcessingData;
 
@@ -428,6 +422,24 @@ async function checkLatestData (dataEndpoint, latestProgress) {
         speed,
       }
 
+      const generateProcessingDataHTML = data => {
+        const {percentDoneAsNumber, timeElapsed, timeRemaining, speed} = data.formattedProgress || {};
+        return `
+          <p id='time-remaining'>Time Remaining: ${timeRemaining?.string === '?' ? 'Unknown' : timeRemaining?.string}</p>
+          <p id='time-elapsed'>Time Elapsed: ${timeElapsed}</p>
+          <p>Speed: ${speed === '?' ? 'Unknown' : speed + ' (f/s)'}</p>
+          <p>Title: ${data.originalFileNameWithExtension}</p>
+          <p>Duration: ${data.uploadDurationInSeconds} Seconds</p>
+          <p>File Type: Video</p>
+          <p>Language: ${toTitleCase(data.language)}</p>
+          <p>Model: ${toTitleCase(data.model)}</p>
+          <p>Translating: ${data.shouldTranslate ? 'Yes' : 'No'}</p>
+        `;
+      };
+
+      dataResponse.processingDataHTML = generateProcessingDataHTML(dataResponse);
+      l('dataResponse.processingDataHTML', dataResponse.processingDataHTML);
+
       function generateProcessingDataString ({
         timeRemaining,
         timeElapsed,
@@ -472,7 +484,9 @@ async function checkLatestData (dataEndpoint, latestProgress) {
       websocketConnection.send(JSON.stringify({
         status: 'progress',
         processingDataString,
+        processingDataHTML: dataResponse.processingDataHTML,
         percentDoneAsNumber,
+        formattedProgress: dataResponse.formattedProgress,
       }), function () {});
     }
 
