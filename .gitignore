@@ -6,6 +6,10 @@ uploads
 transcriptions
 transcriptions1
 downloads
+api-transcriptions
 
 public/javascripts/ffmpeg-core.wasm
 .env
+
+*.log
+constants/apiTokens.txt

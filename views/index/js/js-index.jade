@@ -35,6 +35,8 @@ script.
   const forHumans = !{forHumans};
   const allLanguages = !{JSON.stringify(allLanguages)};
   const defaultTransLanguages = !{JSON.stringify(defaultTransLanguages)};
+  const maxTransLangs = !{maxTransLangs};
+  let selectedTransLangs = [];
 
   // grab elements
   const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
@@ -94,7 +96,7 @@ script.
     $('#translate').prop('checked', previousShouldTranslate === 'true');
     
     populateTransLanguages(previousTransLangs);
-    updateSelectedTranslationLangs();
+    renderSelectedTranslationLangs();
     disableTranscribeLang();
     l('ready now');
   });
