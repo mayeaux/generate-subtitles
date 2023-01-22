@@ -39,8 +39,8 @@ script.
   let selectedTransLangs = [];
 
   // grab elements
-  const languageOptions = Array.from(document.querySelectorAll('.options.languages .option'));
-  const modelOptions = Array.from(document.querySelectorAll('.options.models .option'));
+  const languageOptions = [...$('.options.languages .option')];
+  const modelOptions = [...$('.options.models .option')];
   const languageSelect = document.querySelector('#language');
   const transLangsOptions = document.querySelectorAll('.trans-languages .option');
 
@@ -165,11 +165,11 @@ script.
     const modelName = document.querySelector('#model').textContent;
     const translateIsChecked = $('#translate').is(':checked');
     const downloadLink = $('#downloadLink').val();
-    const transLangs = getSelectedLangs();
+    const selectedTransLangs = getSelectedLangs();
     //- const sourceTargets = JSON.parse(localStorage.getItem('sourceTargets')) || {
-    //-   [language]: transLangs
+    //-   [language]: selectedTransLangs
     //- };
-    //- sourceTargets[language] = transLangs;
+    //- sourceTargets[language] = selectedTransLangs;
 
     function capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
@@ -187,7 +187,7 @@ script.
     }
     localStorage.setItem('languageName', languageName);
     localStorage.setItem('shouldTranslate', translateIsChecked);
-    setTransLangsDefaults(language, transLangs);
+    setTransLangsDefaults(language, selectedTransLangs);
 
     //- gather data
     if (passedFile) formData.append('file', passedFile);
