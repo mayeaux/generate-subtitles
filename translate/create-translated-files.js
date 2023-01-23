@@ -46,7 +46,7 @@ async function createTranslatedFiles ({
   const vttPath = `${directoryAndFileName}.vtt`;
 
   // TODO: translate the rest
-  if(!vttData){
+  if (!vttData) {
     vttData = await fs.readFile(vttPath, 'utf-8');
   }
 
@@ -66,7 +66,7 @@ async function createTranslatedFiles ({
     l(language);
 
     try {
-      if(languageToConvertTo === language){
+      if (languageToConvertTo === language) {
         l('skipping language');
         continue;
       }
@@ -77,7 +77,7 @@ async function createTranslatedFiles ({
       if (languageToConvertTo !== language) {
 
         // cool language frontend functionality
-        if(websocketConnection){
+        if (websocketConnection) {
           websocketConnection.send(JSON.stringify({
             languageUpdate: `Translating into ${languageToConvertTo}..`,
             message: 'languageUpdate'

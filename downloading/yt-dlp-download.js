@@ -11,7 +11,7 @@ const l = console.log;
 const ytDlpPath = which.sync('yt-dlp')
 
 // get data from youtube-dlp stdout string
-function extractDataFromString(string){
+function extractDataFromString (string) {
   const percentDownloaded = parseInt(string.match(/(\d+\.?\d*)%/)[1]);
   const totalFileSize = string.match(/of\s+(.*?)\s+at/)[1];
   const downloadSpeed = string.match(/at\s+(.*?)\s+ETA/)[1];
@@ -29,9 +29,9 @@ function extractDataFromString(string){
 }
 
 // delete from transcription array (used to get rid of the yt-dlp process)
-function deleteFromGlobalTranscriptionsBasedOnWebsocketNumber(websocketNumber) {
+function deleteFromGlobalTranscriptionsBasedOnWebsocketNumber (websocketNumber) {
   // check for websocket number and type
-  function matchDownloadProcessByWebsocketNumber(transcriptionProcess){
+  function matchDownloadProcessByWebsocketNumber (transcriptionProcess) {
     return transcriptionProcess.websocketNumber === websocketNumber && transcriptionProcess.type === 'download';
   }
 
@@ -64,7 +64,7 @@ async function downloadFile ({
         l(latestDownloadInfo);
 
         // only run if ETA is in the string
-        if(!latestDownloadInfo.includes('ETA')) return
+        if (!latestDownloadInfo.includes('ETA')) return
 
         const { percentDownloaded, totalFileSize, downloadSpeed, fileSizeUnit, fileSizeValue } = extractDataFromString(latestDownloadInfo);
 
@@ -154,7 +154,7 @@ async function downloadFileApi ({
         l(latestDownloadInfo);
 
         // only run if ETA is in the string
-        if(!latestDownloadInfo.includes('ETA')) return
+        if (!latestDownloadInfo.includes('ETA')) return
 
         const { percentDownloaded, totalFileSize, downloadSpeed, fileSizeUnit, fileSizeValue } = extractDataFromString(latestDownloadInfo);
         currentPercentDownload = percentDownloaded;

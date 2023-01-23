@@ -18,7 +18,7 @@ l({uploadLimitInMB});
 router.get('/', function (req, res, next) {
   const isFreeSubtitles = req.hostname === 'freesubtitles.ai';
 
-  if(process.env.NODE_ENV === 'development'){
+  if (process.env.NODE_ENV === 'development') {
     return res.redirect('/ytdlp')
   }
 

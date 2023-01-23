@@ -1,6 +1,6 @@
 const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 // const { sendOutQueuePositionUpdate } = require('../lib/websockets');
-const WebSocket = require("ws");
+const WebSocket = require('ws');
 
 const l = console.log;
 
@@ -10,7 +10,7 @@ const remoteServerData = require('../constants/remoteServerConfig');
 
 const transcribeRemoteServer = require('../scripts/postAudioFile');
 const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
-const fs = require("fs-extra");
+const fs = require('fs-extra');
 
 
 // const remoteServerData = [{
@@ -32,9 +32,9 @@ const fs = require("fs-extra");
 // }]
 
 // get position in queue based on websocketNumber
-function getQueueInformationByWebsocketNumber(websocketNumber){
+function getQueueInformationByWebsocketNumber (websocketNumber) {
   for (const [index, queueItem] of global.newQueue.entries()) {
-    if(queueItem.websocketNumber === websocketNumber){
+    if (queueItem.websocketNumber === websocketNumber) {
       return {
         queuePosition: index + 1, // 1
         queueLength: global.newQueue.length, // 4
@@ -46,7 +46,7 @@ function getQueueInformationByWebsocketNumber(websocketNumber){
   return false
 }
 
-function sendOutQueuePositionUpdate(){
+function sendOutQueuePositionUpdate () {
   // TODO: have to add it to change API jobs in the queue
 
   // loop through websockets and tell them one less is processing
@@ -63,7 +63,7 @@ function sendOutQueuePositionUpdate(){
       // l('queuePosition');
       // l(queuePosition);
 
-      if(queuePosition) {
+      if (queuePosition) {
         websocketConnection.send(JSON.stringify({
           message: 'queue',
           placeInQueue: queuePosition
@@ -80,7 +80,7 @@ function sendOutQueuePositionUpdate(){
   updateQueuePositionForApiJobs();
 }
 
-async function updateQueuePositionForApiJobs(){
+async function updateQueuePositionForApiJobs () {
   for (const [index, queueItem] of global.newQueue.entries()) {
     if (!queueItem.websocketNumber) {
       const mergeData = {
@@ -102,14 +102,14 @@ async function updateQueuePositionForApiJobs(){
   }
 }
 
-async function createOrUpdateProcessingData(processingPath, objectToMerge){
+async function createOrUpdateProcessingData (processingPath, objectToMerge) {
   l('processinGPath');
   l(processingPath)
 
   const dataExists = fs.existsSync(processingPath)
 
   let originalObject;
-  if(dataExists){
+  if (dataExists) {
     // read the original JSON file
     const originalData = fs.readFileSync(processingPath, 'utf8');
     // parse the JSON string into an object
@@ -137,7 +137,7 @@ let newJobProcessArray = [];
 let currentIndex = 0;
 
 // TODO: otherwise use max_concurrent if it's just local
-for(const server of remoteServerData){
+for (const server of remoteServerData) {
   const { endpoint, maxConcurrentJobs } = server;
 
   for (let i = 0; i < maxConcurrentJobs; i++) {
@@ -167,7 +167,7 @@ const serverType = process.env.SERVER_TYPE || 'both';
 
 l(serverType)
 
-function determineTranscribeFunctionToUse(jobObject){
+function determineTranscribeFunctionToUse (jobObject) {
   const { websocketNumber, apiToken } = jobObject;
 
   // don't process locally
@@ -179,7 +179,7 @@ function determineTranscribeFunctionToUse(jobObject){
   // only have an API (dumb backend)
   const serverIsTranscribe = 'transcribe';
 
-  if(serverIsFrontend){
+  if (serverIsFrontend) {
     // server should act as frontend, and not generate subtitles with this instance
     // transcribe with remote server
     return transcribeRemoteServer;
@@ -188,10 +188,10 @@ function determineTranscribeFunctionToUse(jobObject){
     // and then when it's done, it sets up the files and acts as the frontend
 
   // server should act as both frontend (/file) and API (/api)
-  } else if(serverIsBoth){
+  } else if (serverIsBoth) {
 
     // if apiToken is present, then use that API
-    if(apiToken){
+    if (apiToken) {
       return transcribeApiWrapped;
     } else {
       // local transcription tied with websocket
@@ -199,7 +199,7 @@ function determineTranscribeFunctionToUse(jobObject){
     }
 
   // server should act as transcribe
-  } else if(serverIsTranscribe){
+  } else if (serverIsTranscribe) {
 
     // only offer the API
     return transcribeApiWrapped;
@@ -215,10 +215,10 @@ function determineTranscribeFunctionToUse(jobObject){
 global.newQueue = [];
 
 // get amount of running jobs (used to calculate queue position)
-function amountOfRunningJobs(){
+function amountOfRunningJobs () {
   let amount = 0;
   for (const process of global.jobProcesses) {
-    if(process.job){
+    if (process.job) {
       amount++;
     }
   }
@@ -227,7 +227,7 @@ function amountOfRunningJobs(){
 }
 
 // run transcribe job and remove from queue and run next queue item if available
-async function runJob(jobObject){
+async function runJob (jobObject) {
   // load info from passed jobObject
   const {
     websocketNumber,
@@ -252,13 +252,13 @@ async function runJob(jobObject){
 
     l('job done');
 
-  } catch (err){
+  } catch (err) {
     l('error from runJob');
     l(err);
   }
 
   /** run the next item from the queue **/
-  if(global.newQueue.length){
+  if (global.newQueue.length) {
     // get next item from queue (lacks server/process info)
     const nextJobObject = global.newQueue.shift();
 
@@ -283,7 +283,7 @@ async function runJob(jobObject){
 
 
 // add job to process if available otherwise add to queue
-function addToJobProcessOrQueue(jobObject){
+function addToJobProcessOrQueue (jobObject) {
   const { websocketNumber, skipToFront } = jobObject;
 
   l('skipToFront');
@@ -300,7 +300,7 @@ function addToJobProcessOrQueue(jobObject){
     const processCanTakeJob = job === undefined;
 
     // found a free process
-    if(processCanTakeJob){
+    if (processCanTakeJob) {
       // add process info to jobObject
       jobObject.processNumber = Number(processNumber);
 
@@ -323,12 +323,12 @@ function addToJobProcessOrQueue(jobObject){
 
   /** ADD TO QUEUE FUNCTIONALITY **/
   // push to newQueue if all processes are busy
-  if(skipToFront){
+  if (skipToFront) {
     // last skip to front item
     const lastItem = global.newQueue.filter(queueItem => queueItem.skipToFront === true).slice(-1)[0];
 
     // insert after latest skipToFront
-    if(lastItem){
+    if (lastItem) {
       const lastItemIndex = global.newQueue.indexOf(lastItem);
 
       // insert after last item with skipToFront
@@ -355,7 +355,7 @@ module.exports = {
 
 /** TESTING **/
 
-function main(){
+function main () {
   addToJobProcessOrQueue({websocketNumber: 0, skipToFront: false});
   addToJobProcessOrQueue({websocketNumber: 1, skipToFront: false});
   // addToJobProcessOrQueue({websocketNumber: 2, skipToFront: false});
@@ -371,7 +371,7 @@ function main(){
 
 // main();
 
-async function delay(delayInSeconds) {
+async function delay (delayInSeconds) {
   await new Promise(resolve => setTimeout(resolve, delayInSeconds * 1000));
 }
 //

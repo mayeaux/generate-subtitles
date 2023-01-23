@@ -145,9 +145,9 @@ router.get('/admin', async function (req, res, next) {
       // l(global.newQueue);
 
       // cleanup new queue items
-      for(const queueItem of global.newQueue){
+      for (const queueItem of global.newQueue) {
 
-        if(!queueItem) continue
+        if (!queueItem) continue
 
         let newItem = Object.assign({}, queueItem);
 

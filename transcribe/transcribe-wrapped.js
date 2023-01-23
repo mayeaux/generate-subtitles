@@ -16,12 +16,12 @@ const { updateQueueItemStatus } = require('../queue/queue');
 // const {amountOfRunningJobs} = require("../queue/newQueue");
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
-function amountOfRunningJobs(){
+function amountOfRunningJobs () {
   let amount = 0;
   for (let processNumber in global.jobProcesses) {
     const propValue = global.jobProcesses[processNumber];
 
-    if(propValue !== undefined){
+    if (propValue !== undefined) {
       amount++;
     }
   }
@@ -45,7 +45,7 @@ function sendToWebsocket (websocketConnection, data) {
   websocketConnection.send(JSON.stringify(data), function () {});
 }
 
-function webSocketIsStillAlive(webSocketNumber) {
+function webSocketIsStillAlive (webSocketNumber) {
   return global.webSocketData.some(item => item.websocketNumber === webSocketNumber);
 }
 
@@ -413,7 +413,7 @@ async function transcribe ({
             const wordCount = strippedText.split(' ').length;
             const wordsPerMinute = Math.round(wordCount / (uploadDurationInSeconds / 60));
 
-            function additionalInfo(){
+            function additionalInfo () {
               const thing = {
                 processingSeconds,
                 processingSecondsHumanReadable: forHumans(processingSeconds),
@@ -464,8 +464,8 @@ async function transcribe ({
               characterCount: strippedText.length,
             }
 
-            if(downloadLink) fileDetailsObject.downloadLink = downloadLink;
-            if(user) fileDetailsObject.user = user;
+            if (downloadLink) fileDetailsObject.downloadLink = downloadLink;
+            if (user) fileDetailsObject.user = user;
 
             // save processing_data.json
             await fs.appendFile(`${originalContainingDir}/processing_data.json`, JSON.stringify(fileDetailsObject), 'utf8');
@@ -474,11 +474,11 @@ async function transcribe ({
             const renamedDirectory = `./transcriptions/${fileSafeNameWithDateTimestamp}`;
             await fs.rename(originalContainingDir, renamedDirectory)
 
-            function matchByWebsocketNumber(item) {
+            function matchByWebsocketNumber (item) {
               return item.websocketNumber === websocketNumber;
             }
 
-            function removeFromArrayByWebsocketNumber(array) {
+            function removeFromArrayByWebsocketNumber (array) {
               const index = array.findIndex(matchByWebsocketNumber);
               if (index > -1) {
                 array.splice(index, 1);
@@ -501,7 +501,7 @@ async function transcribe ({
           reject(err);
           l('websocket connection');
           // if websocket is still connected
-          if(websocketConnection.readyState === 1) {
+          if (websocketConnection.readyState === 1) {
             sendToWebsocket({
               message: 'error',
               text: 'The transcription failed, please try again or try again later'

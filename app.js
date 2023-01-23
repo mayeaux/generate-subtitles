@@ -31,14 +31,14 @@ if (!fs.existsSync('.env')) {
 
 const hourInMilliseconds = 1000 * 60 * 60;
 
-function runDeleteLoop() {
+function runDeleteLoop () {
   setTimeout(() => {
     deleteOldFiles(true);
     runDeleteLoop();
   }, hourInMilliseconds);  // repeat every 1000 milliseconds (1 second)
 }
 
-if(process.env.NODE_ENV === 'production'){
+if (process.env.NODE_ENV === 'production') {
   deleteOldFiles(true);
   runDeleteLoop();
 }

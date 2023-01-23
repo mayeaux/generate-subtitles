@@ -18,7 +18,7 @@ let remoteServerData = [{
   maxConcurrentJobs: 1,
 }]
 
-if(nodeEnv === 'production'){
+if (nodeEnv === 'production') {
   remoteServerData = [
     {
       endpoint: 'http://31.12.82.146:14260/api',

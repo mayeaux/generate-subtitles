@@ -2,27 +2,27 @@ const which = require('which');
 const spawn = require('child_process').spawn;
 const { handleStdErr, handleStdOut, handleProcessClose } = require('../lib/transcribing')
 const { buildArguments } = require('../lib/other-transcribing');
-const {forHumans} = require("../helpers/helpers");
-const fs = require("fs-extra");
-const { getLanguageCodeForAllLanguages } = require("../constants/constants");
+const {forHumans} = require('../helpers/helpers');
+const fs = require('fs-extra');
+const { getLanguageCodeForAllLanguages } = require('../constants/constants');
 
 l = console.log;
 
 const serverType = process.env.SERVER_TYPE || 'both';
 let storageFolder = `${process.cwd()}/transcriptions`;
 
-if(serverType === 'transcribe'){
+if (serverType === 'transcribe') {
   storageFolder = `${process.cwd()}/api-transcriptions`;
 }
 
-async function createOrUpdateProcessingData(processingPath, objectToMerge){
+async function createOrUpdateProcessingData (processingPath, objectToMerge) {
   l('processinGPath');
   l(processingPath)
 
   const dataExists = fs.existsSync(processingPath)
 
   let originalObject;
-  if(dataExists){
+  if (dataExists) {
     // read the original JSON file
     const originalData = fs.readFileSync(processingPath, 'utf8');
     // parse the JSON string into an object
@@ -69,7 +69,7 @@ async function transcribe ({
         language
       }
 
-      if(language !== 'auto-detect'){
+      if (language !== 'auto-detect') {
         initialWriteData.languageCode = getLanguageCodeForAllLanguages(language);
       }
 

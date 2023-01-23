@@ -9,7 +9,7 @@ const transcribe = require('../transcribe/transcribe-api-wrapped')
 const constants = require('../constants/constants');
 const filenamify = require('filenamify');
 const createTranslatedFiles = require('../translate/translate-files-api');
-const { downloadFileApi, getFilename} = require("../downloading/yt-dlp-download");
+const { downloadFileApi, getFilename} = require('../downloading/yt-dlp-download');
 const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
 const { modelsArray, whisperLanguagesHumanReadableArray } = constants;
 const {
@@ -19,9 +19,9 @@ const {
   getOriginalFilesObject,
 } = require('../lib/transcribing');
 const cancelProcessByNumberToUse = require('../lib/cancelProcessByNumberToUse');
-const {addToJobProcessOrQueue, amountOfRunningJobs} = require("../queue/newQueue");
-const ffprobe = require("ffprobe");
-const which = require("which");
+const {addToJobProcessOrQueue, amountOfRunningJobs} = require('../queue/newQueue');
+const ffprobe = require('ffprobe');
+const which = require('which');
 const ffprobePath = which.sync('ffprobe')
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
@@ -37,15 +37,15 @@ l('transcribeHost');
 l(transcribeHost)
 
 let host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
-if(serverType === 'transcribe'){
+if (serverType === 'transcribe') {
   host = transcribeHost;
 }
 
 let storageFolder = `${process.cwd()}/transcriptions`;
 
-if(serverType === 'transcribe'){
+if (serverType === 'transcribe') {
   storageFolder = `${process.cwd()}/api-transcriptions`;
-  (async function(){
+  (async function () {
     await fs.ensureDir(storageFolder);
   })()
 }
@@ -78,9 +78,9 @@ router.post('/api/:numberToUse/cancel', async (req, res, next) => {
 router.post('/api', upload.single('file'), async function (req, res, next) {
   try {
 
-    if(serverType === 'frontend'){
+    if (serverType === 'frontend') {
       // give 500 response
-      return res.status(500).send({error: `API access temporarily turned off`});
+      return res.status(500).send({error: 'API access temporarily turned off'});
     }
 
     // fix body data
@@ -89,7 +89,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // get file names
     const file = req.file;
     let originalFileName, uploadFileName, uploadFilePath;
-    if(file){
+    if (file) {
       originalFileName = file.originalname;
       uploadFileName = file.filename;
       uploadFilePath = file.path;
@@ -108,7 +108,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
     // TODO: this comes from a gs frontend
     let parsedJobObject = {};
-    if(jobObject){
+    if (jobObject) {
       parsedJobObject = JSON.parse(jobObject);
     }
     // const parsedJobObject = JSON.parse(jobObject);
@@ -117,8 +117,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const passedNumberToUse = postBodyData.numberToUse;
 
     let numberToUse;
-    if(!passedNumberToUse){
-      if(downloadLink){
+    if (!passedNumberToUse) {
+      if (downloadLink) {
         numberToUse = generateRandomNumber();
       } else {
         numberToUse = websocketNumber;
@@ -127,7 +127,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       numberToUse = passedNumberToUse
     }
 
-    if(!numberToUse) numberToUse = generateRandomNumber()
+    if (!numberToUse) numberToUse = generateRandomNumber()
 
 
     l('postBodyData');
@@ -140,17 +140,17 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const authTokenStringsAsArray = authTokenString.split(',');
     const authedByToken = authTokenStringsAsArray.includes(apiToken);
 
-    if(process.env.NODE_ENV === 'production' && !authedByToken){
+    if (process.env.NODE_ENV === 'production' && !authedByToken) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // nothing to transcribe
-    if(!downloadLink && !file){
-      return res.status(400).json({error: `Please pass either a 'file' or 'downloadLink'`});
+    if (!downloadLink && !file) {
+      return res.status(400).json({error: 'Please pass either a \'file\' or \'downloadLink\''});
     }
 
     // bad model name
-    if(!validModelValues.includes(model)) {
+    if (!validModelValues.includes(model)) {
       return res.status(400).send({error: `Your model of '${model}' is not valid. Please choose one of the following: ${validModelValues.join(', ')}`});
     }
 
@@ -159,17 +159,17 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     languagesWithAutoDetect.push('auto-detect');
 
     // bad language name
-    if(!languagesWithAutoDetect.includes(language)) {
+    if (!languagesWithAutoDetect.includes(language)) {
       return res.status(400).send({error: `Your language of '${language}' is not valid. Please choose one of the following: ${whisperLanguagesHumanReadableArray.join(', ')}`});
     }
 
-    if(downloadLink){
+    if (downloadLink) {
       // hit yt-dlp and get file title name
       originalFileName =  await getFilename(downloadLink);
     }
 
     let shouldTranslate = false;
-    if(postBodyData.shouldTranslate === 'true'){
+    if (postBodyData.shouldTranslate === 'true') {
       shouldTranslate = true;
     }
 
@@ -225,7 +225,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
       message: 'starting-transcription'
     }
 
-    if(downloadLink){
+    if (downloadLink) {
       responseObject.downloadLink = downloadLink;
       responseObject.message = 'starting-download';
       res.send(responseObject);
@@ -234,7 +234,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     }
 
     let matchingFile;
-    if(downloadLink){
+    if (downloadLink) {
 
       await writeToProcessingDataFile(processingDataPath, {
         status: 'downloading',
@@ -286,7 +286,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
 
     const shouldUseAQueue = serverType === 'both' || serverType === 'frontend';
-    if(shouldUseAQueue){
+    if (shouldUseAQueue) {
       const transcriptionJobItem = {
         uploadedFilePath: newPath, // TODO: rename newPath
         language,
@@ -341,9 +341,9 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 // get info about the transcription via api
 router.get('/api/:numberToUse', async function (req, res, next) {
   try {
-    if(serverType === 'frontend'){
+    if (serverType === 'frontend') {
       // give 500 response
-      return res.status(500).send({error: `API access temporarily turned off`});
+      return res.status(500).send({error: 'API access temporarily turned off'});
     }
 
     const numberToUse = req.params.numberToUse;
@@ -368,13 +368,13 @@ router.get('/api/:numberToUse', async function (req, res, next) {
 
     // TODO: possible there is no remoteProcess
     // get the latest progress from the remote server
-    if(serverType === 'frontend' && checkRemoteProcess){
+    if (serverType === 'frontend' && checkRemoteProcess) {
       const serverToHit = processingData.remoteServerApiUrl;
 
       l('getting remote processing data')
 
       // it's possible there's no server to hit because it doesn't have a queue position yet
-      if(serverToHit){
+      if (serverToHit) {
         processingData = (await axios.get(`${serverToHit}/${numberToUse}`)).data;
       }
     }
@@ -419,7 +419,7 @@ router.get('/api/:numberToUse', async function (req, res, next) {
     const transcriptionCompleted = transcriptionStatus === 'completed';
 
     let responseObject;
-    if(serverType === 'frontend'){
+    if (serverType === 'frontend') {
       responseObject = {
         status: transcriptionStatus,
         language,
@@ -430,7 +430,7 @@ router.get('/api/:numberToUse', async function (req, res, next) {
         fileSizeInMB,
       }
 
-      if(transcriptionCompleted){
+      if (transcriptionCompleted) {
 
         const transcribedText = {
           subtitles: {
@@ -444,8 +444,8 @@ router.get('/api/:numberToUse', async function (req, res, next) {
         responseObject = Object.assign(responseObject, transcribedText);
 
         let translatedText = {};
-        if(translatedFiles){
-          for(const file of translatedFiles){
+        if (translatedFiles) {
+          for (const file of translatedFiles) {
             translatedText[file.language] = {
               vtt: file.translatedText,
             }
@@ -473,7 +473,7 @@ router.get('/api/:numberToUse', async function (req, res, next) {
 
       }
 
-      if(transcriptionStarting){
+      if (transcriptionStarting) {
         responseObject.queuePosition = processingData.queuePosition;
       }
     }

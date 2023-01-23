@@ -1,6 +1,6 @@
 const spawn = require('child_process').spawn;
 const which = require('which');
-const ffprobe = require("ffprobe");
+const ffprobe = require('ffprobe');
 const fs = require('fs-extra');
 
 const l = console.log;
@@ -47,7 +47,7 @@ function extractAudio (inputVideoPath, outputAudioPath) {
     /** whisper responds with 0 or 1 process code **/
     ffmpegProcess.on('close', (code) => {
       l(`child process exited with code ${code}`);
-      if(code === 0){
+      if (code === 0) {
         l('extract audio worked')
         resolve();
       } else {
@@ -58,7 +58,7 @@ function extractAudio (inputVideoPath, outputAudioPath) {
   })
 }
 
-function getAudioCodec(ffprobeResponse){
+function getAudioCodec (ffprobeResponse) {
   // get audio stream
   const audioStream = ffprobeResponse.streams.find(stream => stream.codec_type === 'audio');
 
@@ -75,7 +75,7 @@ function getAudioCodec(ffprobeResponse){
  * @param audioOutputPath - should be like transcriptions/numberToUse/numberToUse
  * @returns {Promise<void>}
  */
-async function extraAudioFromVideoIfNeeded({ videoInputPath, audioOutputPath }){
+async function extraAudioFromVideoIfNeeded ({ videoInputPath, audioOutputPath }) {
 
   l('videoInputPath');
   l(videoInputPath);
@@ -90,7 +90,7 @@ async function extraAudioFromVideoIfNeeded({ videoInputPath, audioOutputPath }){
   const isVideo = ffprobeResponse.streams.find(stream => stream.codec_type === 'video');
 
   // if video, extract audio and move to audioFilePath
-  if(isVideo){
+  if (isVideo) {
     // extract audio locally
     const toExtractToPath = `${audioOutputPath}.${audioCodec}`;
     // extract audio
@@ -105,13 +105,13 @@ async function extraAudioFromVideoIfNeeded({ videoInputPath, audioOutputPath }){
 
 // const inputVideoPath = './trimmed.mp4';
 
-async function main(){
+async function main () {
   try {
     await extraAudioFromVideoIfNeeded({
       videoInputPath: inputVideoPath,
       audioOutputPath: '12341203'
     })
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
   }

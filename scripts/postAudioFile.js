@@ -1,10 +1,10 @@
-const FormData = require("form-data");
-const fs = require("fs-extra");
-const axios = require("axios");
-const {cu} = require("language-name-map/map");
+const FormData = require('form-data');
+const fs = require('fs-extra');
+const axios = require('axios');
+const {cu} = require('language-name-map/map');
 const { createFileNames } = require('../lib/transcribing');
 const { formatStdErr } = require('../lib/transcribing');
-const path = require("path");
+const path = require('path');
 const WebSocket = require('ws');
 const convert = require('cyrillic-to-latin');
 const extraAudioFromVideoIfNeeded = require('../scripts/extractAudioFfmpeg');
@@ -20,18 +20,18 @@ const options = {
   encoding: 'utf8'
 }
 
-async function createOriginalSrt({ srtPath, srtData }){
+async function createOriginalSrt ({ srtPath, srtData }) {
   fs.writeFileSync(srtPath, srtData, options);
 }
 
-async function createOrUpdateProcessingData(processingPath, objectToMerge){
+async function createOrUpdateProcessingData (processingPath, objectToMerge) {
   // l('processinGPath');
   // l(processingPath)
 
   const dataExists = fs.existsSync(processingPath)
 
   let originalObject;
-  if(dataExists){
+  if (dataExists) {
     // read the original JSON file
     const originalData = fs.readFileSync(processingPath, 'utf8');
     // parse the JSON string into an object
@@ -49,11 +49,11 @@ async function createOrUpdateProcessingData(processingPath, objectToMerge){
   fs.writeFileSync(processingPath, updatedData);
 }
 
-async function createTranslatedVtts({
+async function createTranslatedVtts ({
   prependPath,
   translatedFiles
-}){
-  for(const translatedFile of translatedFiles){
+}) {
+  for (const translatedFile of translatedFiles) {
     const { language, translatedText } = translatedFile;
     const translatedPath = `${prependPath}_${language}.vtt`;
 
@@ -65,12 +65,12 @@ async function createTranslatedVtts({
   // TODO: write
 }
 
-async function changeFolderName(){
+async function changeFolderName () {
   // TODO: rename
 }
 
 // post to server to start process
-async function hitRemoteApiEndpoint(form, fullApiEndpoint){
+async function hitRemoteApiEndpoint (form, fullApiEndpoint) {
   // use passed if available
   const endpointToUse = fullApiEndpoint || endpointToHit;
   l(`Endpoint to use: ${endpointToUse}`);
@@ -88,7 +88,7 @@ async function hitRemoteApiEndpoint(form, fullApiEndpoint){
 }
 
 // get latest data and log it
-async function getNewData(dataUrl){
+async function getNewData (dataUrl) {
   let dataResponse = await axios.get(dataUrl);
   return dataResponse.data
 }
@@ -105,14 +105,14 @@ const machineApiKey = '';
  * @param numberToUse - Websocket or auto-generated
  * @param fullApiEndpoint - server endpoint like http://remoteaddress:remoteIP/api
  */
-async function transcribeRemoteServer({
+async function transcribeRemoteServer ({
   pathToAudioFile, // it's called pathToAudioFile, though it's not guaranteed to be audio right now
   language,
   model,
   numberToUse,
   fullApiEndpoint,
   jobObject
-}){
+}) {
 
   // log input
   l({
@@ -155,7 +155,7 @@ async function transcribeRemoteServer({
 
 }
 
-async function saveOriginalProcessingDataJson(jobObject){
+async function saveOriginalProcessingDataJson (jobObject) {
   const { numberToUse } = jobObject;
 
   // processing_data.json path
@@ -177,7 +177,7 @@ async function saveOriginalProcessingDataJson(jobObject){
  * @param fullApiEndpoint
  * @returns {Promise<void>}
  */
-async function transcribeViaRemoteApi(jobObject){
+async function transcribeViaRemoteApi (jobObject) {
   const { filePath, language, model, numberToUse, remoteServerApiUrl } = jobObject;
 
   const whereWeWantAudio = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`;
@@ -260,25 +260,25 @@ async function transcribeViaRemoteApi(jobObject){
 // main();
 
 
-async function createOriginalTxt({ txtPath, txtData }){
+async function createOriginalTxt ({ txtPath, txtData }) {
   fs.writeFileSync(txtPath, txtData, options);
 }
 
-async function createOriginalVtt({ vttPath, vttData }){
+async function createOriginalVtt ({ vttPath, vttData }) {
   fs.writeFileSync(vttPath, vttData, options);
 }
 
 const delayInMillisecondsBetweenChecks = 5000;
 
-function getWebsocketConnectionByNumberToUse(numberToUse){
+function getWebsocketConnectionByNumberToUse (numberToUse) {
   const foundWebsocketConnection = (global.webSocketData.find(connection => connection.websocketNumber === numberToUse))?.websocket
-  if(foundWebsocketConnection.readyState === WebSocket.OPEN){
+  if (foundWebsocketConnection.readyState === WebSocket.OPEN) {
     return foundWebsocketConnection
   }
 }
 
 // check repeatedly and return when completed or failed
-async function checkLatestData(dataEndpoint, latestProgress){
+async function checkLatestData (dataEndpoint, latestProgress) {
   // get first data
   l(`getting data from: ${dataEndpoint}`)
   let dataResponse = await getNewData(dataEndpoint);
@@ -341,14 +341,14 @@ async function checkLatestData(dataEndpoint, latestProgress){
   const transcriptionIsStarting = dataResponse?.status === 'starting';
 
   let websocketConnection;
-  if(websocketNumber){
+  if (websocketNumber) {
     websocketConnection = getWebsocketConnectionByNumberToUse(websocketNumber);
   } else {
     l('NO WEBSOCKET');
   }
 
 
-  if(transcriptionFailed){
+  if (transcriptionFailed) {
     l('checked remote backend and failed')
     await createOrUpdateProcessingData(processingJsonFile, {
       status: 'failed'
@@ -357,17 +357,17 @@ async function checkLatestData(dataEndpoint, latestProgress){
   }
 
   // transcription received by backend and starting
-  else if(transcriptionIsStarting){
+  else if (transcriptionIsStarting) {
     l('checked remote backend and failed')
     await createOrUpdateProcessingData(processingJsonFile, {
       status: 'starting'
     })
 
     // send websocket progress
-    if(websocketConnection){
+    if (websocketConnection) {
       l('websocket connection exists');
 
-      if(websocketConnection){
+      if (websocketConnection) {
         // tell frontend upload is done
         websocketConnection.send(JSON.stringify({
           status: 'progress',
@@ -379,15 +379,15 @@ async function checkLatestData(dataEndpoint, latestProgress){
     await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
 
-  } else if(loadingModel){
+  } else if (loadingModel) {
     l('checked remote backend and loading model')
 
 
     // send websocket progress
-    if(websocketConnection){
+    if (websocketConnection) {
       l('websocket connection exists');
 
-      if(websocketConnection){
+      if (websocketConnection) {
         // tell frontend upload is done
         websocketConnection.send(JSON.stringify({
           status: 'progress',
@@ -403,7 +403,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
   }
 
   // TRANSCRIPTION IS PROCESSING
-  else if(transcriptionIsProcessing) {
+  else if (transcriptionIsProcessing) {
     l('checked remote backend and processing')
 
 
@@ -414,7 +414,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
       status: 'processing',
     })
 
-    if(websocketConnection){
+    if (websocketConnection) {
       l('websocket connection exists');
       // get the websocket connection for relevant upload
       const getProcessingVideo = '';
@@ -428,7 +428,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
         speed,
       }
 
-      function generateProcessingDataString({
+      function generateProcessingDataString ({
         timeRemaining,
         timeElapsed,
         totalTimeEstimated,
@@ -438,20 +438,20 @@ async function checkLatestData(dataEndpoint, latestProgress){
         fileType,
         language,
         model
-      }){
+      }) {
         let processingData = [
-          "Time Remaining: " + timeRemaining || '?',
-          "Time Elapsed: " + timeElapsed || '?',
+          'Time Remaining: ' + timeRemaining || '?',
+          'Time Elapsed: ' + timeElapsed || '?',
           // "Total Time Estimated: " + totalTimeEstimated,
-          "Speed: " + (speed || '?') + " (f/s)",
-          "",
+          'Speed: ' + (speed || '?') + ' (f/s)',
+          '',
           title,
-          "Duration: " + duration,
-          "File Type: " + fileType,
-          "Language: " + language,
-          "Model: " + model
+          'Duration: ' + duration,
+          'File Type: ' + fileType,
+          'Language: ' + language,
+          'Model: ' + model
         ];
-        return processingData.join(" \n\n ");
+        return processingData.join(' \n\n ');
       }
 
       const { originalFileNameWithExtension, uploadDurationInSeconds } = localProcessingData
@@ -487,7 +487,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
     return await checkLatestData(dataEndpoint, latestProgress);
 
   /** TRANSCRIPTION COMPLETED SUCCESSFULLY **/
-  } else if(transcriptionIsCompleted){
+  } else if (transcriptionIsCompleted) {
     l('checked remote backend and completed')
 
 
@@ -504,7 +504,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
     l(language)
 
     // convert cyrillic to latin characters
-    if(language === 'Serbian'){
+    if (language === 'Serbian') {
       srtData = convert(srtData)
       vttData = convert(vttData)
       txtData = convert(txtData)
@@ -534,7 +534,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
       vttData,
     })
 
-    if(dataResponse.translatedFiles?.length){
+    if (dataResponse.translatedFiles?.length) {
       await createTranslatedVtts({
         prependPath: `${directoryBasedOnNumber}/${directorySafeFileNameWithoutExtension}`,
         translatedFiles: dataResponse.translatedFiles
@@ -551,12 +551,12 @@ async function checkLatestData(dataEndpoint, latestProgress){
       originalFileExtension // who do I have to do this
     })
 
-    if(websocketNumber){
+    if (websocketNumber) {
       // get the websocket connection for relevant upload
       const websocketConnection = getWebsocketConnectionByNumberToUse(websocketNumber);
 
       //
-      if(websocketConnection && websocketConnection.readyState === WebSocket.OPEN){
+      if (websocketConnection && websocketConnection.readyState === WebSocket.OPEN) {
         // tell frontend upload is done
         websocketConnection.send(JSON.stringify({
           status: 'Completed',
@@ -573,7 +573,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
 
     const isApiCall = !websocketNumber;
 
-    if(!isApiCall){
+    if (!isApiCall) {
       await fs.rename(directoryBasedOnNumber, renamedDirectory)
     }
 
@@ -581,7 +581,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
       status: 'completed'
       // TODO: attach all the data
     }
-  } else if(transcriptionFailed){
+  } else if (transcriptionFailed) {
     l('detected that failed')
     // TODO: throw an error here instead
     await createOrUpdateProcessingData(processingJsonFile, {
@@ -602,7 +602,7 @@ async function checkLatestData(dataEndpoint, latestProgress){
   }
 }
 
-async function runRemoteTranscriptionJob(jobObject){
+async function runRemoteTranscriptionJob (jobObject) {
   delete jobObject.websocketConnection
   // save original processing, maybe not the best place to do it
   await saveOriginalProcessingDataJson(jobObject)
@@ -633,7 +633,7 @@ function generateRandomNumber () {
 }
 
 // test run
-async function realMain(){
+async function realMain () {
   const filePath = './output-audio.aac';
   const language = 'Serbian';
   const model = 'tiny';
