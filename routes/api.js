@@ -77,7 +77,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
 
     // nothing to transcribe
     if (!downloadLink && !file) {
-      return res.status(400).json({error: 'Please pass either a \'file\' or \'downloadLink\''});
+      // eslint-disable-next-line quotes
+      return res.status(400).json({error: `Please pass either a 'file' or 'downloadLink'`});
     }
 
     // bad model name

@@ -1,0 +1,23 @@
+extends ../layout
+
+block content
+  script(src='/javascripts/circle-progress.min.js')
+
+  include ../styles/styles-global
+  include styles/styles-social
+  include styles/styles-amounts-header
+  include styles/styles-form
+  include styles/styles-transcription-results
+
+  include components/social-buttons
+
+  .container
+
+    include components/amounts-header
+
+    h1#header File Upload
+    include components/upload-form
+
+    include components/transcription-results
+  
+  include js/js-index
