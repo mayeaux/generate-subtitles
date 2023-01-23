@@ -1,13 +1,13 @@
 const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 // const { sendOutQueuePositionUpdate } = require('../lib/websockets');
-const WebSocket = require("ws");
+const WebSocket = require('ws');
 
 const l = console.log;
 
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
 // create set of numbers from x, such as 1,2,3
-function createNumberSet(x) {
+function createNumberSet (x) {
   return Array.from({length: x}, (_, i) => i + 1);
 }
 
@@ -17,14 +17,14 @@ const numberSet = createNumberSet(maxConcurrentJobs);
 
 global.jobProcesses = {};
 
-for(const number of numberSet){
+for (const number of numberSet) {
   global.jobProcesses[number] = undefined;
 }
 
 l(global.jobProcesses);
 
 // find process number of job to clear it when done
-function findProcessNumber(websocketNumber) {
+function findProcessNumber (websocketNumber) {
   for (let processNumber in global.jobProcesses) {
 
     const hasOwnProperty = global.jobProcesses.hasOwnProperty(processNumber)
@@ -32,7 +32,7 @@ function findProcessNumber(websocketNumber) {
     if (hasOwnProperty) {
 
       const matchesByWebsocket = global.jobProcesses[processNumber]?.websocketNumber === websocketNumber;
-      if(matchesByWebsocket){
+      if (matchesByWebsocket) {
         return processNumber
       }
     }
@@ -42,7 +42,7 @@ function findProcessNumber(websocketNumber) {
 
   // TODO: throw an error here?
 }
-function sendOutQueuePositionUpdate(){
+function sendOutQueuePositionUpdate () {
   // loop through websockets and tell them one less is processing
   for (let [, websocket] of global['webSocketData'].entries() ) {
     // the actual websocket
@@ -57,7 +57,7 @@ function sendOutQueuePositionUpdate(){
       // l('queuePosition');
       // l(queuePosition);
 
-      if(queuePosition) {
+      if (queuePosition) {
         websocketConnection.send(JSON.stringify({
           message: 'queue',
           placeInQueue: queuePosition
@@ -72,7 +72,7 @@ function sendOutQueuePositionUpdate(){
 
 
 // run transcribe job and remove from queue and run next queue item if available
-async function runJob(jobObject){
+async function runJob (jobObject) {
   const { websocketNumber } = jobObject;
 
   // simulate job running
@@ -81,7 +81,7 @@ async function runJob(jobObject){
 
     l('job done');
 
-  } catch (err){
+  } catch (err) {
     l('error from runjob');
     l(err);
   }
@@ -91,7 +91,7 @@ async function runJob(jobObject){
   l(processNumber);
 
   // run the next item from the queue
-  if(global.newQueue.length){
+  if (global.newQueue.length) {
     const nextQueueItem = global.newQueue.shift();
 
     nextQueueItem.processNumber = Number(processNumber);
@@ -108,7 +108,7 @@ async function runJob(jobObject){
 global.newQueue = [];
 
 // add job to process if available otherwise add to queue
-function addToJobProcessOrQueue(jobObject){
+function addToJobProcessOrQueue (jobObject) {
   const { websocketNumber, skipToFront } = jobObject;
 
   l('skipToFront');
@@ -118,7 +118,7 @@ function addToJobProcessOrQueue(jobObject){
   for (let processNumber in global.jobProcesses) {
     const propValue = global.jobProcesses[processNumber];
 
-    if(propValue === undefined){
+    if (propValue === undefined) {
       jobObject.processNumber = Number(processNumber);
 
       global.jobProcesses[processNumber] = jobObject;
@@ -130,12 +130,12 @@ function addToJobProcessOrQueue(jobObject){
   // TODO: add got in queue time here
 
   // push to newQueue if all processes are busy
-  if(skipToFront){
+  if (skipToFront) {
     // last skip to front item
     const lastItem = global.newQueue.filter(queueItem => queueItem.skipToFront === true).slice(-1)[0];
 
     // insert after latest skipToFront
-    if(lastItem){
+    if (lastItem) {
       const lastItemIndex = global.newQueue.indexOf(lastItem);
 
       // insert after last item with skipToFront
@@ -154,12 +154,12 @@ function addToJobProcessOrQueue(jobObject){
 }
 
 // get amount of running jobs (used to calculate queue position)
-function amountOfRunningJobs(){
+function amountOfRunningJobs () {
   let amount = 0;
   for (let processNumber in global.jobProcesses) {
     const propValue = global.jobProcesses[processNumber];
 
-    if(propValue !== undefined){
+    if (propValue !== undefined) {
       amount++;
     }
   }
@@ -168,9 +168,9 @@ function amountOfRunningJobs(){
 }
 
 // get position in queue based on websocketNumber
-function getQueueInformationByWebsocketNumber(websocketNumber){
+function getQueueInformationByWebsocketNumber (websocketNumber) {
   for (const [index, queueItem] of global.newQueue.entries()) {
-    if(queueItem.websocketNumber === websocketNumber){
+    if (queueItem.websocketNumber === websocketNumber) {
       return {
         queuePosition: index + 1, // 1
         queueLength: global.newQueue.length, // 4

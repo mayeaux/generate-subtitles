@@ -1,6 +1,6 @@
 const spawn = require('child_process').spawn;
 const which = require('which');
-const ffprobe = require("ffprobe");
+const ffprobe = require('ffprobe');
 
 const l = console.log;
 
@@ -43,7 +43,7 @@ function extractAudio (inputVideoPath, outputAudioPath) {
     /** whisper responds with 0 or 1 process code **/
     ffmpegProcess.on('close', (code) => {
       l(`child process exited with code ${code}`);
-      if(code === 0){
+      if (code === 0) {
         resolve();
       } else {
         reject()
@@ -52,7 +52,7 @@ function extractAudio (inputVideoPath, outputAudioPath) {
   })
 }
 
-async function getAudioCodec(){
+async function getAudioCodec () {
   const ffprobeResponse = await ffprobe(inputVideoPath, { path: ffprobePath });
 
   l(ffprobeResponse);
@@ -67,11 +67,11 @@ async function getAudioCodec(){
   return audioCodec
 }
 
-async function main(){
+async function main () {
   try {
     const audioCodec = await getAudioCodec();
     await extractAudio(inputVideoPath, `output-audio.${audioCodec}`);
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
   }

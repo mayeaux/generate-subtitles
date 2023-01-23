@@ -9,7 +9,7 @@ const transcribe = require('../transcribe/transcribe-api-wrapped')
 const constants = require('../constants/constants');
 const filenamify = require('filenamify');
 const createTranslatedFiles = require('../translate/translate-files-api');
-const { downloadFileApi, getFilename} = require("../downloading/yt-dlp-download");
+const { downloadFileApi, getFilename} = require('../downloading/yt-dlp-download');
 const { languagesToTranslateTo, newLanguagesMap, translationLanguages } = constants;
 const { modelsArray, whisperLanguagesHumanReadableArray } = constants;
 const { writeToProcessingDataFile, createFileNames, makeFileNameSafe } = require('../lib/transcribing');
@@ -37,7 +37,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // get file names
     const file = req.file;
     let originalFileName, uploadFileName, uploadFilePath;
-    if(file){
+    if (file) {
       originalFileName = file.originalname;
       uploadFileName = file.filename;
       uploadFilePath = file.path;
@@ -55,7 +55,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const { model, language, downloadLink, apiToken, websocketNumber } = postBodyData;
 
     let numberToUse;
-    if(downloadLink){
+    if (downloadLink) {
       numberToUse = generateRandomNumber();
     } else {
       numberToUse = websocketNumber;
@@ -71,28 +71,28 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     const authTokenStringsAsArray = authTokenString.split(',');
     const authedByToken = authTokenStringsAsArray.includes(apiToken);
 
-    if(process.env.NODE_ENV === 'production' && !authedByToken){
+    if (process.env.NODE_ENV === 'production' && !authedByToken) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // nothing to transcribe
-    if(!downloadLink && !file){
-      return res.status(400).json({error: `Please pass either a 'file' or 'downloadLink'`});
+    if (!downloadLink && !file) {
+      return res.status(400).json({error: 'Please pass either a \'file\' or \'downloadLink\''});
     }
 
     // bad model name
-    if(!validModelValues.includes(model)) {
+    if (!validModelValues.includes(model)) {
       return res.status(400).send({error: `Your model of '${model}' is not valid. Please choose one of the following: ${validModelValues.join(', ')}`});
     }
 
     // bad language name
-    if(!whisperLanguagesHumanReadableArray.includes(language)) {
+    if (!whisperLanguagesHumanReadableArray.includes(language)) {
       return res.status(400).send({error: `Your language of '${language}' is not valid. Please choose one of the following: ${whisperLanguagesHumanReadableArray.join(', ')}`});
     }
 
     // TODO: implement this
     let originalFileNameWithExtension, originalFileExtension, originalFileNameWithoutExtension, directorySafeFileNameWithoutExtension;
-    if(file){
+    if (file) {
       ({
         originalFileNameWithExtension,
         originalFileExtension,
@@ -102,7 +102,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     }
 
     let filename;
-    if(downloadLink){
+    if (downloadLink) {
       // hit yt-dlp and get file title name
       filename =  await getFilename(downloadLink);
     } else {
@@ -138,7 +138,7 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     })
 
     let matchingFile;
-    if(downloadLink){
+    if (downloadLink) {
 
       res.send({
         message: 'starting-download',

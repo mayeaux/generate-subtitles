@@ -78,7 +78,7 @@ router.get('/player/:filename' , async function (req, res, next) {
 });
 
 /** player route to add translation  **/
-router.get("/player/:filename/add" , async function(req, res, next){
+router.get('/player/:filename/add' , async function (req, res, next) {
   try {
 
     const fileNameWithoutExtension = req.params.filename
@@ -100,7 +100,7 @@ router.get("/player/:filename/add" , async function(req, res, next){
       // vttPath,
       // fileSource
     })
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
     res.send(err);
@@ -176,7 +176,7 @@ router.post('/player/:filename/add' , async function (req, res, next) {
 });
 
 /** CHANGE KEEP MEDIA **/
-router.post("/player/:filename/keepMedia" , async function(req, res, next){
+router.post('/player/:filename/keepMedia' , async function (req, res, next) {
   try {
     const { password } = req.query;
 
@@ -200,7 +200,7 @@ router.post("/player/:filename/keepMedia" , async function(req, res, next){
 
     const processingData = JSON.parse(await fs.readFile(processingDataPath, 'utf8'));
 
-    if(shouldKeepMedia){
+    if (shouldKeepMedia) {
       processingData.keepMedia = true;
     } else {
       processingData.keepMedia = false;
@@ -210,7 +210,7 @@ router.post("/player/:filename/keepMedia" , async function(req, res, next){
 
     return res.redirect(`/player/${req.params.filename}`)
 
-  } catch (err){
+  } catch (err) {
     l('err');
     l(err);
     res.send(err);

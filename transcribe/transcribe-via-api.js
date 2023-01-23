@@ -3,13 +3,13 @@ const servers = [{
   processAmount: 2,
 }]
 
-async function startTranscription(){
+async function startTranscription () {
   const audioFile = './ljubav.mp3';
 
 
 }
 
-async function transcribeViaApi(){
+async function transcribeViaApi () {
   const audioFile = './ljubav.mp3';
 
 

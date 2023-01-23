@@ -62,7 +62,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const uploadTimeFinished = new Date();
 
     // this shouldn't happen but there's some sort of frontend bug
-    if(!language || language === 'undefined' || language === 'Auto-Detect'){
+    if (!language || language === 'undefined' || language === 'Auto-Detect') {
       language = 'auto-detect';
     }
 
@@ -79,7 +79,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     l(downloadLink);
 
-    function matchByWebsocketNumber(item) {
+    function matchByWebsocketNumber (item) {
       return item.websocketNumber === websocketNumber;
     }
 
@@ -288,7 +288,7 @@ router.get('/checkingOutstandingProcesses', async function (req, res, next) {
   l('outstandingJobsAmount');
   l(outstandingJobsAmount);
 
-  if(outstandingJobsAmount >= 3) {
+  if (outstandingJobsAmount >= 3) {
     res.send('tooMany');
   } else {
     res.send('ok');

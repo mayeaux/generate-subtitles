@@ -1,6 +1,6 @@
-const FormData = require("form-data");
-const fs = require("fs-extra");
-const axios = require("axios");
+const FormData = require('form-data');
+const fs = require('fs-extra');
+const axios = require('axios');
 
 const l = console.log;
 
@@ -12,7 +12,7 @@ function generateRandomNumber () {
   return Math.floor(Math.random() * 10000000000).toString();
 }
 
-async function hitRemoteApiEndpoint(form, fullApiEndpoint){
+async function hitRemoteApiEndpoint (form, fullApiEndpoint) {
   // use passed if available
   const endpointToUse = fullApiEndpoint || endpointToHit;
 
@@ -25,7 +25,7 @@ async function hitRemoteApiEndpoint(form, fullApiEndpoint){
   return response
 }
 
-async function getNewData(dataUrl){
+async function getNewData (dataUrl) {
   let dataResponse = await axios.get(dataUrl);
 
   l('dataResponse');
@@ -33,7 +33,7 @@ async function getNewData(dataUrl){
   return dataResponse.data
 }
 
-function checkResponse(dataResponse) {
+function checkResponse (dataResponse) {
   const transcriptionStatus = dataResponse?.status;
 
   const transcriptionComplete = transcriptionStatus === 'completed';
@@ -59,7 +59,7 @@ function checkResponse(dataResponse) {
     }
   }
 
-  if(transcriptionIsProcessing){
+  if (transcriptionIsProcessing) {
     const percentDone = dataResponse?.processingData?.progress;
     return {
       status: 'processing',
@@ -67,7 +67,7 @@ function checkResponse(dataResponse) {
     }
   }
 
-  if(transcriptionErrored){
+  if (transcriptionErrored) {
     return 'failed'
   }
 
@@ -84,7 +84,7 @@ const machineApiKey = '';
  * @param model
  * @param websocketNumber
  */
-async function transcribeRemoteServer(pathToAudioFile, language, model, websocketNumber, fullApiEndpoint){
+async function transcribeRemoteServer (pathToAudioFile, language, model, websocketNumber, fullApiEndpoint) {
   // Create a new form instance
   const form = new FormData();
 
@@ -115,19 +115,19 @@ const delayPromise = (delayTime) => {
   });
 };
 
-async function getResult(dataEndpoint){
+async function getResult (dataEndpoint) {
   let dataResponse = await getNewData(dataEndpoint);
   let response = checkResponse(dataResponse);
 
   l('response');
   l(response);
 
-  if(response.status === 'failed'){
+  if (response.status === 'failed') {
     l('detected that failed')
     return {
       status: 'failed'
     }
-  } else if(response.status === 'completed'){
+  } else if (response.status === 'completed') {
 
     l('detected that completed')
     return {
@@ -150,13 +150,13 @@ async function getResult(dataEndpoint){
  * @param fullApiEndpoint
  * @returns {Promise<void>}
  */
-async function transcribeViaRemoteApi({ filePath, language, model, websocketNumber, remoteServerApiUrl }){
+async function transcribeViaRemoteApi ({ filePath, language, model, websocketNumber, remoteServerApiUrl }) {
   const dataEndpoint = await transcribeRemoteServer(filePath, language, model, websocketNumber, remoteServerApiUrl);
 
   return await getResult(dataEndpoint)
 }
 
-async function realMain(){
+async function realMain () {
   const filePath = './output-audio.aac';
   const language = 'Serbian';
   const model = 'tiny';
