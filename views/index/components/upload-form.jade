@@ -45,7 +45,7 @@ form.form#form
           i.fa-solid.fa-magnifying-glass
           input(spellcheck='false' type='search' placeholder='Filter...' tabindex='0')
         ul.options.trans-languages
-          each language in allLanguages.slice(1)
+          each language in allLanguages
             li.option(data-lang=language.code tabindex='0')
               input(type='checkbox' id=`lang-${language.code}` name=language.code value=language.code)
               label(for=`lang-${language.code}` tabindex='0')= language.name
