@@ -187,9 +187,11 @@ script.
     formData.append('model', model);
     formData.append('shouldTranslate', translateIsChecked);
     formData.append('websocketNumber', randomNumber);
+    formData.append('targetLangs', selectedTransLangs);
 
     /* SUBMIT ERRORS */
-    !passedFile && !downloadLink && errorsMap['no-file']();
+    if (!passedFile && !downloadLink) return errorsMap['no-file']();
+    if (translateIsChecked && !selectedTransLangs.length) return errorsMap['no-target-languages-selected']();
 
     // TODO: pull into its own function
     // frontend validation of file size and file length

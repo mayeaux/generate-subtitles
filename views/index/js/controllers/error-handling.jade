@@ -2,22 +2,29 @@ script.
   const errorsMap = {
     'no-file': () => 
       Swal.fire({
-        title: `You didn't pass a file`,
+        title: `No File Passed`,
         text: 'Please select a file to upload.',
         icon: 'error',
         confirmButtonText: 'Cool'
       }),
-    'too-large-file': (size, sizeLimit) => 
+    'too-large-file': (size, sizeLimit) =>
       Swal.fire({
-        title: `Too large file`,
+        title: `Too Large File`,
         text: `Your file size of ${size}MB is too large. The limit is ${sizeLimit}MB.`,
         icon: 'error',
         confirmButtonText: 'Cool'
       }),
       'too-long-video': (duration, durationLimit) =>
         Swal.fire({
-          title: `Too long video`,
+          title: `Too Long Video`,
           text: `Your video duration of ${duration / 60} minutes is too long. To share time more evenly 1h+ uploads are not allowed currently.`,
+          icon: 'error',
+          confirmButtonText: 'Cool'
+        }),
+      'no-target-languages-selected': () =>
+        Swal.fire({
+          title: `No Target Languages`,
+          text: 'You have translations turned on without any languages selected, please select a language or turn off translation functionality.',
           icon: 'error',
           confirmButtonText: 'Cool'
         }),
@@ -32,7 +39,7 @@ script.
       'interrupted-connection': () => 
         Swal.fire({
           title: 'Websocket Disconnected',
-          text: 'Your websocket connection was disconnected, please refresh to start a new upload',
+          text: 'Your websocket connection was disconnected, please refresh to start a new upload.',
           icon: 'error',
           showCancelButton: true,
           confirmButtonText: 'Refresh',
