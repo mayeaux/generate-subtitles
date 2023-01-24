@@ -225,17 +225,21 @@ style.
     color: #961515;
   }
 
-  .translateHolder .wrapper {
-    grid-column: 1 / -1;
-    order: 2;
+  .translateHolder :is(.wrapper, .group) {
+    display: none;
     visibility: hidden;
     opacity: 0;
     max-height: 0;
     transition: all 250ms ease-in-out;
   }
 
+  .translateHolder .wrapper {
+    grid-column: 1 / -1;
+    order: 2;
+  }
 
-  .translateHolder > input[type='checkbox']:checked + .wrapper {
+  .translateHolder > input[type='checkbox']:checked ~ div {
+    display: block;
     visibility: visible;
     opacity: 1;
     max-height: fit-content;
