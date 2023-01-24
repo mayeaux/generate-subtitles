@@ -41,7 +41,6 @@ script.
   // grab elements
   const languageOptions = [...$('.options.languages .option')];
   const modelOptions = [...$('.options.models .option')];
-  const languageSelect = document.querySelector('#language');
   const transLangsOptions = [...$('.trans-languages .option')];
 
   // local storage
@@ -51,13 +50,20 @@ script.
   const previousLanguageName = localStorage.getItem('languageName');
   const previousShouldTranslate = localStorage.getItem('shouldTranslate');
   const previousSourceTargets = getTransLangsDefaults();
-  let previousTransLangs = previousSourceTargets?.[previousLanguage];
+  let previousTransLangs = previousSourceTargets?.[previousLanguage] || [];
   l({previousSourceTargets, previousTransLangs});
 
   const populateTransLanguages = transLangs => {
+    if (!transLangs?.length) {
+      transLangs = defaultTransLanguages // default to defaultTransLanguages
+      .filter(lang => lang.name !== $('#language').text()) // remove source language from target languages
+      .slice(0, maxTransLangs); // limit to maxTransLangs
+    }
+    selectedTransLangs = []; // reset selectedTransLangs
     transLangsOptions.forEach(opt => {
-      transLangs?.some(lang => lang.code === opt.dataset.lang) && selectTransLang(opt);
+      transLangs?.some(lang => lang.code === opt.dataset.lang) ? selectTransLang(opt) : deselectTransLang(opt);
     });
+    renderSelectedTranslationLangs();
   }
 
   $(document).ready(() => {
@@ -86,7 +92,6 @@ script.
     $('#translate').prop('checked', previousShouldTranslate === 'true');
     
     populateTransLanguages(previousTransLangs);
-    renderSelectedTranslationLangs();
     disableTranscribeLang();
     l('ready now');
   });
@@ -109,8 +114,8 @@ script.
     if (option) {
       handleOptionClick(evt); // On option click
       languagesList && disableTranscribeLang();
-      const currentLang = document.querySelector('#language').dataset.value;
-      previousTransLangs = previousSourceTargets?.[currentLang];
+      const currentLang = $('#language').text();
+      previousTransLangs = previousSourceTargets?.[currentLang] || [];
       languagesList && populateTransLanguages(previousTransLangs);
     }
 
@@ -156,10 +161,6 @@ script.
     const translateIsChecked = $('#translate').is(':checked');
     const downloadLink = $('#downloadLink').val();
     const selectedTransLangs = getSelectedLangs();
-    //- const sourceTargets = JSON.parse(localStorage.getItem('sourceTargets')) || {
-    //-   [language]: selectedTransLangs
-    //- };
-    //- sourceTargets[language] = selectedTransLangs;
 
     function capitalizeFirstLetter(string) {
       return string.charAt(0).toUpperCase() + string.slice(1);
