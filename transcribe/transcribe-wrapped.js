@@ -387,8 +387,7 @@ async function transcribe ({
 
             let translatedLanguages = [];
             if (translationStartedAndCompleted) {
-              const trimmedLanguagesToTranscribe = languagesToTranscribe.filter(e => e !== language);
-              translatedLanguages = trimmedLanguagesToTranscribe
+              translatedLanguages = targetLangs.filter(({name}) => name !== language);
             }
 
             const fileDetailsObject = {

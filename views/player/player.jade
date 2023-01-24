@@ -48,9 +48,9 @@ block content
           // translated VTT files
           each language in processingData.translatedLanguages
             .links
-              span VTT (#{language})
-              a(href=`${filePathWithoutExtension}_${language}.vtt`) View
-              a(href=`${filePathWithoutExtension}_${language}.vtt` download) Download
+              span VTT (#{language.name})
+              a(href=`${filePathWithoutExtension}_${language.name}.vtt`) View
+              a(href=`${filePathWithoutExtension}_${language.name}.vtt` download) Download
           .links
             a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`) Download File
         .fileDetails
