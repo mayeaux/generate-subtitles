@@ -42,7 +42,7 @@ script.
   const languageOptions = [...$('.options.languages .option')];
   const modelOptions = [...$('.options.models .option')];
   const languageSelect = document.querySelector('#language');
-  const transLangsOptions = document.querySelectorAll('.trans-languages .option');
+  const transLangsOptions = [...$('.trans-languages .option')];
 
   // local storage
   const previousModel = localStorage.getItem('model');
@@ -55,18 +55,8 @@ script.
   l({previousSourceTargets, previousTransLangs});
 
   const populateTransLanguages = transLangs => {
-    l('populating');
-    l({transLangs});
-    transLangsOptions.forEach(option => {
-      if (transLangs?.map(lang => lang.code).includes(option.dataset.lang)) {
-        option.querySelector('input[type="checkbox"]').removeAttribute('disabled');
-        option.click();
-        //- option.classList.add('selected');
-        //- option.querySelector('input[type="checkbox"]').setAttribute('checked', true);
-      } else {
-        option.classList.remove('selected');
-        option.querySelector('input[type="checkbox"]').removeAttribute('checked');
-      }
+    transLangsOptions.forEach(opt => {
+      transLangs?.some(lang => lang.code === opt.dataset.lang) && selectTransLang(opt);
     });
   }
 
@@ -104,7 +94,7 @@ script.
   // handle clicks with event delegation -osb910
   $('body').on('click', evt => {
     const clicked = evt.target;
-    const selectWrappers = document.querySelectorAll('#form .wrapper');
+    const selectWrappers = [...$('#form .wrapper')];
     const selectionBtn = clicked.closest('.select-btn');
     const option = clicked.closest('.option');
     const groupElement = clicked.closest('.form .group');

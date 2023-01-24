@@ -29,8 +29,7 @@ script.
       localStorage.setItem('transLangsDefaults', JSON.stringify({}));
       return {};
     } else {
-      transLangsDefaults = JSON.parse(transLangsDefaults);
-      return transLangsDefaults;
+      return JSON.parse(transLangsDefaults);
     }
   }
 

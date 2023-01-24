@@ -64,16 +64,24 @@ script.
       : enableAllUnchecked();
   }
 
-  const selectTransLang = option => {
-    selectedTransLangs.push({name: option.textContent, code: option.dataset.lang});
-    option.classList.add('selected');
-  }
-
   const deselectTransLang = option => {
     selectedTransLangs = selectedTransLangs.filter(({name}) => name !== option.textContent);
     const checkbox = option?.querySelector('input[type="checkbox"]');
     checkbox && (checkbox.checked = false);
     option?.classList.remove('selected');
+  }
+
+  const selectTransLang = option => {
+    if ($('#language').text() === option.textContent) {
+      deselectTransLang(option);
+      disableOption(option);
+      return;
+    }
+    if (selectedTransLangs.length >= maxTransLangs) return;
+    selectedTransLangs.push({name: option.textContent, code: option.dataset.lang});
+    const checkbox = option.querySelector(`input[type='checkbox']`);
+    checkbox && (checkbox.checked = true);
+    option?.classList.add('selected');
   }
 
   const handleOptionClick = evt => {
