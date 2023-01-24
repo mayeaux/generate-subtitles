@@ -16,9 +16,6 @@ if (global.debug === 'false') {
 
 // l('translationLanguages')
 // l(translationLanguages);
-//
-// l('languagesToTranscribe')
-// l(languagesToTranscribe);
 
 // l('all languages');
 // l(allLanguages);
@@ -38,6 +35,7 @@ async function createTranslatedFiles ({
     websocketConnection,
     strippedText,
     timestampsArray,
+    targetLangs,
 }) {
 
   const loopThrough = ['.srt', '.vtt', 'txt'];
@@ -54,64 +52,50 @@ async function createTranslatedFiles ({
 
   // save stripped and timestamps to processing data
 
-  l({languagesToTranscribe})
+  l({languagesToTranscribe, targetLangs});
 
-
-  for (const languageToConvertTo of languagesToTranscribe) {
-    l('languageToConvertTo');
-    l(languageToConvertTo);
-
-    l('language');
-    l(language);
+  for (const targetLang of targetLangs) {
+    const {name: targetName, code: targetCode} = targetLang;
+    l({language, targetName, targetCode});
 
     try {
       // no need to translate just copy the file
-      if (languageToConvertTo !== language) {
+      if (targetName !== language) {
         websocketConnection.send(JSON.stringify({
-          languageUpdate: `Translating into ${languageToConvertTo}..`,
+          languageUpdate: `Translating into ${targetName}..`,
           message: 'languageUpdate'
         }), function () {});
 
-
-        const sourceLanguageCode = getCodeFromLanguageName(language);
-        const targetLanguageCode = getCodeFromLanguageName(languageToConvertTo);
-
-        // l('sourceLanguageCode');
-        // l(sourceLanguageCode);
-        // l('targetLanguageCode');
-        // l(targetLanguageCode);
-
-        // hit LibreTranslate backend
-        l(`hitting libretranslate: ${language} -> ${languageToConvertTo}`);
+        // hit translating backend
+        l(`Translating: ${language} -> ${targetName}`);
         // TODO: to convert to thing
         // let translatedText = await translateText({
         //   sourceLanguage: sourceLanguageCode, // before these were like 'EN', will full language work?
-        //   targetLanguage: targetLanguageCode,
+        //   targetLanguage: targetCode,
         //   text: strippedText,
         // })
 
         let translatedText = await translateText({
           text: strippedText,
-          targetLanguageCode, // before these were like 'EN', will full language work?
+          targetLanguageCode: targetCode, // before these were like 'EN', will full language work?
         })
-        // l('translatedText');
         // l(translatedText);
 
         if (!translatedText) {
           continue
         }
 
-        if (languageToConvertTo === 'Chinese') {
+        if (targetName === 'Chinese') {
           translatedText = simplified(translatedText);
         }
 
-        if (languageToConvertTo === 'Serbian') {
+        if (targetName === 'Serbian') {
           translatedText = convert(translatedText);
         }
 
         const reformattedVtt = reformatVtt(timestampsArray, translatedText);
 
-        await fs.writeFile(`${directoryAndFileName}_${languageToConvertTo}.vtt`, reformattedVtt, 'utf-8');
+        await fs.writeFile(`${directoryAndFileName}_${targetName}.vtt`, reformattedVtt, 'utf-8');
       }
     } catch (err) {
       l(err);

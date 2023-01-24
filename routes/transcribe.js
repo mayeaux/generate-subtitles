@@ -58,6 +58,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const downloadLink = req.body.downloadLink;
     const passedFile = req.file;
     let downloadedFile = false;
+    const targetLangs = JSON.parse(req.body.targetLangs);
 
     let filename;
 
@@ -228,7 +229,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
         websocketConnection,
         websocketNumber,
         queue,
-        languagesToTranslateTo
+        languagesToTranslateTo,
+        targetLangs
       })
     })
 

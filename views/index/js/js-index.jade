@@ -187,7 +187,7 @@ script.
     formData.append('model', model);
     formData.append('shouldTranslate', translateIsChecked);
     formData.append('websocketNumber', randomNumber);
-    formData.append('targetLangs', selectedTransLangs);
+    formData.append('targetLangs', JSON.stringify(selectedTransLangs));
 
     /* SUBMIT ERRORS */
     if (!passedFile && !downloadLink) return errorsMap['no-file']();

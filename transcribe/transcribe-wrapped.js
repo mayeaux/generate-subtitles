@@ -48,6 +48,7 @@ async function transcribe ({
   uploadGeneratedFilename,
   shouldTranslate,
   uploadDurationInSeconds,
+  targetLangs,
 }) {
   return new Promise(async (resolve, reject) => {
 
@@ -345,7 +346,8 @@ async function transcribe ({
                 language,
                 websocketConnection,
                 strippedText,
-                timestampsArray
+                timestampsArray,
+                targetLangs,
               })
               translationFinished = true;
             }
