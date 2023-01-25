@@ -1,0 +1,6 @@
+script.
+
+  const toggleDetails = () => {
+    $('.downloadLinks, .fileDetails, #addSubtitles').slideToggle();
+    setTimeout(() => $('#toggleDetails').text(`${$('.downloadLinks').is(':visible') ? 'Hide' : 'Show'} Text`), 500);
+  };

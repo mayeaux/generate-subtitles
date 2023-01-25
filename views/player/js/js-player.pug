@@ -1,3 +1,5 @@
+include controllers/page-buttons.pug
+
 script.
   l = console.log;
 
@@ -9,32 +11,8 @@ script.
   const allLanguages = !{JSON.stringify(allLanguages)};
   const filename = '#{renderedFilename}';
 
-  l('all languages');
-  l(allLanguages);
-
   $(document).ready(function () {
-
-    let bottomTextShown = true;
-    $('#showHideControls').click(function(){
-
-      if(bottomTextShown){
-        $('.downloadLinks').hide()
-        $('.fileDetails').hide()
-        $('#addSubtitles').hide()
-        bottomTextShown = false;
-        $(this).text('Show Text');
-
-      } else {
-        $('.downloadLinks').show()
-        $('.fileDetails').show()
-        $('#addSubtitles').show()
-        bottomTextShown = true;
-        $(this).text('Hide Text');
-      }
-      l('clicked!');
-    })
-
-    // make all links open in new tab
+    // make all links open in new tab // why not just do it on the markup? -osb910
     const anchorTags = document.querySelectorAll('a');
     anchorTags.forEach((anchor) => {
       anchor.setAttribute('target', '_blank');
@@ -201,4 +179,10 @@ script.
         // l(text);
       })
     }, 200)
+  });
+
+  $('body').on('click', evt => {
+    const target = $(evt.target);
+    const [toggleDetailsBtn] = target.closest('#toggleDetails');
+    toggleDetailsBtn && toggleDetails();
   });
