@@ -181,44 +181,6 @@ script.
     const {filename, processingDataString, percentDoneAsNumber, processingDataHTML, formattedProgress} = data;
     document.title = `${percentDoneAsNumber ?? 0}% Transcribed - ${filename ?? ''}`;
 
-    // const progressData = {
-    //   timeRemaining,
-    //   timeElapsed,
-    //   totalTimeEstimated,
-    //   speed,
-    //   title,
-    //   duration,
-    //   fileType,
-    //   language,
-    //   model
-    // }
-
-    function generateProcessingDataString({
-      timeRemaining,
-      timeElapsed,
-      totalTimeEstimated,
-      speed,
-      title,
-      duration,
-      fileType,
-      language,
-      model
-    }) {
-      let processingData = [
-        "Time Remaining: " + timeRemaining,
-        "Time Elapsed: " + timeElapsed,
-        "Total Time Estimated: " + totalTimeEstimated,
-        "Speed: " + speed + " (f/s)",
-        "",
-        title,
-        "Duration: " + duration,
-        "File Type: " + fileType,
-        "Language: " + language,
-        "Model: " + model
-      ];
-      return processingData.join(" \n\n ");
-    }
-
     // const generateString = data.generateString;
     //
     // generateString('hello');

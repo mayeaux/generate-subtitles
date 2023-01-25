@@ -438,52 +438,10 @@ async function checkLatestData (dataEndpoint, latestProgress) {
       };
 
       dataResponse.processingDataHTML = generateProcessingDataHTML(dataResponse);
-      l({dataResponse});
-
-      function generateProcessingDataString ({
-        timeRemaining,
-        timeElapsed,
-        totalTimeEstimated,
-        speed,
-        title,
-        duration,
-        fileType,
-        language,
-        model
-      }) {
-        let processingData = [
-          'Time Remaining: ' + timeRemaining || '?',
-          'Time Elapsed: ' + timeElapsed || '?',
-          // "Total Time Estimated: " + totalTimeEstimated,
-          'Speed: ' + (speed || '?') + ' (f/s)',
-          '',
-          title,
-          'Duration: ' + duration,
-          'File Type: ' + fileType,
-          'Language: ' + language,
-          'Model: ' + model
-        ];
-        return processingData.join(' \n\n ');
-      }
-
       const { originalFileNameWithExtension, uploadDurationInSeconds } = localProcessingData
-
-      const processingDataString = generateProcessingDataString({
-        timeRemaining: timeRemainingString,
-        timeElapsed: timeElapsedString,
-        // totalTimeEstimated: 'TODO',
-        speed,
-        title: originalFileNameWithExtension,
-        duration: uploadDurationInSeconds, // TODO: have to save it earlier on backend to access it
-        fileType: 'Video',
-        language,
-        model
-      });
-      l({processingDataString});
 
       websocketConnection.send(JSON.stringify({
         status: 'progress',
-        processingDataString,
         processingDataHTML: dataResponse.processingDataHTML,
         percentDoneAsNumber,
         formattedProgress: dataResponse.formattedProgress,
