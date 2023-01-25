@@ -2,286 +2,84 @@ extends ../layout
 
 block content
 
-    include ../styles/styles-global
-    include styles-player
+  include ../styles/styles-global
+  include styles-player
 
-    main
-      section.video-container
-        video#player(playsinline controls='' autoplay='true' name='media' preload="auto")
-          // file extension includes the .
-          source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
-          // TODO: replace with loop (has to fix on the backend)
-          if languagesToLoop.length > 0
-            each loopLanguage in languagesToLoop
-              track(kind='captions' label=loopLanguage.name srclang=loopLanguage.languageCode src=`${filePathWithoutExtension}_${loopLanguage.name}.vtt` default='')
-            track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
-          else
-            track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}.vtt` default=true)
-      section.bottomSection
-        .buttons
-          button.btn#increaseSize Subtitle Text Size +
-          button.btn#decreaseSize Subtitle Text Size -
-          button.btn#increaseLineHeight Subtitle Spacing +
-          button.btn#decreaseLineHeight Subtitle Spacing -
-          button.btn#showHideControls Hide Text
-        .downloadLinks
-          a.btn.startAnotherTranscription(href='/') Start Another Transcription
+  main
+    section.video-container
+      video#player(playsinline controls='' autoplay='true' name='media' preload="auto")
+        // file extension includes the .
+        source(src=`${filePathWithoutExtension}${processingData.fileExtension}`)
+        // TODO: replace with loop (has to fix on the backend)
+        if languagesToLoop.length > 0
+          each loopLanguage in languagesToLoop
+            track(kind='captions' label=loopLanguage.name srclang=loopLanguage.languageCode src=`${filePathWithoutExtension}_${loopLanguage.name}.vtt` default='')
+          track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}_${processingData.language}.vtt` default=true)
+        else
+          track(kind='captions' label=processingData.language srclang=processingData.languageCode src=`${filePathWithoutExtension}.vtt` default=true)
+    section.bottomSection
+      .buttons
+        button.btn#increaseSize Subtitle Text Size +
+        button.btn#decreaseSize Subtitle Text Size -
+        button.btn#increaseLineHeight Subtitle Spacing +
+        button.btn#decreaseLineHeight Subtitle Spacing -
+        button.btn#showHideControls Hide Text
+      .downloadLinks
+        a.btn.startAnotherTranscription(href='/') Start Another Transcription
 
-          // ORIGINAL LANGUAGE FILES
-          if processingData.translatedLanguages.length > 1
-            span Original Language:
-          .srtLinks.links
-            span SRT (#{processingData.language})
-            a(download href=`${filePathWithoutExtension}.srt`) Download
-          .vttLinks.links
-            span VTT (#{processingData.language})
-            a(href=`${filePathWithoutExtension}.vtt`) View
-            a(download href=`${filePathWithoutExtension}.vtt`) Download
-          .txtLinks.links
-            span TXT (#{processingData.language})
-            a(href=`${filePathWithoutExtension}.txt`) View
-            a(download href=`${filePathWithoutExtension}.txt`) Download
+        // ORIGINAL LANGUAGE FILES
+        if processingData.translatedLanguages.length > 1
+          span Original Language:
+        .srtLinks.links
+          span SRT (#{processingData.language})
+          a(download href=`${filePathWithoutExtension}.srt`) Download
+        .vttLinks.links
+          span VTT (#{processingData.language})
+          a(href=`${filePathWithoutExtension}.vtt`) View
+          a(download href=`${filePathWithoutExtension}.vtt`) Download
+        .txtLinks.links
+          span TXT (#{processingData.language})
+          a(href=`${filePathWithoutExtension}.txt`) View
+          a(download href=`${filePathWithoutExtension}.txt`) Download
 
-          // TRANSLATED FILES //
-          if processingData.translatedLanguages.length > 0
-            p#translationsHeader Translations:
-          // translated VTT files
-          each language in processingData.translatedLanguages
-            .links
-              span VTT (#{language})
-              a(href=`${filePathWithoutExtension}_${language}.vtt`) View
-              a(href=`${filePathWithoutExtension}_${language}.vtt` download) Download
+        // TRANSLATED FILES //
+        if processingData.translatedLanguages.length > 0
+          p#translationsHeader Translations:
+        // translated VTT files
+        each language in processingData.translatedLanguages
           .links
-            a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`) Download File
-        .fileDetails
-          each property, value in processingData
-            p #{value}: #{property}
-        #addTranslation
-          a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
-            p(style="color:rgb(22, 29, 29);") Add Here
-              //p Filename: #{processingData.filename}
-        if userAuthed
-          form(action='/player/#{renderedFilename}/keepMedia?password=#{password}&keepMedia=true' method='POST')
-            // form elements go here
-            button(type='submit') Keep Media True
-          br
-          form(action='/player/#{renderedFilename}/keepMedia?password=#{password}&keepMedia=false' method='POST')
-            // form elements go here
-            button(type='submit') Keep Media False
-          br
+            span VTT (#{language})
+            a(href=`${filePathWithoutExtension}_${language}.vtt`) View
+            a(href=`${filePathWithoutExtension}_${language}.vtt` download) Download
+        .links
+          a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`) Download File
+      .fileDetails
+        each property, value in processingData
+          p #{value}: #{property}
+      #addTranslation
+        a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
+          p(style="color:rgb(22, 29, 29);") Add Here
+            //p Filename: #{processingData.filename}
+      if userAuthed
+        form(action='/player/#{renderedFilename}/keepMedia?password=#{password}&keepMedia=true' method='POST')
+          // form elements go here
+          button(type='submit') Keep Media True
+        br
+        form(action='/player/#{renderedFilename}/keepMedia?password=#{password}&keepMedia=false' method='POST')
+          // form elements go here
+          button(type='submit') Keep Media False
+        br
 
-          //a(href='/player/#{renderedFilename}/add?password=#{password}&keepMedia=true' style="text-decoration:none;")
-          //  p(style="") Add Here
-          //a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
-          //  p(style="color:rgb(22, 29, 29);") Add Here
+        //a(href='/player/#{renderedFilename}/add?password=#{password}&keepMedia=true' style="text-decoration:none;")
+        //  p(style="") Add Here
+        //a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
+        //  p(style="color:rgb(22, 29, 29);") Add Here
 
-    script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
-    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')
-    script.
-      l = console.log;
-
-      let player;
-      let subtitlesFontSize, subtitlesLineHeight;
-
-      const language = '#{processingData.language}';
-      const languagesToLoop = !{JSON.stringify(languagesToLoop)};
-      const allLanguages = !{JSON.stringify(allLanguages)};
-      const filename = '#{renderedFilename}';
-
-      l('all languages');
-      l(allLanguages);
-
-      $(document).ready(function () {
-
-        let bottomTextShown = true;
-        $('#showHideControls').click(function(){
-
-          if(bottomTextShown){
-            $('.downloadLinks').hide()
-            $('.fileDetails').hide()
-            $('#addSubtitles').hide()
-            bottomTextShown = false;
-            $(this).text('Show Text');
-
-          } else {
-            $('.downloadLinks').show()
-            $('.fileDetails').show()
-            $('#addSubtitles').show()
-            bottomTextShown = true;
-            $(this).text('Hide Text');
-          }
-          l('clicked!');
-        })
-
-        // make all links open in new tab
-        const anchorTags = document.querySelectorAll('a');
-        anchorTags.forEach((anchor) => {
-          anchor.setAttribute('target', '_blank');
-        });
-
-        $('#increaseSize').click(function (event) {
-          adjustFontSize('increase');
-        });
-
-        $('#decreaseSize').click(function (event) {
-          adjustFontSize('decrease');
-        });
-
-        $('#increaseLineHeight').click(function (event) {
-          adjustLineHeight('increase');
-        });
-
-        $('#decreaseLineHeight').click(function (event) {
-          adjustLineHeight('decrease');
-        });
-
-        console.log("ready!");
-        var controls =
-          [
-            'progress', // The progress bar and scrubber for playback and buffering
-            'play-large', // The large play button in the center
-            // 'restart', // Restart playback
-            // 'rewind', // Rewind by the seek time (default 10 seconds)
-            'play', // Play/pause playback
-            // 'fast-forward', // Fast forward by the seek time (default 10 seconds)
-            'volume', // Volume control
-            'volume-slider',
-            'current-time', // The current time of playback
-            'duration', // The full duration of the media
-            'mute', // Toggle mute
-            'captions', // Toggle captions
-            'settings', // Settings menu
-            // 'pip', // Picture-in-picture (currently Safari only)
-            // 'airplay', // Airplay (currently Safari only)
-            // 'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
-            'fullscreen'
-          ];
-
-        player = new Plyr('#player', {
-          disableContextMenu: true,
-          controls,
-          captions: { active: true, language: 'auto', update: true },
-          settings: ['captions', 'secondCaptions']
-        });
-
-        player.on('ready', event => {
-          // change position of volume button
-          $('.plyr__volume').append($('.plyr__volume').children('').get().reverse());
-
-          // without this timeout it doesn't work properly
-          setTimeout(function(){
-            setStoredLineHeightAndFontSizeIfExists();
-          }, 200)
-
-        });
-
-        let intervalId;
-        player.on('playing', event => {
-          l('playing');
-          intervalId = setInterval(function () {
-            // Run your function here
-            setStoredVideoProgress();
-          }, 5000);
-        })
-
-        player.on('pause', event => {
-          clearInterval(intervalId);
-          setStoredVideoProgress();
-          l('pause');
-        })
-
-        player.on('ended', event => {
-          clearInterval(intervalId);
-          setStoredVideoProgress(true);
-          l('ended');
-        })
-
-        // ChatGPT says this should work but doesn't for me
-        // player.on('pause, ended', event => {
-        //   clearInterval(intervalId);
-        //   l('pause or ended!');
-        // })
-
-        // l('captions');
-
-        player.on('loadeddata', () => {
-          const currentStoredProgress = getStoredVideoProgress()[filename];
-          l('currentStoredProgress', currentStoredProgress);
-          if (currentStoredProgress) {
-            player.currentTime = currentStoredProgress;
-          }
-        })
-
-        // probably better to do on plyr ready if available as event
-        setTimeout(function(){
-
-          if (allLanguages.length > 1) {
-            createSecondCaptionsSetting();
-          }
-
-          $(function () {
-            $('.plyr__captions').draggable({
-              containment: 'plyr',
-              // drag: function (event, ui) {
-              // }
-            });
-          });
-
-
-          const captionsIsPressed = $('button[data-plyr="captions"]')?.hasClass('plyr__control--pressed')
-
-          if (!captionsIsPressed) {
-            $('button[data-plyr="captions"]').click();
-          }
-
-          let haveSetupSecondCaptions = false;
-          // set secondsDefault language
-          player.on('playing', function(){
-            const currentSecondLanguageDefaults = getSecondCaptionsDefaults()
-            // l('currentSecondLanguageDefaults', currentSecondLanguageDefaults)
-            // l(language);
-            if(!haveSetupSecondCaptions){
-              setTimeout(function () {
-                // open menu
-                $('.plyr__menu').children().eq(0).click()
-                const presetLanguage = currentSecondLanguageDefaults[language];
-                if (presetLanguage) {
-                  // set preset value
-                  $(`span#languageValue[value="${presetLanguage}"]`).parent().click();
-                  // close menu
-                  $('.plyr__menu').children().eq(0).click()
-                  haveSetupSecondCaptions = true;
-                }
-              }, 10)
-            }
-          })
-
-          player.on('cuechange', function (event) {
-            const text = event.detail.plyr.captions.currentTrackNode.activeCues[0]?.text;
-            const thing = getCurrentLanguageAndTrack()
-            // l(thing);
-
-            const selectedTranslation = $("#languageName[aria-checked='true'] > span[id*='languageValue']").attr("value");
-            if(selectedTranslation && selectedTranslation !== 'Disabled') {
-                const translation = findTextFromIndexNumber(selectedTranslation, thing.indexNumber);
-                const originalText = $('span.plyr__caption').text();
-
-                $('span.plyr__caption').text(`${originalText}\n${translation || ''}`);
-            }
-
-            // balance text not working at the moment
-            if(subtitlesFontSize){
-              $('.plyr__caption').css('font-size', subtitlesFontSize);
-            }
-
-            if(subtitlesLineHeight){
-              $('.plyr__caption').css('line-height', subtitlesLineHeight);
-            }
-            // l(text);
-          })
-        }, 200)
-      });
-    include js/secondCaptions
-    include js/captionsDisplay
-    include js/videoProgress
+  script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
+  link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.2/plyr.css' integrity='sha512-SwLjzOmI94KeCvAn5c4U6gS/Sb8UC7lrm40Wf+B0MQxEuGyDqheQHKdBmT4U+r+LkdfAiNH4QHrHtdir3pYBaw==' crossorigin='anonymous' referrerpolicy='no-referrer')
+  
+  include js/js-player
+  include js/secondCaptions
+  include js/captionsDisplay
+  include js/videoProgress
 

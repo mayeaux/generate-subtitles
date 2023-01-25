@@ -15,3 +15,5 @@ constants/apiTokens.txt
 api-transcriptions
 scripts/output-audio.aac
 scripts/trimmed.mp4
+
+*.log
