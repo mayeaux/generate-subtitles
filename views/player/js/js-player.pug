@@ -12,11 +12,6 @@ script.
   const filename = '#{renderedFilename}';
 
   $(document).ready(function () {
-    // make all links open in new tab // why not just do it on the markup? -osb910
-    const anchorTags = document.querySelectorAll('a');
-    anchorTags.forEach((anchor) => {
-      anchor.setAttribute('target', '_blank');
-    });
 
     $('#increaseSize').click(function (event) {
       adjustFontSize('increase');

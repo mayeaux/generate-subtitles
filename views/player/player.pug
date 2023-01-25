@@ -25,7 +25,7 @@ block content
         button.btn#decreaseLineHeight Subtitle Spacing -
         button.btn#toggleDetails Hide Text
       .downloadLinks
-        a.btn.startAnotherTranscription(href='/') Start Another Transcription
+        a.btn.startAnotherTranscription(href='/' target='_blank' rel='noreferrer') Start Another Transcription
 
         // ORIGINAL LANGUAGE FILES
         if processingData.translatedLanguages.length > 1
@@ -35,11 +35,11 @@ block content
           a(download href=`${filePathWithoutExtension}.srt`) Download
         .vttLinks.links
           span VTT (#{processingData.language})
-          a(href=`${filePathWithoutExtension}.vtt`) View
+          a(href=`${filePathWithoutExtension}.vtt` target='_blank' rel='noreferrer') View
           a(download href=`${filePathWithoutExtension}.vtt`) Download
         .txtLinks.links
           span TXT (#{processingData.language})
-          a(href=`${filePathWithoutExtension}.txt`) View
+          a(href=`${filePathWithoutExtension}.txt` target='_blank' rel='noreferrer') View
           a(download href=`${filePathWithoutExtension}.txt`) Download
 
         // TRANSLATED FILES //
@@ -49,7 +49,7 @@ block content
         each language in processingData.translatedLanguages
           .links
             span VTT (#{language})
-            a(href=`${filePathWithoutExtension}_${language}.vtt`) View
+            a(href=`${filePathWithoutExtension}_${language}.vtt` target='_blank' rel='noreferrer') View
             a(href=`${filePathWithoutExtension}_${language}.vtt` download) Download
         .links
           a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`) Download File
@@ -57,7 +57,7 @@ block content
         each property, value in processingData
           p #{value}: #{property}
       #addTranslation
-        a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
+        a(href=`/player/` + renderedFilename + `/add` target='_blank' rel='noreferrer' style="text-decoration:none;")
           p(style="color:rgb(22, 29, 29);") Add Here
             //p Filename: #{processingData.filename}
       if userAuthed
@@ -70,9 +70,9 @@ block content
           button(type='submit') Keep Media False
         br
 
-        //a(href='/player/#{renderedFilename}/add?password=#{password}&keepMedia=true' style="text-decoration:none;")
+        //a(href='/player/#{renderedFilename}/add?password=#{password}&keepMedia=true' target='_blank' rel='noreferrer' style="text-decoration:none;")
         //  p(style="") Add Here
-        //a(href=`/player/` + renderedFilename + `/add` style="text-decoration:none;")
+        //a(href=`/player/` + renderedFilename + `/add` target='_blank' rel='noreferrer' style="text-decoration:none;")
         //  p(style="color:rgb(22, 29, 29);") Add Here
 
   script(src = 'https://cdn.plyr.io/3.7.2/plyr.js')
