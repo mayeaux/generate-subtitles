@@ -3,8 +3,7 @@ include controllers/page-buttons.pug
 script.
   l = console.log;
 
-  let player;
-  let subtitlesFontSize, subtitlesLineHeight;
+  let player, subtitlesFontSize, subtitlesLineHeight;
 
   const language = '#{processingData.language}';
   const languagesToLoop = !{JSON.stringify(languagesToLoop)};
@@ -12,22 +11,6 @@ script.
   const filename = '#{renderedFilename}';
 
   $(document).ready(function () {
-
-    $('#increaseSize').click(function (event) {
-      adjustFontSize('increase');
-    });
-
-    $('#decreaseSize').click(function (event) {
-      adjustFontSize('decrease');
-    });
-
-    $('#increaseLineHeight').click(function (event) {
-      adjustLineHeight('increase');
-    });
-
-    $('#decreaseLineHeight').click(function (event) {
-      adjustLineHeight('decrease');
-    });
 
     console.log("ready!");
     var controls =
@@ -178,6 +161,16 @@ script.
 
   $('body').on('click', evt => {
     const target = $(evt.target);
+
     const [toggleDetailsBtn] = target.closest('#toggleDetails');
     toggleDetailsBtn && toggleDetails();
+    const [increaseSizeBtn] = target.closest('#increaseSize');
+    increaseSizeBtn && adjustFontSize('increase');
+    const [decreaseSizeBtn] = target.closest('#decreaseSize');
+    decreaseSizeBtn && adjustFontSize('decrease');
+    const [increaseLineHeightBtn] = target.closest('#increaseLineHeight');
+    increaseLineHeightBtn && adjustLineHeight('increase');
+    const [decreaseLineHeightBtn] = target.closest('#decreaseLineHeight');
+    decreaseLineHeightBtn && adjustLineHeight('decrease');
+
   });
