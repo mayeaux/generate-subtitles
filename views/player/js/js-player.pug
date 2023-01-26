@@ -3,91 +3,51 @@ include controllers/page-buttons.pug
 script.
   l = console.log;
 
-  let player, subtitlesFontSize, subtitlesLineHeight;
+  let subtitlesFontSize, subtitlesLineHeight, intervalId;
 
   const language = '#{processingData.language}';
   const languagesToLoop = !{JSON.stringify(languagesToLoop)};
   const allLanguages = !{JSON.stringify(allLanguages)};
   const filename = '#{renderedFilename}';
 
-  $(document).ready(function () {
+  const controls = [
+    'progress', // The progress bar and scrubber for playback and buffering
+    'play-large', // The large play button in the center
+    //- 'restart', // Restart playback
+    //- 'rewind', // Rewind by the seek time (default 10 seconds)
+    'play', // Play/pause playback
+    //- 'fast-forward', // Fast forward by the seek time (default 10 seconds)
+    'volume', // Volume control
+    'volume-slider',
+    'current-time', // The current time of playback
+    'duration', // The full duration of the media
+    'mute', // Toggle mute
+    'captions', // Toggle captions
+    'settings', // Settings menu
+    'pip', // Picture-in-picture (currently Safari only) // works on chrome -osb910
+    //- 'airplay', // Airplay (currently Safari only)
+    //- 'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
+    'fullscreen'
+  ];
 
-    console.log("ready!");
-    var controls =
-      [
-        'progress', // The progress bar and scrubber for playback and buffering
-        'play-large', // The large play button in the center
-        // 'restart', // Restart playback
-        // 'rewind', // Rewind by the seek time (default 10 seconds)
-        'play', // Play/pause playback
-        // 'fast-forward', // Fast forward by the seek time (default 10 seconds)
-        'volume', // Volume control
-        'volume-slider',
-        'current-time', // The current time of playback
-        'duration', // The full duration of the media
-        'mute', // Toggle mute
-        'captions', // Toggle captions
-        'settings', // Settings menu
-        // 'pip', // Picture-in-picture (currently Safari only)
-        // 'airplay', // Airplay (currently Safari only)
-        // 'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
-        'fullscreen'
-      ];
+  const player = new Plyr('#player', {
+    disableContextMenu: true,
+    controls,
+    captions: {active: true, language: 'auto', update: true},
+    settings: ['captions', 'secondCaptions']
+  });
 
-    player = new Plyr('#player', {
-      disableContextMenu: true,
-      controls,
-      captions: { active: true, language: 'auto', update: true },
-      settings: ['captions', 'secondCaptions']
-    });
-
-    player.on('ready', event => {
-      // change position of volume button
-      $('.plyr__volume').append($('.plyr__volume').children('').get().reverse());
-
-      // without this timeout it doesn't work properly
-      setTimeout(function(){
-        setStoredLineHeightAndFontSizeIfExists();
-      }, 200)
-
-    });
-
-    let intervalId;
-    player.on('playing', event => {
-      l('playing');
-      intervalId = setInterval(function () {
-        // Run your function here
-        setStoredVideoProgress();
-      }, 5000);
-    })
-
-    player.on('pause', event => {
-      clearInterval(intervalId);
-      setStoredVideoProgress();
-      l('pause');
-    })
-
-    player.on('ended', event => {
-      clearInterval(intervalId);
-      setStoredVideoProgress(true);
-      l('ended');
-    })
-
-    // ChatGPT says this should work but doesn't for me
-    // player.on('pause, ended', event => {
-    //   clearInterval(intervalId);
-    //   l('pause or ended!');
-    // })
-
+  $(document).ready(() => {
     // l('captions');
 
     player.on('loadeddata', () => {
+      l('loadeddata');
       const currentStoredProgress = getStoredVideoProgress()[filename];
       l('currentStoredProgress', currentStoredProgress);
       if (currentStoredProgress) {
         player.currentTime = currentStoredProgress;
       }
-    })
+    });
 
     // probably better to do on plyr ready if available as event
     setTimeout(function(){
@@ -172,5 +132,29 @@ script.
     increaseLineHeightBtn && adjustLineHeight('increase');
     const [decreaseLineHeightBtn] = target.closest('#decreaseLineHeight');
     decreaseLineHeightBtn && adjustLineHeight('decrease');
+    const [videoPlayer] = target.closest('#player');
 
+  });
+
+  player.on('ready', event => {
+    l('ready');
+    // change position of volume button
+    $('.plyr__volume').append($('.plyr__volume').children().get().reverse());
+
+    // without this timeout it doesn't work properly
+    setTimeout(() => setStoredLineHeightAndFontSizeIfExists(), 200);
+  });
+
+  player.on('playing', evt => {
+    l(evt.type);
+    intervalId = setInterval(function () {
+      // Run your function here
+      setStoredVideoProgress();
+    }, 5000);
+  });
+
+  player.on('pause ended', evt => {
+    l(evt.type);
+    clearInterval(intervalId);
+    setStoredVideoProgress(evt.type === 'ended');
   });
