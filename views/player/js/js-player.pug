@@ -45,15 +45,6 @@ script.
         createSecondCaptionsSetting();
       }
 
-      $(function () {
-        $('.plyr__captions').draggable({
-          containment: 'plyr',
-          // drag: function (event, ui) {
-          // }
-        });
-      });
-
-
       const captionsIsPressed = $('button[data-plyr="captions"]')?.hasClass('plyr__control--pressed')
 
       if (!captionsIsPressed) {
@@ -152,4 +143,9 @@ script.
     l('loadeddata');
     const currentStoredProgress = getStoredVideoProgress()[filename];
     player.currentTime = currentStoredProgress === player.duration ? 0 : currentStoredProgress;
+  });
+
+  $('.plyr__captions').draggable({
+    containment: 'plyr',
+    //- drag: (evt, ui) => {}
   });
