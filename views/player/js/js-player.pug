@@ -38,17 +38,6 @@ script.
   });
 
   $(document).ready(() => {
-    // l('captions');
-
-    player.on('loadeddata', () => {
-      l('loadeddata');
-      const currentStoredProgress = getStoredVideoProgress()[filename];
-      l('currentStoredProgress', currentStoredProgress);
-      if (currentStoredProgress) {
-        player.currentTime = currentStoredProgress;
-      }
-    });
-
     // probably better to do on plyr ready if available as event
     setTimeout(function(){
 
@@ -157,4 +146,10 @@ script.
     l(evt.type);
     clearInterval(intervalId);
     setStoredVideoProgress(evt.type === 'ended');
+  });
+
+  player.on('loadeddata', () => {
+    l('loadeddata');
+    const currentStoredProgress = getStoredVideoProgress()[filename];
+    player.currentTime = currentStoredProgress === player.duration ? 0 : currentStoredProgress;
   });
