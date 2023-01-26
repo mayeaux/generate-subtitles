@@ -33,14 +33,17 @@ block content
         .srtLinks.links
           span SRT (#{processingData.language})
           a(download href=`${filePathWithoutExtension}.srt`) Download
+          button.btn.copy-btn Copy
         .vttLinks.links
           span VTT (#{processingData.language})
           a(href=`${filePathWithoutExtension}.vtt` target='_blank' rel='noreferrer') View
           a(download href=`${filePathWithoutExtension}.vtt`) Download
+          button.btn.copy-btn Copy
         .txtLinks.links
           span TXT (#{processingData.language})
           a(href=`${filePathWithoutExtension}.txt` target='_blank' rel='noreferrer') View
           a(download href=`${filePathWithoutExtension}.txt`) Download
+          button.btn.copy-btn Copy
 
         // TRANSLATED FILES //
         if processingData.translatedLanguages.length > 0
@@ -51,8 +54,10 @@ block content
             span VTT (#{language})
             a(href=`${filePathWithoutExtension}_${language}.vtt` target='_blank' rel='noreferrer') View
             a(href=`${filePathWithoutExtension}_${language}.vtt` download) Download
+            button.btn.copy-btn Copy
         .links
           a(download href=`${filePathWithoutExtension}${processingData.fileExtension}`) Download File
+          button.btn.copy-btn Copy
       .fileDetails
         each property, value in processingData
           p #{value}: #{property}

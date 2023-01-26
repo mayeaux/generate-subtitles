@@ -59,6 +59,8 @@ script.
     }
   }
 
+  /*** EVENT LISTENERS ***/
+
   $('body').on('click', evt => {
     const target = $(evt.target);
 
@@ -73,6 +75,8 @@ script.
     const [decreaseLineHeightBtn] = target.closest('#decreaseLineHeight');
     decreaseLineHeightBtn && adjustLineHeight('decrease');
     const [videoPlayer] = target.closest('#player');
+    const [copyBtn] = target.closest('.copy-btn');
+    copyBtn && copyLink(copyBtn);
 
   });
 
