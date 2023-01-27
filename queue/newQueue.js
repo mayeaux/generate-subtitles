@@ -117,15 +117,14 @@ async function runJob (jobObject) {
 function addToJobProcessOrQueue (jobObject) {
   const { websocketNumber, skipToFront } = jobObject;
 
-  l('skipToFront');
-  l(skipToFront);
+  l(`skipToFront: ${skipToFront}`);
 
   // put job on process if there is an available process
   for (let jobProcess of global.jobProcesses) {
     // get index here
     const { processNumber, job, endpoint, index } = jobProcess;
 
-    l(`jobProcess ${index}`);
+    // l(`jobProcess ${index}`);
 
     // process waiting for job
     const processCanTakeJob = job === undefined;

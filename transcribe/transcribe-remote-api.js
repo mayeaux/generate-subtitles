@@ -178,7 +178,7 @@ async function checkLatestData (dataEndpoint, latestProgress) {
 
   const { hoursRemaining, minutesRemaining, secondsRemaining, string: timeRemainingString } = timeRemaining || {};
 
-  l(`${language} ${model} ${percentDoneAsNumber} ${timeRemainingString} ${filename}`);
+  l(`${language} ${model} ${percentDoneAsNumber} ${timeRemainingString} ${filename}`.green);
 
   const timeElapsedString = timeElapsed;
 

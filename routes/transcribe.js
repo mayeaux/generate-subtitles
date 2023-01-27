@@ -47,8 +47,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const pathname = urlObject.pathname;
     const isYtdlp = pathname === '/ytdlp';
 
-    l('isYtdlp');
-    l(isYtdlp);
+    l(`Is ytdlp: ${isYtdlp}`);
 
     let language = req.body.language;
     let model = req.body.model;
@@ -188,8 +187,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const amountInQueue = global.newQueue.length
     const totalOutstanding = currentlyRunningJobs + amountInQueue - maxConcurrentJobs + 1;
 
-    l('totaloutstanding');
-    l(totalOutstanding);
+    l(`Total Outstanding: ${totalOutstanding}`);
 
     /** WEBSOCKET FUNCTIONALITY END **/
 
@@ -255,6 +253,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       totalOutstanding,
     })
 
+    const shouldSkipToFront = skipToFront === 'true' || isYtdlp;
+
     const transcriptionJobItem = {
       uploadedFilePath,
       language,
@@ -274,6 +274,7 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
       skipToFront: skipToFront === 'true',
       totalOutstanding,
       ip,
+      keepMedia: isYtdlp,
 
       uploadFilePath: uploadedFilePath, // transcribe-api-wrapped
       filePath: uploadedFilePath, // transcribe remote server

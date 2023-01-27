@@ -9,6 +9,8 @@ const fs = require('fs');
 const {createServer} = require('http');
 const sessions = require('express-session');
 const _ = require('lodash');
+const colors = require('colors');
+
 l = console.log;
 const { deleteOldFiles } = require('./scripts/deleteTranscriptionUploads');
 

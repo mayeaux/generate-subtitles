@@ -50,8 +50,8 @@ router.get('/player/:timestampedFileName' , async function (req, res, next) {
     // l('processing data');
     // l(processingData);
     //
-    l('languages to loop');
-    l(languagesToLoop);
+    // l('languages to loop');
+    // l(languagesToLoop);
 
     let allLanguages = languagesToLoop.slice();
 
