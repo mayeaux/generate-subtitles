@@ -8,7 +8,13 @@ const path = require('path');
 const WebSocket = require('ws');
 const convert = require('cyrillic-to-latin');
 const extraAudioFromVideoIfNeeded = require('../scripts/extractAudioFfmpeg');
-const { delayPromise, createFile, createOrUpdateProcessingData, getWebsocketConnectionByNumberToUse } = require('../helpers/utils');
+const {
+  delayPromise,
+  createFile,
+  createOrUpdateProcessingData,
+  getWebsocketConnectionByNumberToUse,
+  generateRandomNumber
+} = require('../helpers/utils');
 const { createTranslatedVtts, saveOriginalProcessingDataJson, generateProcessingDataString } = require('../lib/transcribe-api');
 
 const l = console.log;
@@ -433,11 +439,6 @@ module.exports = runRemoteTranscriptionJob;
 
 
 /** TESTING **/
-
-
-function generateRandomNumber () {
-  return Math.floor(Math.random() * 10000000000).toString();
-}
 
 // test run
 async function realMain () {

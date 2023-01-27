@@ -18,6 +18,7 @@ const {
   makeFileNameSafe,
   getOriginalFilesObject,
 } = require('../lib/transcribing');
+const { generateRandomNumber } = require('../helpers/utils')
 const cancelProcessByNumberToUse = require('../lib/cancelProcessByNumberToUse');
 const {addToJobProcessOrQueue, amountOfRunningJobs} = require('../queue/newQueue');
 const ffprobe = require('ffprobe');
@@ -31,16 +32,6 @@ const serverType = process.env.SERVER_TYPE || 'both';
 l('serverType');
 l(serverType)
 
-const transcribeHost = process.env.TRANSCRIBE_HOST || 'http://localhost:3002';
-
-l('transcribeHost');
-l(transcribeHost)
-
-let host = process.env.NODE_ENV === 'production' ? 'https://freesubtitles.ai' : 'http://localhost:3001';
-if (serverType === 'transcribe') {
-  host = transcribeHost;
-}
-
 let storageFolder = `${process.cwd()}/transcriptions`;
 
 if (serverType === 'transcribe') {
@@ -48,11 +39,6 @@ if (serverType === 'transcribe') {
   (async function () {
     await fs.ensureDir(storageFolder);
   })()
-}
-
-// generate random 10 digit number
-function generateRandomNumber () {
-  return Math.floor(Math.random() * 10000000000).toString();
 }
 
 const storage = multer.diskStorage({ // notice  you are calling the multer.diskStorage() method here, not multer()
@@ -107,7 +93,15 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     l(req.file);
 
     // get language and model
-    const { model, language, downloadLink, apiToken, websocketNumber, jobObject } = postBodyData;
+    const {
+      model,
+      language,
+      downloadLink,
+      apiToken,
+      websocketNumber,
+      jobObject,
+      apiEndpoint
+    } = postBodyData;
 
     // TODO: this comes from a gs frontend
     let parsedJobObject = {};
@@ -216,7 +210,8 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     })
 
     // build endpoint to hit
-    const transcribeDataEndpoint = `${host}/api/${numberToUse}`;
+    // TODO: if there is no API endpoint, then need to use the server host based on req
+    const transcribeDataEndpoint = `${apiEndpoint}/${numberToUse}`;
 
     const responseObject = {
       transcribeDataEndpoint, // endpoint to hit to get data

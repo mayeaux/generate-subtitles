@@ -1,7 +1,5 @@
 const l = console.log;
-
 const remoteServerData = require('../constants/remoteServerConfig');
-
 const {
   getQueueInformationByWebsocketNumber,
   sendOutQueuePositionUpdate,

@@ -53,10 +53,16 @@ function capitalizeFirstLetter (string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+// generate random 10 digit number
+function generateRandomNumber () {
+  return Math.floor(Math.random() * 10000000000).toString();
+}
+
 module.exports = {
   delayPromise,
   createFile,
   createOrUpdateProcessingData,
   getWebsocketConnectionByNumberToUse,
-  capitalizeFirstLetter
+  capitalizeFirstLetter,
+  generateRandomNumber
 }

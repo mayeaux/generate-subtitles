@@ -18,7 +18,7 @@ const {makeFileNameSafe} = require('../lib/files');
 const { addItemToQueue, getNumberOfPendingOrProcessingJobs } = require('../queue/queue');
 const { addToJobProcessOrQueue, amountOfRunningJobs } = require('../queue/newQueue');
 const { writeToProcessingDataFile } = require('../lib/transcribing');
-
+const { generateRandomNumber } = require('../helpers/utils')
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
@@ -108,11 +108,6 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
         percentDownloaded: 0,
       }), function () {});
 
-      // TODO: not the world's greatest implemention
-      function generateRandomNumber () {
-        return Math.floor(Math.random() * 10000000000).toString();
-      }
-
       const randomNumber = generateRandomNumber();
 
       filename =  await getFilename(downloadLink);
@@ -165,6 +160,8 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
     const domainName = req.hostname;
 
     const isFreeSubtitles = domainName === 'freesubtitles.ai';
+
+    // if freesubtitles server, and not using ytdlp, check upload size and duration
     if (isFreeSubtitles && !isYtdlp) {
 
       const amountOfSecondsInHour = 60 * 60;
