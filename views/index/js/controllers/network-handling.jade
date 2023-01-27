@@ -237,10 +237,20 @@ script.
 
     document.title = `${percentDoneAsNumber || 0}% Transcribed - ${fileName}`;
 
-    circleProgress.attr({
-      max: 100,
-      value: percentDoneAsNumber,
-    });
+    if(percentDoneAsNumber){
+      circleProgress.attr({
+        max: 100,
+        value: percentDoneAsNumber,
+      });
+    }
+
+    if(processingDataString === 'Translating..'){
+      circleProgress.attr({
+        max: 100,
+        value: 100,
+      });
+      $('#processingData').text('Transcription finished, translating..');
+    }
   }
 
   const renderProcessingFeedback = ({data, hitTheBackend}) => {
