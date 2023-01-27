@@ -9,7 +9,7 @@ script.
 
     const percentDownloaded = data.percentDownloaded;
     const startedAtTime = data.startedAtTime;
-    const fileName = data.fileName;
+    fileName = data.fileName;
     const totalFileSize = data.totalFileSize;
     const downloadSpeed = data.downloadSpeed;
     const {fileSizeUnit, fileSizeValue} = data;
@@ -149,6 +149,7 @@ script.
     $('.progress').show();
   }
 
+  // show queue position on frontend
   const renderQueue = ({place, log}) => {
     inTheQueue = true;
     l(log);
@@ -179,26 +180,15 @@ script.
 
   let latestProgress, globalTimeRemaining, myUploadStarted = false;
 
+  // progress from the remote transcription setup
   const handleProgressData = ({data, circleProgress}) => {
 
     $('#latestData').hide();
 
     // TODO: have to pass the function here
-    const { processingDataString, percentDoneAsNumber } = data;
+    const { processingDataString, percentDoneAsNumber, progressData } = data;
 
-    // const progressData = {
-    //   timeRemaining,
-    //   timeElapsed,
-    //   totalTimeEstimated,
-    //   speed,
-    //   title,
-    //   duration,
-    //   fileType,
-    //   language,
-    //   model
-    // }
-
-    function generateProcessingDataString({
+    const {
       timeRemaining,
       timeElapsed,
       totalTimeEstimated,
@@ -208,27 +198,44 @@ script.
       fileType,
       language,
       model
-    }) {
-      let processingData = [
-        "Time Remaining: " + timeRemaining,
-        "Time Elapsed: " + timeElapsed,
-        "Total Time Estimated: " + totalTimeEstimated,
-        "Speed: " + speed + " (f/s)",
-        "",
-        title,
-        "Duration: " + duration,
-        "File Type: " + fileType,
-        "Language: " + language,
-        "Model: " + model
-      ];
-      return processingData.join(" \n\n ");
-    }
+    } = progressData || {};
 
-    // const generateString = data.generateString;
-    //
-    // generateString('hello');
+    const { hoursRemaining, minutesRemaining, secondsRemaining } = timeRemaining || {};
+
+    const realTimeDataAvailable = hoursRemaining || minutesRemaining || secondsRemaining;
 
     $('#processingData').text(processingDataString);
+
+    if (window.decrementInterval){
+      clearInterval(window.decrementInterval);
+      delete window.decrementInterval;
+    }
+
+    globalTimeRemaining = timeRemaining;
+
+    if(realTimeDataAvailable){
+      window.decrementInterval = setInterval(() => {
+        globalTimeRemaining = decrementBySecond(globalTimeRemaining);
+
+        const newProcessingString = generateProcessingDataString({
+          timeRemaining: globalTimeRemaining.string,
+          timeElapsed,
+          totalTimeEstimated,
+          speed,
+          title,
+          duration,
+          fileType,
+          language,
+          model
+        });
+
+        l('decrementedTime', globalTimeRemaining);
+
+        $('#processingData').text(newProcessingString);
+      }, 1000);
+    }
+
+    document.title = `${percentDoneAsNumber || 0}% Transcribed - ${fileName}`;
 
     circleProgress.attr({
       max: 100,

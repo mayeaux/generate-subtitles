@@ -16,7 +16,7 @@ script.
   l(ytdlp)
 
   // global variables
-  let circleProgress, hitTheBackend, videoDurationInSeconds, filename, uploadStarted;
+  let circleProgress, hitTheBackend, videoDurationInSeconds, fileName, uploadStarted;
   let processStarted, processFailed, uploadFinished, processingData, timeRemaining;
   let downloadStarted, downloadFinished;
   let transcriptionFailed = false;
@@ -50,6 +50,8 @@ script.
   const uploadLimitInMB = !{uploadLimitInMB};
   const nodeEnvironment = `!{nodeEnv}`;
   const decrementBySecond = !{decrementBySecond};
+  const generateProcessingDataString = !{generateProcessingDataString};
+  const capitalizeFirstLetter = !{capitalizeFirstLetter};
   const forHumans = !{forHumans};
 
   // grab elements
@@ -151,7 +153,7 @@ script.
     /* DATA */
     const formData = new FormData();
     const [passedFile] = $('#file').prop('files');
-    const fileName = passedFile?.name;
+    fileName = passedFile?.name;
     let language = $('#language').data('value');
     const model = document.querySelector('#model').dataset.value;
     const modelName = document.querySelector('#model').textContent;

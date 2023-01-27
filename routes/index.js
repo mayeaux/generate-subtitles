@@ -3,6 +3,8 @@ const router = express.Router();
 const {forHumans, decrementBySecond} = require('../helpers/helpers')
 const { modelsArray, languagesArray } = require('../constants/constants');
 const fs = require('fs-extra')
+const { generateProcessingDataString } = require('../lib/transcribe-api');
+const { capitalizeFirstLetter  } = require('../helpers/utils');
 
 const l = console.log;
 
@@ -33,7 +35,9 @@ router.get('/', function (req, res, next) {
     uploadLimitInMB,
     modelsArray,
     languagesArray,
-    decrementBySecond
+    decrementBySecond,
+    generateProcessingDataString,
+    capitalizeFirstLetter
   });
 });
 
@@ -70,6 +74,8 @@ router.get('/ytdlp', async function (req, res, next) {
     modelsArray,
     languagesArray,
     decrementBySecond,
+    generateProcessingDataString,
+    capitalizeFirstLetter,
     ytdlp: true,
     user,
     skipToFront: skip

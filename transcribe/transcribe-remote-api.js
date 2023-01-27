@@ -202,9 +202,9 @@ async function checkLatestData (dataEndpoint, latestProgress) {
     uploadDurationInSeconds,
   } = localProcessingData;
 
-  const { percentDoneAsNumber, timeElapsed, timeRemaining, speed } = formattedProgress || {};
+  const {percentDoneAsNumber, timeElapsed, timeRemaining, speed} = formattedProgress || {};
 
-  const { hoursRemaining, minutesRemaining, secondsRemaining, string: timeRemainingString } = timeRemaining || {};
+  const {string: timeRemainingString} = timeRemaining || {};
 
   l(`${language} ${model} ${percentDoneAsNumber} ${timeRemainingString} ${filename}`.green);
 
@@ -239,7 +239,7 @@ async function checkLatestData (dataEndpoint, latestProgress) {
   }
 
   // transcription received by backend and starting
-  if (transcriptionIsStarting) {
+  if (transcriptionIsStarting || loadingModel) {
     l('checked remote backend and failed')
     await createOrUpdateProcessingData(processingJsonFile, {
       status: 'starting'
@@ -256,40 +256,16 @@ async function checkLatestData (dataEndpoint, latestProgress) {
           status: 'progress',
           // TODO: add GB amount to string
           processingDataString: 'Whisper is loading.. (loading model in GPU)',
-        }), function () {});
+        }), function () {
+        });
       }
     }
 
     // wait 5 seconds and hit remote API endpoint again
     await delayPromise(delayInMillisecondsBetweenChecks);
-    return await checkLatestData(dataEndpoint, latestProgress);
-
-  } else if (loadingModel) {
-    l('checked remote backend and loading model')
-
-
-    // send websocket progress
-    if (websocketConnection) {
-      // l('websocket connection exists');
-
-      if (websocketConnection) {
-        // tell frontend upload is done
-        websocketConnection.send(JSON.stringify({
-          status: 'progress',
-          processingDataString: 'Whisper is loading.. (loading model in GPU)', // TODO: say GB amount
-        }), function () {});
-      }
-    }
-
-    // TODO: save to processing data
-
-    // wait 5 seconds and hit remote API endpoint again
-    await delayPromise(delayInMillisecondsBetweenChecks);
-    return await checkLatestData(dataEndpoint, latestProgress);
-  }
-
+    return await checkLatestData(dataEndpoint);
   // TRANSCRIPTION IS PROCESSING
-  else if (transcriptionIsProcessing) {
+  } else if (transcriptionIsProcessing) {
     l('checked remote backend and processing')
 
 
@@ -317,18 +293,43 @@ async function checkLatestData (dataEndpoint, latestProgress) {
         model
       });
 
-      websocketConnection.send(JSON.stringify({
-        status: 'progress',
-        processingDataString,
-        percentDoneAsNumber,
-      }), function () {});
+      if(latestProgress !== percentDoneAsNumber) {
+        websocketConnection.send(JSON.stringify({
+          status: 'progress',
+          processingDataString,
+          percentDoneAsNumber,
+          progressData: {
+            timeRemaining,
+            timeElapsed: timeElapsedString,
+            // totalTimeEstimated: 'TODO',
+            speed,
+            title: filename,
+            duration: uploadDurationInSeconds,
+            fileType,
+            language,
+            model
+          }
+        }), function () {});
+      }
     }
+
+    // wait 5 seconds and hit remote API endpoint again
+    await delayPromise(delayInMillisecondsBetweenChecks);
+    return await checkLatestData(dataEndpoint, percentDoneAsNumber);
+
+    /** TRANSCRIPTION COMPLETED SUCCESSFULLY **/
+  } else if (transcriptionIsTranslating){
+    l('checked remote backend and completed')
+
+    websocketConnection.send(JSON.stringify({
+      status: 'progress',
+      processingDataString: 'Translating..',
+    }), function () {});
 
     // wait 5 seconds and hit remote API endpoint again
     await delayPromise(delayInMillisecondsBetweenChecks);
     return await checkLatestData(dataEndpoint, latestProgress);
 
-    /** TRANSCRIPTION COMPLETED SUCCESSFULLY **/
   } else if (transcriptionIsCompleted) {
     l('checked remote backend and completed')
 

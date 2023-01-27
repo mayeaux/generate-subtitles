@@ -60,7 +60,7 @@ form.form#form
           each language in languagesArray
             li.option(data-value=language.value tabindex='0')= language.name
   .group
-    label(for='modelSelect')#modelLabel Model (#{modelsArray.length} Options)
+    label(for='modelSelect')#modelLabel Model (Larger models take longer but are more accurate)
     .wrapper
       button#modelSelect.select-btn(type='button')
         span#model.select-value(name='model')= modelsArray[0].name
