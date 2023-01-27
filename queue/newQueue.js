@@ -1,136 +1,16 @@
-const transcribeWrapped = require('../transcribe/transcribe-wrapped');
-// const { sendOutQueuePositionUpdate } = require('../lib/websockets');
-const WebSocket = require('ws');
-
 const l = console.log;
-
-const maxConcurrentJobs = Number(process.env.CONCURRENT_AMOUNT);
 
 const remoteServerData = require('../constants/remoteServerConfig');
 
-const transcribeRemoteServer = require('../scripts/postAudioFile');
-const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped')
-const fs = require('fs-extra');
-
-
-// const remoteServerData = [{
-//   endpoint: 'http://localhost:3002/api',
-//   maxConcurrentJobs: 2,
-// }]
-
-// const remoteServerData = [{
-//   endpoint: 'http://31.12.82.146:11460/api',
-//   maxConcurrentJobs: 3,
-// },{
-//   endpoint: 'http://localhost:3002/api',
-//   maxConcurrentJobs: 2,
-// }]
-//
-// const remoteServerData = [{
-//   endpoint: 'http://localhost:3002/api',
-//   maxConcurrentJobs: 1,
-// }]
-
-// get position in queue based on websocketNumber
-function getQueueInformationByWebsocketNumber (websocketNumber) {
-  for (const [index, queueItem] of global.newQueue.entries()) {
-    if (queueItem.websocketNumber === websocketNumber) {
-      return {
-        queuePosition: index + 1, // 1
-        queueLength: global.newQueue.length, // 4
-        aheadOfYou: index,
-        behindYou: global.newQueue.length - index - 1
-      }
-    }
-  }
-  return false
-}
-
-function sendOutQueuePositionUpdate () {
-  // TODO: have to add it to change API jobs in the queue
-
-  // loop through websockets and tell them one less is processing
-  for (let [, websocket] of global.webSocketData.entries() ) {
-    // the actual websocket
-    // l(websocket.websocketNumber)
-    const websocketConnection = websocket.websocket;
-    const websocketNumber = websocket.websocketNumber;
-
-    if (websocketConnection.readyState === WebSocket.OPEN) {
-
-      const { queuePosition } = getQueueInformationByWebsocketNumber(websocketNumber);
-
-      // l('queuePosition');
-      // l(queuePosition);
-
-      if (queuePosition) {
-        websocketConnection.send(JSON.stringify({
-          message: 'queue',
-          placeInQueue: queuePosition
-        }), function () {});
-      }
-
-      // // TODO: send queue messages here
-      // websocketConnection.send(JSON.stringify('finishedProcessing'));
-    }
-  }
-
-
-
-  updateQueuePositionForApiJobs();
-}
-
-async function updateQueuePositionForApiJobs () {
-  for (const [index, queueItem] of global.newQueue.entries()) {
-    if (!queueItem.websocketNumber) {
-      const mergeData = {
-        status: 'queue',
-        queueData: {
-          queuePosition: index + 1, // 1
-          queueLength: global.newQueue.length, // 4
-          aheadOfYou: index,
-          behindYou: global.newQueue.length - index - 1,
-        }
-      }
-
-      const { numberToUse, apiToken } = queueItem;
-
-      const processingDataPath = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
-
-      await createOrUpdateProcessingData(processingDataPath, mergeData);
-    }
-  }
-}
-
-async function createOrUpdateProcessingData (processingPath, objectToMerge) {
-  l('processinGPath');
-  l(processingPath)
-
-  const dataExists = fs.existsSync(processingPath)
-
-  let originalObject;
-  if (dataExists) {
-    // read the original JSON file
-    const originalData = fs.readFileSync(processingPath, 'utf8');
-    // parse the JSON string into an object
-    originalObject = JSON.parse(originalData);
-  } else {
-    originalObject = {};
-  }
-
-  // merge the updateObject into originalObject
-  let mergedObject = Object.assign(originalObject, objectToMerge);
-
-  //stringify the updated object
-  let updatedData = JSON.stringify(mergedObject);
-
-  fs.writeFileSync(processingPath, updatedData);
-}
-
+const {
+  getQueueInformationByWebsocketNumber,
+  sendOutQueuePositionUpdate,
+  determineTranscribeFunctionToUse
+} = require('./helpers');
 
 let newJobProcessArray = [];
 
-// READ THE FILE SYNC HERE
+// TODO: READ THE FILE SYNC HERE
 // if file, then set it up based on that, otherwise max_concurrent
 // also change which function is called
 
@@ -162,55 +42,6 @@ global.jobProcesses = newJobProcessArray;
 
 // remove before merge
 global.webSocketData = [];
-
-const serverType = process.env.SERVER_TYPE || 'both';
-
-l(serverType)
-
-function determineTranscribeFunctionToUse (jobObject) {
-  const { websocketNumber, apiToken } = jobObject;
-
-  // don't process locally
-  const serverIsFrontend = serverType === 'frontend';
-
-  // process locally and have an API
-  const serverIsBoth = 'both';
-
-  // only have an API (dumb backend)
-  const serverIsTranscribe = 'transcribe';
-
-  if (serverIsFrontend) {
-    // server should act as frontend, and not generate subtitles with this instance
-    // transcribe with remote server
-    return transcribeRemoteServer;
-
-    // when people hit this route, it just checks status via get and saves it
-    // and then when it's done, it sets up the files and acts as the frontend
-
-  // server should act as both frontend (/file) and API (/api)
-  } else if (serverIsBoth) {
-
-    // if apiToken is present, then use that API
-    if (apiToken) {
-      return transcribeApiWrapped;
-    } else {
-      // local transcription tied with websocket
-      return transcribeWrapped
-    }
-
-  // server should act as transcribe
-  } else if (serverIsTranscribe) {
-
-    // only offer the API
-    return transcribeApiWrapped;
-
-  } else {
-    l('WRONG SERVER TYPE, DEFAULT TO ');
-    // default to transcribe api
-    return transcribeApiWrapped;
-  }
-}
-
 
 global.newQueue = [];
 

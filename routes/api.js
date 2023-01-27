@@ -86,6 +86,9 @@ router.post('/api', upload.single('file'), async function (req, res, next) {
     // fix body data
     const postBodyData = Object.assign({},req.body)
 
+    l('postBodyData');
+    l(postBodyData);
+
     // get file names
     const file = req.file;
     let originalFileName, uploadFileName, uploadFilePath;
