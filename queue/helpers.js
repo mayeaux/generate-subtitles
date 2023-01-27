@@ -1,9 +1,9 @@
 // get position in queue based on websocketNumber
-const WebSocket = require("ws");
-const { createOrUpdateProcessingData } = require("../helpers/utils");
-const transcribeRemoteServer = require("../transcribe/transcribe-remote-api");
-const transcribeApiWrapped = require("../transcribe/transcribe-api-wrapped");
-const transcribeWrapped = require("../transcribe/transcribe-wrapped");
+const WebSocket = require('ws');
+const { createOrUpdateProcessingData } = require('../helpers/utils');
+const transcribeRemoteServer = require('../transcribe/transcribe-remote-api');
+const transcribeApiWrapped = require('../transcribe/transcribe-api-wrapped');
+const transcribeWrapped = require('../transcribe/transcribe-wrapped');
 
 const serverType = process.env.SERVER_TYPE || 'both';
 

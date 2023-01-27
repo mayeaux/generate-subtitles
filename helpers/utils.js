@@ -1,5 +1,5 @@
-const fs = require("fs-extra");
-const WebSocket = require("ws");
+const fs = require('fs-extra');
+const WebSocket = require('ws');
 const delayPromise = (delayTime) => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -8,7 +8,7 @@ const delayPromise = (delayTime) => {
   });
 };
 
-async function createFile(filePath, fileData){
+async function createFile (filePath, fileData) {
   const options = {
     overwrite: true,
     encoding: 'utf8'
@@ -49,7 +49,7 @@ function getWebsocketConnectionByNumberToUse (numberToUse) {
   }
 }
 
-function capitalizeFirstLetter(string) {
+function capitalizeFirstLetter (string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
