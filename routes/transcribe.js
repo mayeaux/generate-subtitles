@@ -219,10 +219,12 @@ router.post('/file', upload.single('file'), async function (req, res, next) {
 
     const processingDataLocation = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
 
+    // TODO: there's two identical functions for writing to processing data
     await writeToProcessingDataFile(processingDataLocation, {
       language,
       model,
       startedAt : new Date(),
+      uploadDurationInSeconds,
     })
 
     // await fs.copy(newUploadLocation, finalResting);

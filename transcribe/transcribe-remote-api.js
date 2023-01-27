@@ -13,9 +13,13 @@ const {
   createFile,
   createOrUpdateProcessingData,
   getWebsocketConnectionByNumberToUse,
-  generateRandomNumber
+  generateRandomNumber,
 } = require('../helpers/utils');
-const { createTranslatedVtts, saveOriginalProcessingDataJson, generateProcessingDataString } = require('../lib/transcribe-api');
+const {
+  createTranslatedVtts,
+  saveOriginalProcessingDataJson,
+  generateProcessingDataString
+} = require('../lib/transcribe-api');
 
 const l = console.log;
 
@@ -112,10 +116,16 @@ async function transcribeViaRemoteApi (jobObject) {
   const whereWeWantAudio = `${process.cwd()}/transcriptions/${numberToUse}/${numberToUse}`;
 
   // extract audio from video (if audio, just copy to audio path)
-  await extraAudioFromVideoIfNeeded({
+  const fileType = await extraAudioFromVideoIfNeeded({
     videoInputPath: filePath,
     audioOutputPath: whereWeWantAudio
   });
+
+  const processingDataPath = `${process.cwd()}/transcriptions/${numberToUse}/processing_data.json`;
+
+  await createOrUpdateProcessingData(processingDataPath,
+    { fileType }
+  )
 
   // hit backend to start transcription and get data endpoint
   const dataEndpoint = await transcribeRemoteServer({
@@ -157,7 +167,14 @@ async function checkLatestData (dataEndpoint, latestProgress) {
   // l('apiData')
   // l(apiData)
 
-  const { numberToUse, status, language, model, formattedProgress } = apiData || {};
+  // data from api
+  const {
+    numberToUse,
+    status,
+    language,
+    model,
+    formattedProgress
+  } = apiData || {};
 
 
   // const remoteProcessingData = apiData.processingData;
@@ -177,8 +194,13 @@ async function checkLatestData (dataEndpoint, latestProgress) {
   const transcriptionIsProcessing = status === 'processing'
   const transcriptionIsCompleted = status === 'completed'
 
-
-  const { websocketNumber, originalFileNameWithExtension: filename } = localProcessingData;
+  // data from local processing
+  const {
+    websocketNumber,
+    originalFileNameWithExtension: filename,
+    fileType,
+    uploadDurationInSeconds,
+  } = localProcessingData;
 
   const { percentDoneAsNumber, timeElapsed, timeRemaining, speed } = formattedProgress || {};
 
@@ -283,16 +305,14 @@ async function checkLatestData (dataEndpoint, latestProgress) {
     if (websocketConnection) {
       // l('websocket connection exists');
 
-      const { originalFileNameWithExtension, uploadDurationInSeconds } = localProcessingData
-
       const processingDataString = generateProcessingDataString({
         timeRemaining: timeRemainingString,
         timeElapsed: timeElapsedString,
         // totalTimeEstimated: 'TODO',
         speed,
-        title: originalFileNameWithExtension,
-        duration: uploadDurationInSeconds, // TODO: have to save it earlier on backend to access it
-        fileType: 'Video', // TODO: have to detect this properly
+        title: filename,
+        duration: uploadDurationInSeconds,
+        fileType,
         language,
         model
       });

@@ -73,7 +73,7 @@ function getAudioCodec (ffprobeResponse) {
  *
  * @param videoInputPath - whatever original file is (video or audio)
  * @param audioOutputPath - should be like transcriptions/numberToUse/numberToUse
- * @returns {Promise<void>}
+ * @returns {Promise<string>}
  */
 async function extraAudioFromVideoIfNeeded ({ videoInputPath, audioOutputPath }) {
 
@@ -97,26 +97,31 @@ async function extraAudioFromVideoIfNeeded ({ videoInputPath, audioOutputPath })
     await extractAudio(videoInputPath, toExtractToPath);
     // move to passed (requested) path
     await fs.move(toExtractToPath, `${audioOutputPath}`, options);
+
+    return 'video'
   } else {
     // if audio, just move copy to audioFilePath (leave original to be changed later)
     await fs.copy(videoInputPath, audioOutputPath, options);
-  }
-}
 
-// const inputVideoPath = './trimmed.mp4';
-
-async function main () {
-  try {
-    await extraAudioFromVideoIfNeeded({
-      videoInputPath: inputVideoPath,
-      audioOutputPath: '12341203'
-    })
-  } catch (err) {
-    l('err');
-    l(err);
+    return 'audio'
   }
 }
 
 module.exports = extraAudioFromVideoIfNeeded
+
+
+// const inputVideoPath = './trimmed.mp4';
+
+// async function main () {
+//   try {
+//     await extraAudioFromVideoIfNeeded({
+//       videoInputPath: inputVideoPath,
+//       audioOutputPath: '12341203'
+//     })
+//   } catch (err) {
+//     l('err');
+//     l(err);
+//   }
+// }
 
 // main();
