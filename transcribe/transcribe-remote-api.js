@@ -172,13 +172,13 @@ async function checkLatestData (dataEndpoint, latestProgress) {
   const transcriptionIsCompleted = status === 'completed'
 
 
-  const { websocketNumber } = localProcessingData;
+  const { websocketNumber, originalFileNameWithExtension: filename } = localProcessingData;
 
   const { percentDoneAsNumber, timeElapsed, timeRemaining, speed } = formattedProgress || {};
 
   const { hoursRemaining, minutesRemaining, secondsRemaining, string: timeRemainingString } = timeRemaining || {};
 
-  l(language, model, percentDoneAsNumber, timeRemainingString);
+  l(`${language} ${model} ${percentDoneAsNumber} ${timeRemainingString} ${filename}`);
 
   const timeElapsedString = timeElapsed;
 
@@ -220,7 +220,7 @@ async function checkLatestData (dataEndpoint, latestProgress) {
     // TODO: pull out here
     // send websocket progress
     if (websocketConnection) {
-      l('websocket connection exists');
+      // l('websocket connection exists');
 
       if (websocketConnection) {
         // tell frontend upload is done
@@ -242,7 +242,7 @@ async function checkLatestData (dataEndpoint, latestProgress) {
 
     // send websocket progress
     if (websocketConnection) {
-      l('websocket connection exists');
+      // l('websocket connection exists');
 
       if (websocketConnection) {
         // tell frontend upload is done
@@ -275,7 +275,7 @@ async function checkLatestData (dataEndpoint, latestProgress) {
     // TODO: pull out into function
     // send progress to websocket
     if (websocketConnection) {
-      l('websocket connection exists');
+      // l('websocket connection exists');
 
       const { originalFileNameWithExtension, uploadDurationInSeconds } = localProcessingData
 
