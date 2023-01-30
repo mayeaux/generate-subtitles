@@ -25,10 +25,6 @@ if (nodeEnv === 'production') {
       maxConcurrentJobs: 2,
     },
     {
-      endpoint: 'http://96.3.27.33:40104/api',
-      maxConcurrentJobs: 2,
-    },
-    {
     endpoint: 'http://31.12.82.146:11460/api',
     maxConcurrentJobs: 2,
   }]
