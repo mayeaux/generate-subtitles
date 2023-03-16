@@ -54,17 +54,17 @@ block content
           }
         }
 
-        var table = document.getElementById("myTable");
-        var currentSort = null; // Keep track of the current sort column
+        let table = document.getElementById("myTable");
+        let currentSort = null; // Keep track of the current sort column
 
         table.addEventListener("click", function (event) {
           // Get the element that was clicked
-          var element = event.target;
+          let element = event.target;
 
           // If the element is a table header, sort the table by the corresponding column
           if (element.tagName == "TH") {
             // Get the index of the column that was clicked
-            var index = Array.prototype.indexOf.call(element.parentNode.children, element);
+            let index = Array.prototype.indexOf.call(element.parentNode.children, element);
 
             // If the same column was clicked twice, reverse the sort order
             if (currentSort === index) {
@@ -80,16 +80,16 @@ block content
 
         function sortTable(table, column, sortOrder) {
           // Get the rows of the table
-          var rows = table.rows;
+          let rows = table.rows;
 
           // Convert the rows to an array (we'll need to sort this array)
-          var rowArray = Array.prototype.slice.call(rows, 1);
+          let rowArray = Array.prototype.slice.call(rows, 1);
 
           // Sort the array of rows according to the values in the specified column
           rowArray.sort(function (a, b) {
             // Get the text content of the cells in the specified column
-            var A = a.cells[column].getAttribute("data-sort-value");
-            var B = b.cells[column].getAttribute("data-sort-value");
+            let A = a.cells[column].getAttribute("data-sort-value");
+            let B = b.cells[column].getAttribute("data-sort-value");
 
             // Check if the values are numeric or not
             if (isNaN(A) || isNaN(B)) {
